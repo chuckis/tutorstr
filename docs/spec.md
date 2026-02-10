@@ -65,6 +65,8 @@ Storage:
 | 30004 | Student Progress Log (encrypted) |
 | 30005 | Tutor Blog Post |
 
+See `docs/nostr-kinds.md` for full NIP-style definitions, tags, and schemas.
+
 ## 7. Event Definitions
 
 ### 7.1 Tutor Profile (kind 30000)
@@ -165,4 +167,3 @@ Future:
 
 /docs
   spec.md
-
