@@ -178,3 +178,77 @@
   cursor: pointer;
   justify-self: start;
 }
+
+.schedule-form {
+  display: grid;
+  gap: 0.85rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eaded2;
+}
+
+.schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.schedule-header h3 {
+  margin: 0;
+}
+
+.slot-row {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.slot-row label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.slot-row input {
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #e1d5c8;
+  font: inherit;
+}
+
+.slot-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.slot-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  background: #f7f0e8;
+  border: 1px solid #eaded2;
+  font-size: 0.9rem;
+}
+
+.schedule-view {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.schedule-view h3 {
+  margin: 0;
+}
+
+.schedule-view ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}

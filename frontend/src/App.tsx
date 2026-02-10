@@ -17,7 +17,24 @@ type TutorProfileEvent = {
   profile: TutorProfile;
 };
 
+type ScheduleSlot = {
+  start: string;
+  end: string;
+};
+
+type TutorSchedule = {
+  timezone: string;
+  slots: ScheduleSlot[];
+};
+
+type TutorScheduleEvent = {
+  pubkey: string;
+  created_at: number;
+  schedule: TutorSchedule;
+};
+
 const PROFILE_STORAGE = "tutorhub:profile";
+const SCHEDULE_STORAGE = "tutorhub:schedule";
 
 const emptyProfile: TutorProfile = {
   name: "",
@@ -28,12 +45,25 @@ const emptyProfile: TutorProfile = {
   avatarUrl: ""
 };
 
+const emptySchedule: TutorSchedule = {
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+  slots: []
+};
+
 function normalizeProfile(input: Partial<TutorProfile> | null | undefined) {
   return {
     ...emptyProfile,
     ...input,
     subjects: Array.isArray(input?.subjects) ? input?.subjects : [],
     languages: Array.isArray(input?.languages) ? input?.languages : []
+  };
+}
+
+function normalizeSchedule(input: Partial<TutorSchedule> | null | undefined) {
+  return {
+    ...emptySchedule,
+    ...input,
+    slots: Array.isArray(input?.slots) ? input?.slots : []
   };
 }
 
@@ -46,6 +76,7 @@ function parseList(value: string) {
 
 export default function App() {
   const [profile, setProfile] = useState<TutorProfile>(emptyProfile);
+  const [schedule, setSchedule] = useState<TutorSchedule>(emptySchedule);
   const [status, setStatus] = useState<string>("");
   const [lastEventId, setLastEventId] = useState<string>("");
   const [activeView, setActiveView] = useState<"directory" | "profile">(
@@ -56,6 +87,13 @@ export default function App() {
     null
   );
   const [subjectFilter, setSubjectFilter] = useState<string>("");
+  const [schedules, setSchedules] = useState<Record<string, TutorScheduleEvent>>(
+    {}
+  );
+  const [newSlot, setNewSlot] = useState<ScheduleSlot>({
+    start: "",
+    end: ""
+  });
 
   const keypair = useMemo(() => nostrClient.getOrCreateKeypair(), []);
 
@@ -64,7 +102,7 @@ export default function App() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as TutorProfile;
-        setProfile(parsed);
+        setProfile(normalizeProfile(parsed));
       } catch {
         // ignore invalid cache
       }
@@ -80,6 +118,35 @@ export default function App() {
           setProfile(parsed);
           localStorage.setItem(PROFILE_STORAGE, JSON.stringify(parsed));
           setLastEventId(event.id);
+        } catch {
+          // ignore malformed content
+        }
+      }
+    );
+
+    return () => unsubscribe();
+  }, [keypair.pubkey]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(SCHEDULE_STORAGE);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as TutorSchedule;
+        setSchedule(normalizeSchedule(parsed));
+      } catch {
+        // ignore invalid cache
+      }
+    }
+
+    const unsubscribe = nostrClient.subscribe(
+      { kinds: [30001], authors: [keypair.pubkey], limit: 1 },
+      (event) => {
+        try {
+          const parsed = normalizeSchedule(
+            JSON.parse(event.content) as TutorSchedule
+          );
+          setSchedule(parsed);
+          localStorage.setItem(SCHEDULE_STORAGE, JSON.stringify(parsed));
         } catch {
           // ignore malformed content
         }
@@ -120,6 +187,37 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = nostrClient.subscribe(
+      { kinds: [30001], limit: 200 },
+      (event) => {
+        try {
+          const parsed = normalizeSchedule(
+            JSON.parse(event.content) as TutorSchedule
+          );
+          setSchedules((prev) => {
+            const existing = prev[event.pubkey];
+            if (existing && existing.created_at >= event.created_at) {
+              return prev;
+            }
+            return {
+              ...prev,
+              [event.pubkey]: {
+                pubkey: event.pubkey,
+                created_at: event.created_at,
+                schedule: parsed
+              }
+            };
+          });
+        } catch {
+          // ignore malformed content
+        }
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
   async function handlePublish(event: React.FormEvent) {
     event.preventDefault();
     setStatus("Publishing...");
@@ -144,6 +242,46 @@ export default function App() {
         error instanceof Error ? error.message : "Failed to publish profile."
       );
     }
+  }
+
+  async function handlePublishSchedule(event: React.FormEvent) {
+    event.preventDefault();
+    setStatus("Publishing schedule...");
+
+    const tags: string[][] = [["t", "role:tutor"]];
+
+    try {
+      const payload = normalizeSchedule(schedule);
+      await nostrClient.publishReplaceableEvent(
+        30001,
+        JSON.stringify(payload),
+        tags
+      );
+      localStorage.setItem(SCHEDULE_STORAGE, JSON.stringify(payload));
+      setStatus("Schedule published.");
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : "Failed to publish schedule."
+      );
+    }
+  }
+
+  function addSlot() {
+    if (!newSlot.start || !newSlot.end) {
+      return;
+    }
+    setSchedule((prev) => ({
+      ...prev,
+      slots: [...prev.slots, { start: newSlot.start, end: newSlot.end }]
+    }));
+    setNewSlot({ start: "", end: "" });
+  }
+
+  function removeSlot(index: number) {
+    setSchedule((prev) => ({
+      ...prev,
+      slots: prev.slots.filter((_, slotIndex) => slotIndex !== index)
+    }));
   }
 
   const filteredTutors = Object.values(tutors).filter((entry) => {
@@ -223,6 +361,22 @@ export default function App() {
                       : "—"}
                   </span>
                 </div>
+                <div className="schedule-view">
+                  <h3>Availability</h3>
+                  {schedules[selectedTutor.pubkey]?.schedule.slots.length ? (
+                    <ul>
+                      {schedules[selectedTutor.pubkey]?.schedule.slots.map(
+                        (slot, index) => (
+                          <li key={`${slot.start}-${index}`}>
+                            {slot.start} → {slot.end}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  ) : (
+                    <p className="muted">No schedule published yet.</p>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="card-grid">
@@ -250,86 +404,154 @@ export default function App() {
             )}
           </div>
         ) : (
-          <form className="profile-form" onSubmit={handlePublish}>
-            <label>
-              Name
-              <input
-                value={profile.name}
-                onChange={(event) =>
-                  setProfile({ ...profile, name: event.target.value })
-                }
-                placeholder="Ada Lovelace"
-              />
-            </label>
+          <>
+            <form className="profile-form" onSubmit={handlePublish}>
+              <label>
+                Name
+                <input
+                  value={profile.name}
+                  onChange={(event) =>
+                    setProfile({ ...profile, name: event.target.value })
+                  }
+                  placeholder="Ada Lovelace"
+                />
+              </label>
 
-            <label>
-              Bio
-              <textarea
-                value={profile.bio}
-                onChange={(event) =>
-                  setProfile({ ...profile, bio: event.target.value })
-                }
-                rows={4}
-                placeholder="I help students master math and CS fundamentals."
-              />
-            </label>
+              <label>
+                Bio
+                <textarea
+                  value={profile.bio}
+                  onChange={(event) =>
+                    setProfile({ ...profile, bio: event.target.value })
+                  }
+                  rows={4}
+                  placeholder="I help students master math and CS fundamentals."
+                />
+              </label>
 
-            <label>
-              Subjects (comma-separated)
-              <input
-                value={profile.subjects.join(", ")}
-                onChange={(event) =>
-                  setProfile({
-                    ...profile,
-                    subjects: parseList(event.target.value)
-                  })
-                }
-                placeholder="algebra, calculus, data structures"
-              />
-            </label>
+              <label>
+                Subjects (comma-separated)
+                <input
+                  value={profile.subjects.join(", ")}
+                  onChange={(event) =>
+                    setProfile({
+                      ...profile,
+                      subjects: parseList(event.target.value)
+                    })
+                  }
+                  placeholder="algebra, calculus, data structures"
+                />
+              </label>
 
-            <label>
-              Languages (comma-separated)
-              <input
-                value={profile.languages.join(", ")}
-                onChange={(event) =>
-                  setProfile({
-                    ...profile,
-                    languages: parseList(event.target.value)
-                  })
-                }
-                placeholder="English, Spanish"
-              />
-            </label>
+              <label>
+                Languages (comma-separated)
+                <input
+                  value={profile.languages.join(", ")}
+                  onChange={(event) =>
+                    setProfile({
+                      ...profile,
+                      languages: parseList(event.target.value)
+                    })
+                  }
+                  placeholder="English, Spanish"
+                />
+              </label>
 
-            <label>
-              Hourly rate (USD)
-              <input
-                type="number"
-                min="0"
-                value={profile.hourlyRate}
-                onChange={(event) =>
-                  setProfile({
-                    ...profile,
-                    hourlyRate: Number(event.target.value)
-                  })
-                }
-              />
-            </label>
+              <label>
+                Hourly rate (USD)
+                <input
+                  type="number"
+                  min="0"
+                  value={profile.hourlyRate}
+                  onChange={(event) =>
+                    setProfile({
+                      ...profile,
+                      hourlyRate: Number(event.target.value)
+                    })
+                  }
+                />
+              </label>
 
-            <label>
-              Avatar URL
-              <input
-                value={profile.avatarUrl}
-                onChange={(event) =>
-                  setProfile({ ...profile, avatarUrl: event.target.value })
-                }
-                placeholder="https://example.com/avatar.png"
-              />
-            </label>
+              <label>
+                Avatar URL
+                <input
+                  value={profile.avatarUrl}
+                  onChange={(event) =>
+                    setProfile({ ...profile, avatarUrl: event.target.value })
+                  }
+                  placeholder="https://example.com/avatar.png"
+                />
+              </label>
 
-            <button type="submit">Publish Profile</button>
-          </form>
+              <button type="submit">Publish Profile</button>
+            </form>
+            <form className="schedule-form" onSubmit={handlePublishSchedule}>
+              <div className="schedule-header">
+                <h3>Availability</h3>
+                <span className="muted">{schedule.timezone}</span>
+              </div>
+
+              <label>
+                Timezone
+                <input
+                  value={schedule.timezone}
+                  onChange={(event) =>
+                    setSchedule({ ...schedule, timezone: event.target.value })
+                  }
+                  placeholder="UTC"
+                />
+              </label>
+
+              <div className="slot-row">
+                <label>
+                  Start
+                  <input
+                    type="datetime-local"
+                    value={newSlot.start}
+                    onChange={(event) =>
+                      setNewSlot({ ...newSlot, start: event.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  End
+                  <input
+                    type="datetime-local"
+                    value={newSlot.end}
+                    onChange={(event) =>
+                      setNewSlot({ ...newSlot, end: event.target.value })
+                    }
+                  />
+                </label>
+                <button type="button" className="ghost" onClick={addSlot}>
+                  Add slot
+                </button>
+              </div>
+
+              {schedule.slots.length ? (
+                <ul className="slot-list">
+                  {schedule.slots.map((slot, index) => (
+                    <li key={`${slot.start}-${index}`}>
+                      <span>
+                        {slot.start} → {slot.end}
+                      </span>
+                      <button
+                        type="button"
+                        className="ghost"
+                        onClick={() => removeSlot(index)}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">No slots added yet.</p>
+              )}
+
+              <button type="submit">Publish Schedule</button>
+            </form>
+          </>
         )}
 
         <div className="status">
