@@ -3,6 +3,30 @@
   gap: 1.25rem;
 }
 
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: #f1e9df;
+  padding: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid #eaded2;
+}
+
+.tabs button {
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #5c5751;
+}
+
+.tabs button.active {
+  background: #111111;
+  color: #fff;
+}
+
 .muted {
   color: #6b6761;
   margin: 0;
@@ -65,4 +89,92 @@
   display: grid;
   gap: 0.35rem;
   font-size: 0.9rem;
+}
+
+.directory {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.filter {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.filter input {
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid #e1d5c8;
+  font: inherit;
+}
+
+.card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.tutor-card {
+  text-align: left;
+  border: 1px solid #eaded2;
+  border-radius: 18px;
+  padding: 1.25rem;
+  background: #fff;
+  display: grid;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tutor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(23, 23, 23, 0.12);
+}
+
+.tutor-card h3 {
+  margin: 0;
+}
+
+.tutor-card p {
+  margin: 0;
+  color: #5c5751;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chips span {
+  background: #f1e9df;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.profile-view {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.profile-view h2 {
+  margin: 0;
+}
+
+.meta {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: #5c5751;
+}
+
+.ghost {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-weight: 600;
+  color: #111111;
+  cursor: pointer;
+  justify-self: start;
 }
