@@ -2,6 +2,8 @@ import { useState } from "react";
 import {
   BookingRequestEvent,
   BookingStatusEvent,
+  EncryptedMessage,
+  ProgressEntryEvent,
   TutorProfileEvent,
   TutorScheduleEvent
 } from "../types/nostr";
@@ -20,6 +22,10 @@ type DirectoryProps = {
     tutorPubkey: string,
     payload: Omit<BookingRequestEvent["request"], "bookingId">
   ) => void;
+  messagesByTutor: Record<string, EncryptedMessage[]>;
+  onSendMessage: (tutorPubkey: string, text: string) => void;
+  progressByTutor: Record<string, ProgressEntryEvent[]>;
+  onSendProgress: (tutorPubkey: string, entry: ProgressEntryEvent["entry"]) => void;
 };
 
 export function Directory({
@@ -30,7 +36,11 @@ export function Directory({
   studentNpub,
   myRequests,
   statuses,
-  onRequest
+  onRequest,
+  messagesByTutor,
+  onSendMessage,
+  progressByTutor,
+  onSendProgress
 }: DirectoryProps) {
   const [selectedTutor, setSelectedTutor] = useState<TutorProfileEvent | null>(
     null
@@ -46,6 +56,10 @@ export function Directory({
         myRequests={myRequests}
         statuses={statuses}
         onRequest={(payload) => onRequest(selectedTutor.pubkey, payload)}
+        messages={messagesByTutor[selectedTutor.pubkey] || []}
+        onSendMessage={(text) => onSendMessage(selectedTutor.pubkey, text)}
+        progressEntries={progressByTutor[selectedTutor.pubkey] || []}
+        onSendProgress={(entry) => onSendProgress(selectedTutor.pubkey, entry)}
       />
     );
   }

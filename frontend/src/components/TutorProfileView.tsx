@@ -1,6 +1,17 @@
-import { BookingRequestEvent, BookingStatusEvent, TutorProfileEvent, TutorScheduleEvent } from "../types/nostr";
+import {
+  BookingRequestEvent,
+  BookingStatusEvent,
+  EncryptedMessage,
+  ProgressEntryEvent,
+  TutorProfileEvent,
+  TutorScheduleEvent
+} from "../types/nostr";
 import { BookingRequestForm } from "./BookingRequestForm";
+import { MessageComposer } from "./MessageComposer";
+import { MessageThread } from "./MessageThread";
 import { MyBookingRequests } from "./MyBookingRequests";
+import { ProgressEntryForm } from "./ProgressEntryForm";
+import { ProgressEntryList } from "./ProgressEntryList";
 
 type TutorProfileViewProps = {
   entry: TutorProfileEvent;
@@ -12,6 +23,10 @@ type TutorProfileViewProps = {
   ) => void;
   myRequests: BookingRequestEvent[];
   statuses: Record<string, BookingStatusEvent>;
+  messages: EncryptedMessage[];
+  onSendMessage: (text: string) => void;
+  progressEntries: ProgressEntryEvent[];
+  onSendProgress: (entry: ProgressEntryEvent["entry"]) => void;
 };
 
 export function TutorProfileView({
@@ -21,7 +36,11 @@ export function TutorProfileView({
   studentNpub,
   onRequest,
   myRequests,
-  statuses
+  statuses,
+  messages,
+  onSendMessage,
+  progressEntries,
+  onSendProgress
 }: TutorProfileViewProps) {
   return (
     <div className="profile-view">
@@ -66,6 +85,15 @@ export function TutorProfileView({
         studentNpub={studentNpub}
         onSubmit={onRequest}
       />
+      <div className="private-panel">
+        <h3>Private messages</h3>
+        <MessageThread messages={messages} />
+        <MessageComposer onSend={onSendMessage} />
+      </div>
+      <div className="private-panel">
+        <ProgressEntryForm onSubmit={onSendProgress} />
+        <ProgressEntryList entries={progressEntries} />
+      </div>
       <MyBookingRequests
         requests={myRequests}
         statuses={statuses}

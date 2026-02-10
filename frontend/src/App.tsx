@@ -11,6 +11,9 @@ import { useBookingRequestsForTutor } from "./hooks/useBookingRequestsForTutor";
 import { useBookingStatusesForUser } from "./hooks/useBookingStatusesForUser";
 import { useMyBookingRequests } from "./hooks/useMyBookingRequests";
 import { useNostrKeypair } from "./hooks/useNostrKeypair";
+import { useEncryptedMessages } from "./hooks/useEncryptedMessages";
+import { useProgressEntries } from "./hooks/useProgressEntries";
+import { usePrivateMessagingActions } from "./hooks/usePrivateMessagingActions";
 import { useTutorDirectory } from "./hooks/useTutorDirectory";
 import { useTutorProfile } from "./hooks/useTutorProfile";
 import { useTutorSchedule } from "./hooks/useTutorSchedule";
@@ -34,6 +37,13 @@ export default function App() {
   );
   const { statuses } = useBookingStatusesForUser(keypair.pubkey);
   const { requests: myRequests } = useMyBookingRequests(keypair.pubkey);
+  const { byCounterparty: messagesByTutor } = useEncryptedMessages(
+    keypair.pubkey
+  );
+  const { byCounterparty: progressByTutor } = useProgressEntries(
+    keypair.pubkey
+  );
+  const { sendMessage, sendProgressEntry } = usePrivateMessagingActions();
 
   return (
     <main className="app">
@@ -57,6 +67,10 @@ export default function App() {
             onRequest={(tutorPubkey, payload) =>
               publishBookingRequest(tutorPubkey, payload)
             }
+            messagesByTutor={messagesByTutor}
+            onSendMessage={sendMessage}
+            progressByTutor={progressByTutor}
+            onSendProgress={sendProgressEntry}
           />
         ) : (
           <>
@@ -80,6 +94,46 @@ export default function App() {
                 })
               }
             />
+            <div className="requests-panel">
+              <h3>Private messages</h3>
+              <p className="muted">
+                Messages are encrypted (NIP-04) and only readable by participants.
+              </p>
+              {Object.entries(messagesByTutor).length === 0 ? (
+                <p className="muted">No messages yet.</p>
+              ) : (
+                <ul>
+                  {Object.entries(messagesByTutor).map(([counterparty, list]) => (
+                    <li key={counterparty}>
+                      <strong>{counterparty}</strong>
+                      <div className="muted">
+                        {list[list.length - 1]?.content || "—"}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="requests-panel">
+              <h3>Progress logs</h3>
+              <p className="muted">
+                Encrypted kind 30004 entries sent by students.
+              </p>
+              {Object.entries(progressByTutor).length === 0 ? (
+                <p className="muted">No progress entries yet.</p>
+              ) : (
+                <ul>
+                  {Object.entries(progressByTutor).map(([counterparty, list]) => (
+                    <li key={counterparty}>
+                      <strong>{counterparty}</strong>
+                      <div className="muted">
+                        {list[0]?.entry.topic || "—"}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </>
         )}
 

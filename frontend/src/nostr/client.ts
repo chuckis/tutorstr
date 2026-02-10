@@ -1,5 +1,5 @@
 import { SimplePool } from "nostr-tools/pool";
-import { nip19 } from "nostr-tools";
+import { nip04, nip19 } from "nostr-tools";
 import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
 import { DEFAULT_RELAYS } from "./config";
 
@@ -68,6 +68,31 @@ export class NostrClient {
 
     await this.publish(event);
     return event;
+  }
+
+  async encryptContent(recipientPubkey: string, plaintext: string) {
+    const { secretKey } = this.getOrCreateKeypair();
+    return nip04.encrypt(secretKey, recipientPubkey, plaintext);
+  }
+
+  async decryptContent(senderPubkey: string, ciphertext: string) {
+    const { secretKey } = this.getOrCreateKeypair();
+    try {
+      return await nip04.decrypt(secretKey, senderPubkey, ciphertext);
+    } catch {
+      return null;
+    }
+  }
+
+  async publishEncryptedEvent(
+    kind: number,
+    recipientPubkey: string,
+    plaintext: string,
+    tags: string[][] = []
+  ) {
+    const content = await this.encryptContent(recipientPubkey, plaintext);
+    const mergedTags = [["p", recipientPubkey], ...tags];
+    return this.publishEvent(kind, content, mergedTags);
   }
 
   getOrCreateKeypair() {

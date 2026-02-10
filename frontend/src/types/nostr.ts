@@ -57,3 +57,26 @@ export type BookingStatusEvent = {
   studentPubkey: string;
   status: BookingStatus;
 };
+
+export type EncryptedMessage = {
+  id: string;
+  created_at: number;
+  pubkey: string;
+  counterparty: string;
+  content: string;
+};
+
+export type ProgressEntry = {
+  bookingId?: string;
+  topic: string;
+  notes: string;
+  score?: number;
+};
+
+export type ProgressEntryEvent = {
+  id: string;
+  created_at: number;
+  pubkey: string;
+  counterparty: string;
+  entry: ProgressEntry;
+};
