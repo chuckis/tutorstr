@@ -1,1 +1,68 @@
-/* App-specific styles live in index.css for now. */
+.card {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.muted {
+  color: #6b6761;
+  margin: 0;
+}
+
+.identity {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  background: #f7f0e8;
+  border: 1px solid #eaded2;
+  font-size: 0.9rem;
+}
+
+.identity strong {
+  font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.profile-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.profile-form label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.profile-form input,
+.profile-form textarea {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid #e1d5c8;
+  font: inherit;
+  background: #fff;
+}
+
+.profile-form textarea {
+  resize: vertical;
+}
+
+.profile-form button {
+  justify-self: start;
+  border: none;
+  border-radius: 999px;
+  padding: 0.8rem 1.6rem;
+  font-weight: 600;
+  background: #111111;
+  color: #fff;
+  cursor: pointer;
+}
+
+.status {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
