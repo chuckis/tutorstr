@@ -1,298 +1,28 @@
-import { useEffect, useMemo, useState } from "react";
-import { nostrClient } from "./nostr/client";
+import { useState } from "react";
 import "./App.css";
-
-type TutorProfile = {
-  name: string;
-  bio: string;
-  subjects: string[];
-  languages: string[];
-  hourlyRate: number;
-  avatarUrl: string;
-};
-
-type TutorProfileEvent = {
-  pubkey: string;
-  created_at: number;
-  profile: TutorProfile;
-};
-
-type ScheduleSlot = {
-  start: string;
-  end: string;
-};
-
-type TutorSchedule = {
-  timezone: string;
-  slots: ScheduleSlot[];
-};
-
-type TutorScheduleEvent = {
-  pubkey: string;
-  created_at: number;
-  schedule: TutorSchedule;
-};
-
-const PROFILE_STORAGE = "tutorhub:profile";
-const SCHEDULE_STORAGE = "tutorhub:schedule";
-
-const emptyProfile: TutorProfile = {
-  name: "",
-  bio: "",
-  subjects: [],
-  languages: [],
-  hourlyRate: 0,
-  avatarUrl: ""
-};
-
-const emptySchedule: TutorSchedule = {
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-  slots: []
-};
-
-function normalizeProfile(input: Partial<TutorProfile> | null | undefined) {
-  return {
-    ...emptyProfile,
-    ...input,
-    subjects: Array.isArray(input?.subjects) ? input?.subjects : [],
-    languages: Array.isArray(input?.languages) ? input?.languages : []
-  };
-}
-
-function normalizeSchedule(input: Partial<TutorSchedule> | null | undefined) {
-  return {
-    ...emptySchedule,
-    ...input,
-    slots: Array.isArray(input?.slots) ? input?.slots : []
-  };
-}
-
-function parseList(value: string) {
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
+import { Directory } from "./components/Directory";
+import { IdentityCard } from "./components/IdentityCard";
+import { ProfileForm } from "./components/ProfileForm";
+import { ScheduleForm } from "./components/ScheduleForm";
+import { Tabs } from "./components/Tabs";
+import { useNostrKeypair } from "./hooks/useNostrKeypair";
+import { useTutorDirectory } from "./hooks/useTutorDirectory";
+import { useTutorProfile } from "./hooks/useTutorProfile";
+import { useTutorSchedule } from "./hooks/useTutorSchedule";
+import { useTutorSchedules } from "./hooks/useTutorSchedules";
 
 export default function App() {
-  const [profile, setProfile] = useState<TutorProfile>(emptyProfile);
-  const [schedule, setSchedule] = useState<TutorSchedule>(emptySchedule);
-  const [status, setStatus] = useState<string>("");
-  const [lastEventId, setLastEventId] = useState<string>("");
   const [activeView, setActiveView] = useState<"directory" | "profile">(
     "directory"
   );
-  const [tutors, setTutors] = useState<Record<string, TutorProfileEvent>>({});
-  const [selectedTutor, setSelectedTutor] = useState<TutorProfileEvent | null>(
-    null
-  );
-  const [subjectFilter, setSubjectFilter] = useState<string>("");
-  const [schedules, setSchedules] = useState<Record<string, TutorScheduleEvent>>(
-    {}
-  );
-  const [newSlot, setNewSlot] = useState<ScheduleSlot>({
-    start: "",
-    end: ""
-  });
-
-  const keypair = useMemo(() => nostrClient.getOrCreateKeypair(), []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(PROFILE_STORAGE);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as TutorProfile;
-        setProfile(normalizeProfile(parsed));
-      } catch {
-        // ignore invalid cache
-      }
-    }
-
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [30000], authors: [keypair.pubkey], limit: 1 },
-      (event) => {
-        try {
-          const parsed = normalizeProfile(
-            JSON.parse(event.content) as TutorProfile
-          );
-          setProfile(parsed);
-          localStorage.setItem(PROFILE_STORAGE, JSON.stringify(parsed));
-          setLastEventId(event.id);
-        } catch {
-          // ignore malformed content
-        }
-      }
-    );
-
-    return () => unsubscribe();
-  }, [keypair.pubkey]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(SCHEDULE_STORAGE);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as TutorSchedule;
-        setSchedule(normalizeSchedule(parsed));
-      } catch {
-        // ignore invalid cache
-      }
-    }
-
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [30001], authors: [keypair.pubkey], limit: 1 },
-      (event) => {
-        try {
-          const parsed = normalizeSchedule(
-            JSON.parse(event.content) as TutorSchedule
-          );
-          setSchedule(parsed);
-          localStorage.setItem(SCHEDULE_STORAGE, JSON.stringify(parsed));
-        } catch {
-          // ignore malformed content
-        }
-      }
-    );
-
-    return () => unsubscribe();
-  }, [keypair.pubkey]);
-
-  useEffect(() => {
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [30000], limit: 200 },
-      (event) => {
-        try {
-          const parsed = normalizeProfile(
-            JSON.parse(event.content) as TutorProfile
-          );
-          setTutors((prev) => {
-            const existing = prev[event.pubkey];
-            if (existing && existing.created_at >= event.created_at) {
-              return prev;
-            }
-            return {
-              ...prev,
-              [event.pubkey]: {
-                pubkey: event.pubkey,
-                created_at: event.created_at,
-                profile: parsed
-              }
-            };
-          });
-        } catch {
-          // ignore malformed content
-        }
-      }
-    );
-
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [30001], limit: 200 },
-      (event) => {
-        try {
-          const parsed = normalizeSchedule(
-            JSON.parse(event.content) as TutorSchedule
-          );
-          setSchedules((prev) => {
-            const existing = prev[event.pubkey];
-            if (existing && existing.created_at >= event.created_at) {
-              return prev;
-            }
-            return {
-              ...prev,
-              [event.pubkey]: {
-                pubkey: event.pubkey,
-                created_at: event.created_at,
-                schedule: parsed
-              }
-            };
-          });
-        } catch {
-          // ignore malformed content
-        }
-      }
-    );
-
-    return () => unsubscribe();
-  }, []);
-
-  async function handlePublish(event: React.FormEvent) {
-    event.preventDefault();
-    setStatus("Publishing...");
-
-    const tags: string[][] = [
-      ["t", "role:tutor"],
-      ...profile.subjects.map((subject) => ["t", `subject:${subject}`]),
-      ...profile.languages.map((language) => ["t", `language:${language}`])
-    ];
-
-    try {
-      const published = await nostrClient.publishReplaceableEvent(
-        30000,
-        JSON.stringify(profile),
-        tags
-      );
-      localStorage.setItem(PROFILE_STORAGE, JSON.stringify(profile));
-      setLastEventId(published.id);
-      setStatus("Profile published.");
-    } catch (error) {
-      setStatus(
-        error instanceof Error ? error.message : "Failed to publish profile."
-      );
-    }
-  }
-
-  async function handlePublishSchedule(event: React.FormEvent) {
-    event.preventDefault();
-    setStatus("Publishing schedule...");
-
-    const tags: string[][] = [["t", "role:tutor"]];
-
-    try {
-      const payload = normalizeSchedule(schedule);
-      await nostrClient.publishReplaceableEvent(
-        30001,
-        JSON.stringify(payload),
-        tags
-      );
-      localStorage.setItem(SCHEDULE_STORAGE, JSON.stringify(payload));
-      setStatus("Schedule published.");
-    } catch (error) {
-      setStatus(
-        error instanceof Error ? error.message : "Failed to publish schedule."
-      );
-    }
-  }
-
-  function addSlot() {
-    if (!newSlot.start || !newSlot.end) {
-      return;
-    }
-    setSchedule((prev) => ({
-      ...prev,
-      slots: [...prev.slots, { start: newSlot.start, end: newSlot.end }]
-    }));
-    setNewSlot({ start: "", end: "" });
-  }
-
-  function removeSlot(index: number) {
-    setSchedule((prev) => ({
-      ...prev,
-      slots: prev.slots.filter((_, slotIndex) => slotIndex !== index)
-    }));
-  }
-
-  const filteredTutors = Object.values(tutors).filter((entry) => {
-    if (!subjectFilter.trim()) {
-      return true;
-    }
-    const term = subjectFilter.trim().toLowerCase();
-    return entry.profile.subjects.some((subject) =>
-      subject.toLowerCase().includes(term)
-    );
-  });
+  const keypair = useNostrKeypair();
+  const { profile, setProfile, status, lastEventId, publishProfile } =
+    useTutorProfile(keypair.pubkey);
+  const { schedule, setSchedule, status: scheduleStatus, publishSchedule } =
+    useTutorSchedule(keypair.pubkey);
+  const { filteredTutors, subjectFilter, setSubjectFilter } =
+    useTutorDirectory();
+  const { schedules } = useTutorSchedules();
 
   return (
     <main className="app">
@@ -300,262 +30,34 @@ export default function App() {
         <h1>Tutorstr</h1>
         <p className="muted">Tutor Hub MVP console.</p>
 
-        <div className="tabs">
-          <button
-            type="button"
-            className={activeView === "directory" ? "active" : ""}
-            onClick={() => setActiveView("directory")}
-          >
-            Directory
-          </button>
-          <button
-            type="button"
-            className={activeView === "profile" ? "active" : ""}
-            onClick={() => setActiveView("profile")}
-          >
-            My Profile
-          </button>
-        </div>
+        <Tabs active={activeView} onChange={setActiveView} />
 
-        <div className="identity">
-          <span>npub</span>
-          <strong>{keypair.npub}</strong>
-        </div>
+        <IdentityCard npub={keypair.npub} />
 
         {activeView === "directory" ? (
-          <div className="directory">
-            <label className="filter">
-              Filter by subject
-              <input
-                value={subjectFilter}
-                onChange={(event) => setSubjectFilter(event.target.value)}
-                placeholder="calculus"
-              />
-            </label>
-
-            {selectedTutor ? (
-              <div className="profile-view">
-                <button
-                  type="button"
-                  className="ghost"
-                  onClick={() => setSelectedTutor(null)}
-                >
-                  Back to directory
-                </button>
-                <h2>{selectedTutor.profile.name || "Unnamed Tutor"}</h2>
-                <p>{selectedTutor.profile.bio || "No bio provided yet."}</p>
-                <div className="chips">
-                  {selectedTutor.profile.subjects.map((subject) => (
-                    <span key={subject}>{subject}</span>
-                  ))}
-                </div>
-                <div className="meta">
-                  <span>
-                    Languages:{" "}
-                    {selectedTutor.profile.languages.join(", ") || "—"}
-                  </span>
-                  <span>
-                    Rate:{" "}
-                    {selectedTutor.profile.hourlyRate
-                      ? `$${selectedTutor.profile.hourlyRate}/hr`
-                      : "—"}
-                  </span>
-                </div>
-                <div className="schedule-view">
-                  <h3>Availability</h3>
-                  {schedules[selectedTutor.pubkey]?.schedule.slots.length ? (
-                    <ul>
-                      {schedules[selectedTutor.pubkey]?.schedule.slots.map(
-                        (slot, index) => (
-                          <li key={`${slot.start}-${index}`}>
-                            {slot.start} → {slot.end}
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  ) : (
-                    <p className="muted">No schedule published yet.</p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="card-grid">
-                {filteredTutors.length === 0 ? (
-                  <p className="muted">No tutors found yet.</p>
-                ) : (
-                  filteredTutors.map((entry) => (
-                    <button
-                      key={entry.pubkey}
-                      type="button"
-                      className="tutor-card"
-                      onClick={() => setSelectedTutor(entry)}
-                    >
-                      <h3>{entry.profile.name || "Unnamed Tutor"}</h3>
-                      <p>{entry.profile.bio || "No bio provided."}</p>
-                      <div className="chips">
-                        {entry.profile.subjects.slice(0, 3).map((subject) => (
-                          <span key={subject}>{subject}</span>
-                        ))}
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
+          <Directory
+            entries={filteredTutors}
+            subjectFilter={subjectFilter}
+            onFilterChange={setSubjectFilter}
+            schedules={schedules}
+          />
         ) : (
           <>
-            <form className="profile-form" onSubmit={handlePublish}>
-              <label>
-                Name
-                <input
-                  value={profile.name}
-                  onChange={(event) =>
-                    setProfile({ ...profile, name: event.target.value })
-                  }
-                  placeholder="Ada Lovelace"
-                />
-              </label>
-
-              <label>
-                Bio
-                <textarea
-                  value={profile.bio}
-                  onChange={(event) =>
-                    setProfile({ ...profile, bio: event.target.value })
-                  }
-                  rows={4}
-                  placeholder="I help students master math and CS fundamentals."
-                />
-              </label>
-
-              <label>
-                Subjects (comma-separated)
-                <input
-                  value={profile.subjects.join(", ")}
-                  onChange={(event) =>
-                    setProfile({
-                      ...profile,
-                      subjects: parseList(event.target.value)
-                    })
-                  }
-                  placeholder="algebra, calculus, data structures"
-                />
-              </label>
-
-              <label>
-                Languages (comma-separated)
-                <input
-                  value={profile.languages.join(", ")}
-                  onChange={(event) =>
-                    setProfile({
-                      ...profile,
-                      languages: parseList(event.target.value)
-                    })
-                  }
-                  placeholder="English, Spanish"
-                />
-              </label>
-
-              <label>
-                Hourly rate (USD)
-                <input
-                  type="number"
-                  min="0"
-                  value={profile.hourlyRate}
-                  onChange={(event) =>
-                    setProfile({
-                      ...profile,
-                      hourlyRate: Number(event.target.value)
-                    })
-                  }
-                />
-              </label>
-
-              <label>
-                Avatar URL
-                <input
-                  value={profile.avatarUrl}
-                  onChange={(event) =>
-                    setProfile({ ...profile, avatarUrl: event.target.value })
-                  }
-                  placeholder="https://example.com/avatar.png"
-                />
-              </label>
-
-              <button type="submit">Publish Profile</button>
-            </form>
-            <form className="schedule-form" onSubmit={handlePublishSchedule}>
-              <div className="schedule-header">
-                <h3>Availability</h3>
-                <span className="muted">{schedule.timezone}</span>
-              </div>
-
-              <label>
-                Timezone
-                <input
-                  value={schedule.timezone}
-                  onChange={(event) =>
-                    setSchedule({ ...schedule, timezone: event.target.value })
-                  }
-                  placeholder="UTC"
-                />
-              </label>
-
-              <div className="slot-row">
-                <label>
-                  Start
-                  <input
-                    type="datetime-local"
-                    value={newSlot.start}
-                    onChange={(event) =>
-                      setNewSlot({ ...newSlot, start: event.target.value })
-                    }
-                  />
-                </label>
-                <label>
-                  End
-                  <input
-                    type="datetime-local"
-                    value={newSlot.end}
-                    onChange={(event) =>
-                      setNewSlot({ ...newSlot, end: event.target.value })
-                    }
-                  />
-                </label>
-                <button type="button" className="ghost" onClick={addSlot}>
-                  Add slot
-                </button>
-              </div>
-
-              {schedule.slots.length ? (
-                <ul className="slot-list">
-                  {schedule.slots.map((slot, index) => (
-                    <li key={`${slot.start}-${index}`}>
-                      <span>
-                        {slot.start} → {slot.end}
-                      </span>
-                      <button
-                        type="button"
-                        className="ghost"
-                        onClick={() => removeSlot(index)}
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="muted">No slots added yet.</p>
-              )}
-
-              <button type="submit">Publish Schedule</button>
-            </form>
+            <ProfileForm
+              profile={profile}
+              onChange={setProfile}
+              onSubmit={() => publishProfile(profile)}
+            />
+            <ScheduleForm
+              schedule={schedule}
+              onChange={setSchedule}
+              onSubmit={() => publishSchedule(schedule)}
+            />
           </>
         )}
 
         <div className="status">
-          <span>{status}</span>
+          <span>{scheduleStatus || status}</span>
           {lastEventId ? (
             <span className="muted">Last event: {lastEventId}</span>
           ) : null}
