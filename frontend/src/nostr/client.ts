@@ -54,6 +54,22 @@ export class NostrClient {
     await Promise.any(this.pool.publish(this.relays, event));
   }
 
+  async publishEvent(kind: number, content: string, tags: string[][] = []) {
+    const { secretKey } = this.getOrCreateKeypair();
+    const event = finalizeEvent(
+      {
+        kind,
+        created_at: Math.floor(Date.now() / 1000),
+        tags,
+        content
+      },
+      secretKey
+    ) as NostrEvent;
+
+    await this.publish(event);
+    return event;
+  }
+
   getOrCreateKeypair() {
     const stored = localStorage.getItem(NostrClient.KEY_STORAGE);
     if (stored) {
@@ -90,19 +106,7 @@ export class NostrClient {
     content: string,
     tags: string[][] = []
   ) {
-    const { secretKey } = this.getOrCreateKeypair();
-    const event = finalizeEvent(
-      {
-        kind,
-        created_at: Math.floor(Date.now() / 1000),
-        tags,
-        content
-      },
-      secretKey
-    ) as NostrEvent;
-
-    await this.publish(event);
-    return event;
+    return this.publishEvent(kind, content, tags);
   }
 
   async publishTestEvent() {

@@ -28,3 +28,32 @@ export type TutorScheduleEvent = {
   created_at: number;
   schedule: TutorSchedule;
 };
+
+export type BookingRequest = {
+  bookingId: string;
+  requestedSlot: ScheduleSlot;
+  message: string;
+  studentNpub: string;
+};
+
+export type BookingRequestEvent = {
+  id: string;
+  created_at: number;
+  pubkey: string;
+  tutorPubkey: string;
+  request: BookingRequest;
+};
+
+export type BookingStatus = {
+  bookingId: string;
+  status: "accepted" | "rejected" | "completed" | "cancelled";
+  note?: string;
+};
+
+export type BookingStatusEvent = {
+  id: string;
+  created_at: number;
+  pubkey: string;
+  studentPubkey: string;
+  status: BookingStatus;
+};

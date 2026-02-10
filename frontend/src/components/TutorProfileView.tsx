@@ -1,12 +1,28 @@
-import { TutorProfileEvent, TutorScheduleEvent } from "../types/nostr";
+import { BookingRequestEvent, BookingStatusEvent, TutorProfileEvent, TutorScheduleEvent } from "../types/nostr";
+import { BookingRequestForm } from "./BookingRequestForm";
+import { MyBookingRequests } from "./MyBookingRequests";
 
 type TutorProfileViewProps = {
   entry: TutorProfileEvent;
   schedule?: TutorScheduleEvent;
   onBack: () => void;
+  studentNpub: string;
+  onRequest: (
+    payload: Omit<BookingRequestEvent["request"], "bookingId">
+  ) => void;
+  myRequests: BookingRequestEvent[];
+  statuses: Record<string, BookingStatusEvent>;
 };
 
-export function TutorProfileView({ entry, schedule, onBack }: TutorProfileViewProps) {
+export function TutorProfileView({
+  entry,
+  schedule,
+  onBack,
+  studentNpub,
+  onRequest,
+  myRequests,
+  statuses
+}: TutorProfileViewProps) {
   return (
     <div className="profile-view">
       <button type="button" className="ghost" onClick={onBack}>
@@ -44,6 +60,17 @@ export function TutorProfileView({ entry, schedule, onBack }: TutorProfileViewPr
           <p className="muted">No schedule published yet.</p>
         )}
       </div>
+      <BookingRequestForm
+        tutorPubkey={entry.pubkey}
+        schedule={schedule}
+        studentNpub={studentNpub}
+        onSubmit={onRequest}
+      />
+      <MyBookingRequests
+        requests={myRequests}
+        statuses={statuses}
+        tutorPubkey={entry.pubkey}
+      />
     </div>
   );
 }

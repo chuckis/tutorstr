@@ -252,3 +252,78 @@
   gap: 0.4rem;
   font-size: 0.9rem;
 }
+
+.booking-form {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid #eaded2;
+  background: #fffaf5;
+}
+
+.booking-form select,
+.booking-form input,
+.booking-form textarea {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid #e1d5c8;
+  font: inherit;
+  background: #fff;
+}
+
+.requests-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid #eaded2;
+  background: #fffaf5;
+}
+
+.requests-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.requests-panel li {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  border: 1px solid #eaded2;
+  background: #ffffff;
+  font-size: 0.9rem;
+}
+
+.request-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-buttons button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #111111;
+  color: #fff;
+}
+
+.action-buttons button.ghost {
+  background: transparent;
+  color: #111111;
+  border: 1px solid #111111;
+}

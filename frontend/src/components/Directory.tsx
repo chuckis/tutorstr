@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { TutorProfileEvent, TutorScheduleEvent } from "../types/nostr";
+import {
+  BookingRequestEvent,
+  BookingStatusEvent,
+  TutorProfileEvent,
+  TutorScheduleEvent
+} from "../types/nostr";
 import { TutorCard } from "./TutorCard";
 import { TutorProfileView } from "./TutorProfileView";
 
@@ -8,13 +13,24 @@ type DirectoryProps = {
   subjectFilter: string;
   onFilterChange: (value: string) => void;
   schedules: Record<string, TutorScheduleEvent>;
+  studentNpub: string;
+  myRequests: BookingRequestEvent[];
+  statuses: Record<string, BookingStatusEvent>;
+  onRequest: (
+    tutorPubkey: string,
+    payload: Omit<BookingRequestEvent["request"], "bookingId">
+  ) => void;
 };
 
 export function Directory({
   entries,
   subjectFilter,
   onFilterChange,
-  schedules
+  schedules,
+  studentNpub,
+  myRequests,
+  statuses,
+  onRequest
 }: DirectoryProps) {
   const [selectedTutor, setSelectedTutor] = useState<TutorProfileEvent | null>(
     null
@@ -26,6 +42,10 @@ export function Directory({
         entry={selectedTutor}
         schedule={schedules[selectedTutor.pubkey]}
         onBack={() => setSelectedTutor(null)}
+        studentNpub={studentNpub}
+        myRequests={myRequests}
+        statuses={statuses}
+        onRequest={(payload) => onRequest(selectedTutor.pubkey, payload)}
       />
     );
   }

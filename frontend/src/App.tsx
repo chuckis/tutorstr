@@ -5,6 +5,11 @@ import { IdentityCard } from "./components/IdentityCard";
 import { ProfileForm } from "./components/ProfileForm";
 import { ScheduleForm } from "./components/ScheduleForm";
 import { Tabs } from "./components/Tabs";
+import { BookingRequestsPanel } from "./components/BookingRequestsPanel";
+import { useBookingActions } from "./hooks/useBookingActions";
+import { useBookingRequestsForTutor } from "./hooks/useBookingRequestsForTutor";
+import { useBookingStatusesForUser } from "./hooks/useBookingStatusesForUser";
+import { useMyBookingRequests } from "./hooks/useMyBookingRequests";
 import { useNostrKeypair } from "./hooks/useNostrKeypair";
 import { useTutorDirectory } from "./hooks/useTutorDirectory";
 import { useTutorProfile } from "./hooks/useTutorProfile";
@@ -23,6 +28,12 @@ export default function App() {
   const { filteredTutors, subjectFilter, setSubjectFilter } =
     useTutorDirectory();
   const { schedules } = useTutorSchedules();
+  const { publishBookingRequest, publishBookingStatus } = useBookingActions();
+  const { requests: incomingRequests } = useBookingRequestsForTutor(
+    keypair.pubkey
+  );
+  const { statuses } = useBookingStatusesForUser(keypair.pubkey);
+  const { requests: myRequests } = useMyBookingRequests(keypair.pubkey);
 
   return (
     <main className="app">
@@ -40,6 +51,12 @@ export default function App() {
             subjectFilter={subjectFilter}
             onFilterChange={setSubjectFilter}
             schedules={schedules}
+            studentNpub={keypair.npub}
+            myRequests={myRequests}
+            statuses={statuses}
+            onRequest={(tutorPubkey, payload) =>
+              publishBookingRequest(tutorPubkey, payload)
+            }
           />
         ) : (
           <>
@@ -52,6 +69,16 @@ export default function App() {
               schedule={schedule}
               onChange={setSchedule}
               onSubmit={() => publishSchedule(schedule)}
+            />
+            <BookingRequestsPanel
+              requests={incomingRequests}
+              statuses={statuses}
+              onRespond={(bookingId, studentPubkey, nextStatus) =>
+                publishBookingStatus(studentPubkey, {
+                  bookingId,
+                  status: nextStatus
+                })
+              }
             />
           </>
         )}
