@@ -9,39 +9,54 @@ export function useBookingStatusesForUser(pubkey: string) {
   >({});
 
   useEffect(() => {
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [30003], "#p": [pubkey], limit: 200 },
-      (event) => {
-        try {
-          const parsed = JSON.parse(event.content) as BookingStatus;
-          const bookingId =
-            parsed.bookingId || getTagValue(event.tags, "d") || event.id;
-          setStatuses((prev) => {
-            const existing = prev[bookingId];
-            if (existing && existing.created_at >= event.created_at) {
-              return prev;
-            }
-            return {
-              ...prev,
-              [bookingId]: {
-                id: bookingId,
-                created_at: event.created_at,
-                pubkey: event.pubkey,
-                studentPubkey: getTagValue(event.tags, "p") || pubkey,
-                status: {
-                  ...parsed,
-                  bookingId
-                }
+    const pushStatus = (event: {
+      content: string;
+      created_at: number;
+      pubkey: string;
+      tags: string[][];
+      id: string;
+    }) => {
+      try {
+        const parsed = JSON.parse(event.content) as BookingStatus;
+        const bookingId = parsed.bookingId || getTagValue(event.tags, "d") || event.id;
+        setStatuses((prev) => {
+          const existing = prev[bookingId];
+          if (existing && existing.created_at >= event.created_at) {
+            return prev;
+          }
+          return {
+            ...prev,
+            [bookingId]: {
+              id: bookingId,
+              created_at: event.created_at,
+              pubkey: event.pubkey,
+              studentPubkey: getTagValue(event.tags, "p") || pubkey,
+              status: {
+                ...parsed,
+                bookingId
               }
-            };
-          });
-        } catch {
-          // ignore malformed content
-        }
+            }
+          };
+        });
+      } catch {
+        // ignore malformed content
       }
+    };
+
+    const incoming = nostrClient.subscribe(
+      { kinds: [30003], "#p": [pubkey], limit: 200 },
+      pushStatus
     );
 
-    return () => unsubscribe();
+    const authored = nostrClient.subscribe(
+      { kinds: [30003], authors: [pubkey], limit: 200 },
+      pushStatus
+    );
+
+    return () => {
+      incoming();
+      authored();
+    };
   }, [pubkey]);
 
   const list = useMemo(

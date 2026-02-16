@@ -14,14 +14,19 @@ export function BookingRequestsPanel({
   statuses,
   onRespond
 }: BookingRequestsPanelProps) {
+  const pendingRequests = requests.filter((request) => {
+    const status = statuses[request.request.bookingId]?.status.status;
+    return status !== "accepted" && status !== "rejected";
+  });
+
   return (
     <div className="requests-panel">
       <h3>Incoming booking requests</h3>
-      {requests.length === 0 ? (
+      {pendingRequests.length === 0 ? (
         <p className="muted">No requests yet.</p>
       ) : (
         <ul>
-          {requests.map((request) => {
+          {pendingRequests.map((request) => {
             const status = statuses[request.request.bookingId]?.status.status;
             return (
               <li key={request.request.bookingId}>
