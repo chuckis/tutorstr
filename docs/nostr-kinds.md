@@ -90,3 +90,24 @@ Content schema (JSON):
 Tags:
 - `["t", "role:tutor"]`
 - Optional: `["t", "blog"]`
+
+## Kind 30006 — LessonAgreement (public, replaceable per lesson)
+
+Purpose: Persist a confirmed lesson contract between tutor and student and drive dashboard cards.
+
+Content schema (JSON):
+- `lessonId`: string (must match `d` tag)
+- `bookingId`: string
+- `subject`: string
+- `scheduledAt`: string (ISO-8601)
+- `durationMin`: number
+- `price`: number
+- `currency`: string
+- `status`: `"scheduled" | "completed" | "cancelled"`
+
+Tags:
+- `["d", "<lesson_id>"]` (required)
+- `["p", "<tutor_pubkey>"]` (required)
+- `["p", "<student_pubkey>"]` (required)
+- `["e", "<booking_request_event_id>"]` (required)
+- Optional: `["t", "lesson:agreement"]`

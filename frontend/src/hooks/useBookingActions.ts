@@ -1,6 +1,12 @@
 import { useCallback } from "react";
 import { nostrClient } from "../nostr/client";
-import { BookingRequest, BookingStatus } from "../types/nostr";
+import {
+  BookingRequest,
+  BookingStatus,
+  LessonAgreement,
+  LessonAgreementStatus
+} from "../types/nostr";
+import { TutorHubKind } from "../nostr/kinds";
 
 function makeBookingId() {
   const random = crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
@@ -20,7 +26,11 @@ export function useBookingActions() {
         ["t", "booking:request"],
         ["d", bookingId]
       ];
-      await nostrClient.publishEvent(30002, JSON.stringify(request), tags);
+      await nostrClient.publishEvent(
+        TutorHubKind.BookingRequest,
+        JSON.stringify(request),
+        tags
+      );
       return bookingId;
     },
     []
@@ -42,7 +52,7 @@ export function useBookingActions() {
         ["d", payload.bookingId]
       ];
       await nostrClient.publishReplaceableEvent(
-        30003,
+        TutorHubKind.BookingStatus,
         JSON.stringify(status),
         tags
       );
@@ -50,5 +60,57 @@ export function useBookingActions() {
     []
   );
 
-  return { publishBookingRequest, publishBookingStatus };
+  const publishLessonAgreement = useCallback(
+    async (
+      studentPubkey: string,
+      payload: LessonAgreement & { bookingEventId: string }
+    ) => {
+      const { pubkey: tutorPubkey } = nostrClient.getOrCreateKeypair();
+      const tags: string[][] = [
+        ["d", payload.lessonId],
+        ["p", tutorPubkey],
+        ["p", studentPubkey],
+        ["t", "lesson:agreement"]
+      ];
+      if (payload.bookingEventId) {
+        tags.splice(3, 0, ["e", payload.bookingEventId]);
+      }
+      const content: LessonAgreement = {
+        lessonId: payload.lessonId,
+        bookingId: payload.bookingId,
+        subject: payload.subject,
+        scheduledAt: payload.scheduledAt,
+        durationMin: payload.durationMin,
+        price: payload.price,
+        currency: payload.currency,
+        status: payload.status
+      };
+      await nostrClient.publishReplaceableEvent(
+        TutorHubKind.LessonAgreement,
+        JSON.stringify(content),
+        tags
+      );
+    },
+    []
+  );
+
+  const updateLessonAgreementStatus = useCallback(
+    async (
+      studentPubkey: string,
+      payload: LessonAgreement & {
+        bookingEventId: string;
+        status: LessonAgreementStatus;
+      }
+    ) => {
+      await publishLessonAgreement(studentPubkey, payload);
+    },
+    [publishLessonAgreement]
+  );
+
+  return {
+    publishBookingRequest,
+    publishBookingStatus,
+    publishLessonAgreement,
+    updateLessonAgreementStatus
+  };
 }

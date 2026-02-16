@@ -3,7 +3,10 @@ import { BookingRequestEvent, BookingStatusEvent } from "../types/nostr";
 type BookingRequestsPanelProps = {
   requests: BookingRequestEvent[];
   statuses: Record<string, BookingStatusEvent>;
-  onRespond: (bookingId: string, studentPubkey: string, status: "accepted" | "rejected") => void;
+  onRespond: (
+    request: BookingRequestEvent,
+    status: "accepted" | "rejected"
+  ) => void;
 };
 
 export function BookingRequestsPanel({
@@ -37,26 +40,14 @@ export function BookingRequestsPanel({
                   <div className="action-buttons">
                     <button
                       type="button"
-                      onClick={() =>
-                        onRespond(
-                          request.request.bookingId,
-                          request.pubkey,
-                          "accepted"
-                        )
-                      }
+                      onClick={() => onRespond(request, "accepted")}
                     >
                       Accept
                     </button>
                     <button
                       type="button"
                       className="ghost"
-                      onClick={() =>
-                        onRespond(
-                          request.request.bookingId,
-                          request.pubkey,
-                          "rejected"
-                        )
-                      }
+                      onClick={() => onRespond(request, "rejected")}
                     >
                       Reject
                     </button>

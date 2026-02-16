@@ -64,6 +64,7 @@ Storage:
 | 30003 | Booking Status |
 | 30004 | Student Progress Log (encrypted) |
 | 30005 | Tutor Blog Post |
+| 30006 | Lesson Agreement (replaceable per lesson) |
 
 See `docs/nostr-kinds.md` for full NIP-style definitions, tags, and schemas.
 
@@ -117,6 +118,25 @@ Content:
 
 ### 7.6 Tutor Blog Post (kind 30005)
 Public post authored by tutor.
+
+### 7.7 Lesson Agreement (kind 30006)
+Replaceable per lesson (`d` tag).
+
+Content:
+- lessonId
+- bookingId
+- subject
+- scheduledAt
+- durationMin
+- price
+- currency
+- status: scheduled | completed | cancelled
+
+Tags:
+- d: <lesson_id>
+- p: <tutor_pubkey>
+- p: <student_pubkey>
+- e: <booking_request_event_id>
 
 ## 8. Frontend Requirements
 - Key generation and import

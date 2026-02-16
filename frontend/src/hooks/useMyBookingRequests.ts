@@ -25,6 +25,7 @@ export function useMyBookingRequests(pubkey: string) {
               ...prev,
               [bookingId]: {
                 id: bookingId,
+                eventId: event.id,
                 created_at: event.created_at,
                 pubkey: event.pubkey,
                 tutorPubkey: getTagValue(event.tags, "p") || "",

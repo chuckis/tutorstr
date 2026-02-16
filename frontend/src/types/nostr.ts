@@ -38,6 +38,7 @@ export type BookingRequest = {
 
 export type BookingRequestEvent = {
   id: string;
+  eventId: string;
   created_at: number;
   pubkey: string;
   tutorPubkey: string;
@@ -79,4 +80,28 @@ export type ProgressEntryEvent = {
   pubkey: string;
   counterparty: string;
   entry: ProgressEntry;
+};
+
+export type LessonAgreementStatus = "scheduled" | "completed" | "cancelled";
+
+export type LessonAgreement = {
+  lessonId: string;
+  bookingId: string;
+  subject: string;
+  scheduledAt: string;
+  durationMin: number;
+  price: number;
+  currency: string;
+  status: LessonAgreementStatus;
+};
+
+export type LessonAgreementEvent = {
+  id: string;
+  created_at: number;
+  pubkey: string;
+  lessonId: string;
+  tutorPubkey: string;
+  studentPubkey: string;
+  bookingEventId?: string;
+  agreement: LessonAgreement;
 };
