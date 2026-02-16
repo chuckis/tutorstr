@@ -6,7 +6,8 @@ import "./index.css";
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
+      const swUrl = `${import.meta.env.BASE_URL}sw.js`;
+      navigator.serviceWorker.register(swUrl).catch(() => {
         // Minimal registration; ignore errors in dev.
       });
     });

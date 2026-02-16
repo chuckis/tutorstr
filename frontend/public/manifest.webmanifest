@@ -1,7 +1,7 @@
 {
   "name": "Tutorstr",
   "short_name": "Tutorstr",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#f7f3ef",
   "theme_color": "#111111",
