@@ -1,16 +1,20 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { nip19 } from "nostr-tools";
 import "./App.css";
 import { BookingRequestForm } from "./components/BookingRequestForm";
+import { MessageComposer } from "./components/MessageComposer";
+import { MessageThread } from "./components/MessageThread";
 import { ProfileForm } from "./components/ProfileForm";
 import { ScheduleForm } from "./components/ScheduleForm";
 import { TutorCard } from "./components/TutorCard";
 import { useBookingActions } from "./hooks/useBookingActions";
 import { useBookingRequestsForTutor } from "./hooks/useBookingRequestsForTutor";
 import { useBookingStatusesForUser } from "./hooks/useBookingStatusesForUser";
+import { useEncryptedMessages } from "./hooks/useEncryptedMessages";
 import { useLessonAgreementsForUser } from "./hooks/useLessonAgreementsForUser";
 import { useMyBookingRequests } from "./hooks/useMyBookingRequests";
 import { useNostrKeypair } from "./hooks/useNostrKeypair";
+import { usePrivateMessagingActions } from "./hooks/usePrivateMessagingActions";
 import { useTutorDirectory } from "./hooks/useTutorDirectory";
 import { useTutorProfile } from "./hooks/useTutorProfile";
 import { useTutorSchedule } from "./hooks/useTutorSchedule";
@@ -20,12 +24,15 @@ import {
   BookingRequestEvent,
   LessonAgreementEvent,
   LessonAgreementStatus,
+  ScheduleSlot,
   TutorProfileEvent
 } from "./types/nostr";
 
 type MainTab = "discover" | "requests" | "lessons" | "profile";
 type RequestSegment = "incoming" | "outgoing";
 type LessonSegment = "upcoming" | "past";
+const REQUESTS_SEEN_STORAGE = "tutorhub:requests-seen";
+const MESSAGES_SEEN_STORAGE = "tutorhub:messages-seen";
 
 function toIsoDate(value: string) {
   const timestamp = Date.parse(value);
@@ -97,12 +104,24 @@ export default function App() {
   const [requestSegment, setRequestSegment] = useState<RequestSegment>("incoming");
   const [lessonSegment, setLessonSegment] = useState<LessonSegment>("upcoming");
   const [selectedTutor, setSelectedTutor] = useState<TutorProfileEvent | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<{
+    request: BookingRequestEvent;
+    segment: RequestSegment;
+  } | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonAgreementEvent | null>(
     null
   );
   const [relayInput, setRelayInput] = useState(nostrClient.getRelays().join(", "));
   const [relayStatus, setRelayStatus] = useState("");
   const [lessonNote, setLessonNote] = useState("");
+  const [discoverStatus, setDiscoverStatus] = useState("");
+  const [messageStatus, setMessageStatus] = useState("");
+  const [lastSeenRequestTs, setLastSeenRequestTs] = useState<number>(() =>
+    Number(localStorage.getItem(`${REQUESTS_SEEN_STORAGE}:${nostrClient.getOrCreateKeypair().pubkey}`) || "0")
+  );
+  const [lastSeenMessageTs, setLastSeenMessageTs] = useState<number>(() =>
+    Number(localStorage.getItem(`${MESSAGES_SEEN_STORAGE}:${nostrClient.getOrCreateKeypair().pubkey}`) || "0")
+  );
   const keypair = useNostrKeypair();
   const { profile, setProfile, status, lastEventId, publishProfile } =
     useTutorProfile(keypair.pubkey);
@@ -123,6 +142,10 @@ export default function App() {
   const { statuses } = useBookingStatusesForUser(keypair.pubkey);
   const { requests: myRequests } = useMyBookingRequests(keypair.pubkey);
   const { list: lessonAgreements } = useLessonAgreementsForUser(keypair.pubkey);
+  const { messages, byCounterparty: messagesByCounterparty } = useEncryptedMessages(
+    keypair.pubkey
+  );
+  const { sendMessage } = usePrivateMessagingActions();
 
   async function respondToBooking(
     request: BookingRequestEvent,
@@ -174,6 +197,33 @@ export default function App() {
     });
   }
 
+  async function requestPublishedSlot(tutorPubkey: string, slot: ScheduleSlot) {
+    setDiscoverStatus("");
+    try {
+      await publishBookingRequest(tutorPubkey, {
+        requestedSlot: slot,
+        message: "",
+        studentNpub: keypair.npub
+      });
+      setDiscoverStatus("Slot request sent.");
+    } catch (error) {
+      setDiscoverStatus(
+        error instanceof Error ? error.message : "Failed to send slot request."
+      );
+    }
+  }
+
+  async function sendEncryptedMessage(recipientPubkey: string, text: string) {
+    setMessageStatus("");
+    try {
+      await sendMessage(recipientPubkey, text);
+    } catch (error) {
+      setMessageStatus(
+        error instanceof Error ? error.message : "Failed to send message."
+      );
+    }
+  }
+
   function updateRelays() {
     const parsed = parseRelayList(relayInput);
     if (parsed.length === 0) {
@@ -207,9 +257,9 @@ export default function App() {
     const past: LessonAgreementEvent[] = [];
     lessonAgreements.forEach((event) => {
       const startsAt = Date.parse(event.agreement.scheduledAt);
-      const isFuture = !Number.isNaN(startsAt) && startsAt >= now;
+      const isFutureOrUnknown = Number.isNaN(startsAt) || startsAt >= now;
       const isScheduled = event.agreement.status === "scheduled";
-      if (isScheduled && isFuture) {
+      if (isScheduled && isFutureOrUnknown) {
         upcoming.push(event);
         return;
       }
@@ -220,6 +270,47 @@ export default function App() {
 
   const requestItems = requestSegment === "incoming" ? incomingRequests : myRequests;
   const viewerLabel = profile.name.trim() || toDisplayId(keypair.pubkey);
+  const latestIncomingRequestTs = useMemo(
+    () => incomingRequests.reduce((max, item) => Math.max(max, item.created_at), 0),
+    [incomingRequests]
+  );
+  const latestIncomingMessageTs = useMemo(
+    () =>
+      messages
+        .filter((item) => item.pubkey !== keypair.pubkey)
+        .reduce((max, item) => Math.max(max, item.created_at), 0),
+    [messages, keypair.pubkey]
+  );
+  const requestsHasAlert =
+    latestIncomingRequestTs > lastSeenRequestTs ||
+    latestIncomingMessageTs > lastSeenMessageTs;
+
+  useEffect(() => {
+    if (activeTab !== "requests") {
+      return;
+    }
+    if (latestIncomingRequestTs > lastSeenRequestTs) {
+      setLastSeenRequestTs(latestIncomingRequestTs);
+      localStorage.setItem(
+        `${REQUESTS_SEEN_STORAGE}:${keypair.pubkey}`,
+        String(latestIncomingRequestTs)
+      );
+    }
+    if (latestIncomingMessageTs > lastSeenMessageTs) {
+      setLastSeenMessageTs(latestIncomingMessageTs);
+      localStorage.setItem(
+        `${MESSAGES_SEEN_STORAGE}:${keypair.pubkey}`,
+        String(latestIncomingMessageTs)
+      );
+    }
+  }, [
+    activeTab,
+    keypair.pubkey,
+    lastSeenMessageTs,
+    lastSeenRequestTs,
+    latestIncomingMessageTs,
+    latestIncomingRequestTs
+  ]);
 
   return (
     <main className="app-shell">
@@ -257,6 +348,47 @@ export default function App() {
                       ? `$${selectedTutor.profile.hourlyRate}/hr`
                       : "Not set"}
                   </p>
+                  <div className="stack">
+                    <h3>Published slots</h3>
+                    {schedules[selectedTutor.pubkey]?.schedule.slots.length ? (
+                      <ul className="slot-list">
+                        {schedules[selectedTutor.pubkey].schedule.slots.map(
+                          (slot, index) => (
+                            <li key={`${slot.start}-${index}`}>
+                              <div className="request-actions">
+                                <span>
+                                  {formatDateTime(slot.start)}
+                                  {" -> "}
+                                  {formatDateTime(slot.end)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    requestPublishedSlot(selectedTutor.pubkey, slot)
+                                  }
+                                >
+                                  Request this slot
+                                </button>
+                              </div>
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    ) : (
+                      <p className="muted">No slots published yet.</p>
+                    )}
+                    {discoverStatus ? <p className="muted">{discoverStatus}</p> : null}
+                  </div>
+                </article>
+                <article className="panel">
+                  <h3>Encrypted messages</h3>
+                  <MessageThread
+                    messages={messagesByCounterparty[selectedTutor.pubkey] || []}
+                  />
+                  <MessageComposer
+                    onSend={(text) => sendEncryptedMessage(selectedTutor.pubkey, text)}
+                  />
+                  {messageStatus ? <p className="muted">{messageStatus}</p> : null}
                 </article>
                 <BookingRequestForm
                   tutorPubkey={selectedTutor.pubkey}
@@ -306,84 +438,151 @@ export default function App() {
 
         {activeTab === "requests" ? (
           <section className="tab-panel requests-tab">
-            <div className="segmented">
-              <button
-                type="button"
-                className={requestSegment === "incoming" ? "active" : ""}
-                onClick={() => setRequestSegment("incoming")}
-              >
-                Incoming
-              </button>
-              <button
-                type="button"
-                className={requestSegment === "outgoing" ? "active" : ""}
-                onClick={() => setRequestSegment("outgoing")}
-              >
-                Outgoing
-              </button>
-            </div>
-
-            {requestItems.length === 0 ? (
-              <p className="muted">No requests in this segment.</p>
+            {selectedRequest ? (
+              <article className="panel details-screen">
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => setSelectedRequest(null)}
+                >
+                  Back to requests
+                </button>
+                <h2>Accepted lesson request</h2>
+                <p>
+                  <strong>Scheduled:</strong>{" "}
+                  {formatDateTime(selectedRequest.request.request.requestedSlot.start)}
+                </p>
+                <p>
+                  <strong>Status:</strong>{" "}
+                  {requestStatusLabel(
+                    statuses[selectedRequest.request.request.bookingId]?.status.status
+                  )}
+                </p>
+                <div className="stack">
+                  <h3>Encrypted messages</h3>
+                  <MessageThread
+                    messages={
+                      messagesByCounterparty[
+                        selectedRequest.segment === "incoming"
+                          ? selectedRequest.request.pubkey
+                          : selectedRequest.request.tutorPubkey
+                      ] || []
+                    }
+                  />
+                  <MessageComposer
+                    onSend={(text) =>
+                      sendEncryptedMessage(
+                        selectedRequest.segment === "incoming"
+                          ? selectedRequest.request.pubkey
+                          : selectedRequest.request.tutorPubkey,
+                        text
+                      )
+                    }
+                  />
+                  {messageStatus ? <p className="muted">{messageStatus}</p> : null}
+                </div>
+              </article>
             ) : (
-              <ul className="requests-list">
-                {requestItems.map((request) => {
-                  const statusRaw = statuses[request.request.bookingId]?.status.status;
-                  const statusText = requestStatusLabel(statusRaw);
-                  const isPending = !statusRaw;
-                  const counterparty =
-                    requestSegment === "incoming"
-                      ? request.request.studentNpub
-                      : tutors[request.tutorPubkey]?.profile.name ||
-                        toDisplayId(request.tutorPubkey);
+              <>
+                <div className="segmented">
+                  <button
+                    type="button"
+                    className={requestSegment === "incoming" ? "active" : ""}
+                    onClick={() => {
+                      setRequestSegment("incoming");
+                      setSelectedRequest(null);
+                    }}
+                  >
+                    Incoming
+                  </button>
+                  <button
+                    type="button"
+                    className={requestSegment === "outgoing" ? "active" : ""}
+                    onClick={() => {
+                      setRequestSegment("outgoing");
+                      setSelectedRequest(null);
+                    }}
+                  >
+                    Outgoing
+                  </button>
+                </div>
 
-                  return (
-                    <li key={request.id}>
-                      <div>
-                        <strong>Subject:</strong> Tutoring lesson
-                      </div>
-                      <div>
-                        <strong>Scheduled:</strong>{" "}
-                        {formatDateTime(request.request.requestedSlot.start)}
-                      </div>
-                      <div>
-                        <strong>Counterparty:</strong> {counterparty}
-                      </div>
-                      <div className="request-actions">
-                        <span className={`status-pill status-${statusText}`}>
-                          {statusText}
-                        </span>
-                        {requestSegment === "incoming" && isPending ? (
-                          <div className="action-buttons">
-                            <button
-                              type="button"
-                              onClick={() => respondToBooking(request, "accepted")}
-                            >
-                              Accept
-                            </button>
-                            <button
-                              type="button"
-                              className="ghost-action"
-                              onClick={() => respondToBooking(request, "rejected")}
-                            >
-                              Decline
-                            </button>
+                {requestItems.length === 0 ? (
+                  <p className="muted">No requests in this segment.</p>
+                ) : (
+                  <ul className="requests-list">
+                    {requestItems.map((request) => {
+                      const statusRaw = statuses[request.request.bookingId]?.status.status;
+                      const statusText = requestStatusLabel(statusRaw);
+                      const isPending = !statusRaw;
+                      const counterparty =
+                        requestSegment === "incoming"
+                          ? request.request.studentNpub
+                          : tutors[request.tutorPubkey]?.profile.name ||
+                            toDisplayId(request.tutorPubkey);
+
+                      return (
+                        <li key={request.id}>
+                          <div>
+                            <strong>Subject:</strong> Tutoring lesson
                           </div>
-                        ) : null}
-                        {requestSegment === "outgoing" && isPending ? (
-                          <button
-                            type="button"
-                            className="ghost-action"
-                            onClick={() => cancelRequestFromStudent(request)}
-                          >
-                            Cancel
-                          </button>
-                        ) : null}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                          <div>
+                            <strong>Scheduled:</strong>{" "}
+                            {formatDateTime(request.request.requestedSlot.start)}
+                          </div>
+                          <div>
+                            <strong>Counterparty:</strong> {counterparty}
+                          </div>
+                          <div className="request-actions">
+                            <span className={`status-pill status-${statusText}`}>
+                              {statusText}
+                            </span>
+                            {requestSegment === "incoming" && isPending ? (
+                              <div className="action-buttons">
+                                <button
+                                  type="button"
+                                  onClick={() => respondToBooking(request, "accepted")}
+                                >
+                                  Accept
+                                </button>
+                                <button
+                                  type="button"
+                                  className="ghost-action"
+                                  onClick={() => respondToBooking(request, "rejected")}
+                                >
+                                  Decline
+                                </button>
+                              </div>
+                            ) : null}
+                            {statusRaw === "accepted" ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setSelectedRequest({
+                                    request,
+                                    segment: requestSegment
+                                  })
+                                }
+                              >
+                                Details
+                              </button>
+                            ) : null}
+                            {requestSegment === "outgoing" && isPending ? (
+                              <button
+                                type="button"
+                                className="ghost-action"
+                                onClick={() => cancelRequestFromStudent(request)}
+                              >
+                                Cancel
+                              </button>
+                            ) : null}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </>
             )}
           </section>
         ) : null}
@@ -479,6 +678,29 @@ export default function App() {
                     </button>
                   </div>
                 ) : null}
+                <div className="stack">
+                  <h3>Encrypted messages</h3>
+                  <MessageThread
+                    messages={
+                      messagesByCounterparty[
+                        selectedLesson.tutorPubkey === keypair.pubkey
+                          ? selectedLesson.studentPubkey
+                          : selectedLesson.tutorPubkey
+                      ] || []
+                    }
+                  />
+                  <MessageComposer
+                    onSend={(text) =>
+                      sendEncryptedMessage(
+                        selectedLesson.tutorPubkey === keypair.pubkey
+                          ? selectedLesson.studentPubkey
+                          : selectedLesson.tutorPubkey,
+                        text
+                      )
+                    }
+                  />
+                  {messageStatus ? <p className="muted">{messageStatus}</p> : null}
+                </div>
               </article>
             ) : (
               <div className="stack">
@@ -614,10 +836,13 @@ export default function App() {
         </button>
         <button
           type="button"
-          className={activeTab === "requests" ? "active" : ""}
+          className={`${activeTab === "requests" ? "active" : ""} ${
+            requestsHasAlert ? "has-alert" : ""
+          }`.trim()}
           onClick={() => {
             setActiveTab("requests");
             setSelectedLesson(null);
+            setSelectedRequest(null);
           }}
         >
           Requests

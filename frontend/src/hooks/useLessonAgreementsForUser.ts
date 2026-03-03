@@ -66,9 +66,24 @@ export function useLessonAgreementsForUser(pubkey: string) {
         upsert(event.pubkey, event.id, event.created_at, event.tags, event.content)
     );
 
+    // Fallback path for relays that do not properly support tag-indexed queries.
+    const broad = nostrClient.subscribe(
+      { kinds: [TutorHubKind.LessonAgreement], limit: 300 },
+      (event) => {
+        const participants = getTagValues(event.tags, "p");
+        const isParticipant = participants.includes(pubkey);
+        const isAuthor = event.pubkey === pubkey;
+        if (!isParticipant && !isAuthor) {
+          return;
+        }
+        upsert(event.pubkey, event.id, event.created_at, event.tags, event.content);
+      }
+    );
+
     return () => {
       incoming();
       own();
+      broad();
     };
   }, [pubkey]);
 
