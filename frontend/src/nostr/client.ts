@@ -32,9 +32,20 @@ export class NostrClient {
   private relays: string[];
 
   private static readonly KEY_STORAGE = "tutorhub:nsec";
+  private static readonly RELAY_STORAGE = "tutorhub:relays";
 
   constructor(relays: string[] = DEFAULT_RELAYS) {
-    this.relays = [...relays];
+    const storedRelays = localStorage.getItem(NostrClient.RELAY_STORAGE);
+    if (storedRelays) {
+      try {
+        const parsed = JSON.parse(storedRelays) as string[];
+        this.relays = parsed.filter(Boolean);
+      } catch {
+        this.relays = [...relays];
+      }
+    } else {
+      this.relays = [...relays];
+    }
     this.pool = new SimplePool();
   }
 
@@ -44,6 +55,7 @@ export class NostrClient {
 
   setRelays(relays: string[]) {
     this.relays = [...relays];
+    localStorage.setItem(NostrClient.RELAY_STORAGE, JSON.stringify(this.relays));
   }
 
   async publish(event: NostrEvent) {
@@ -124,6 +136,10 @@ export class NostrClient {
       nsec,
       npub: nip19.npubEncode(pubkey)
     };
+  }
+
+  clearStoredKeypair() {
+    localStorage.removeItem(NostrClient.KEY_STORAGE);
   }
 
   async publishReplaceableEvent(

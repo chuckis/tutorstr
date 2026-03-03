@@ -144,7 +144,7 @@ Display persistent lesson agreements.
 
 ### Data Source
 
-Lesson agreement events (e.g. kind 30005).
+Lesson agreement events (e.g. kind 30006).
 
 ### Layout
 
