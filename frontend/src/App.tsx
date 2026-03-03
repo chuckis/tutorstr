@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { nip19 } from "nostr-tools";
 import "./App.css";
 import { BookingRequestForm } from "./components/BookingRequestForm";
-import { IdentityCard } from "./components/IdentityCard";
 import { ProfileForm } from "./components/ProfileForm";
 import { ScheduleForm } from "./components/ScheduleForm";
 import { TutorCard } from "./components/TutorCard";
@@ -220,17 +219,19 @@ export default function App() {
   }, [lessonAgreements]);
 
   const requestItems = requestSegment === "incoming" ? incomingRequests : myRequests;
+  const viewerLabel = profile.name.trim() || toDisplayId(keypair.pubkey);
 
   return (
     <main className="app-shell">
       <header className="topbar">
         <h1>Tutorstr</h1>
-        <p className="muted">Nostr tutor hub</p>
+        <div className="topbar-meta">
+          <p className="muted">Nostr tutor hub</p>
+          <span className="topbar-identity">{viewerLabel}</span>
+        </div>
       </header>
 
       <section className="screen">
-        <IdentityCard npub={keypair.npub} />
-
         {activeTab === "discover" ? (
           <section className="tab-panel discover-tab">
             {selectedTutor ? (
@@ -274,9 +275,6 @@ export default function App() {
                     <strong>{profile.name || "Unnamed Tutor"}</strong>
                   </p>
                   <p className="muted">{profile.bio || "No bio provided."}</p>
-                  <button type="button" onClick={() => setActiveTab("profile")}>
-                    Edit profile
-                  </button>
                 </article>
 
                 <label className="filter">
@@ -551,6 +549,14 @@ export default function App() {
 
         {activeTab === "profile" ? (
           <section className="tab-panel profile-tab">
+            <article className="panel">
+              <h3>Identity</h3>
+              <p className="muted">npub</p>
+              <p className="identity-value">{keypair.npub}</p>
+              <p className="muted">pubkey (hex)</p>
+              <p className="identity-value">{keypair.pubkey}</p>
+            </article>
+
             <ProfileForm
               profile={profile}
               onChange={setProfile}

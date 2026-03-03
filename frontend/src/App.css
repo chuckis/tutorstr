@@ -34,6 +34,27 @@
   gap: var(--space-1);
 }
 
+.topbar-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.topbar-identity {
+  max-width: 100%;
+  border-radius: var(--radius);
+  background: #edf6f0;
+  color: #2f5f47;
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .topbar h1 {
   margin: 0;
   font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.1rem);
@@ -161,8 +182,13 @@ p {
   display: grid;
   gap: var(--space-2);
   padding: var(--space-4);
+  color: var(--color-text);
   cursor: pointer;
   transition: transform var(--motion), box-shadow var(--motion), background-color var(--motion);
+}
+
+.tutor-card h3 {
+  color: var(--color-text);
 }
 
 .tutor-card p {
@@ -338,6 +364,13 @@ button:active {
   gap: var(--space-1);
   font-size: 0.88rem;
   word-break: break-word;
+}
+
+.identity-value {
+  font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  word-break: break-all;
 }
 
 @media (min-width: 700px) {
