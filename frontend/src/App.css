@@ -1,10 +1,10 @@
 .app-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  padding: 1rem 1rem calc(5.5rem + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(0.75rem, 2.5vw, 1.25rem) clamp(0.75rem, 3vw, 1.5rem);
   gap: 0.9rem;
-  max-width: 760px;
+  width: min(100%, 1100px);
   margin: 0 auto;
 }
 
@@ -15,9 +15,13 @@
 }
 
 .screen {
-  display: grid;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   gap: 0.9rem;
-  align-content: start;
+  padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
 }
 
 .tab-panel {
@@ -85,6 +89,7 @@
 .card-grid {
   display: grid;
   gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .tutor-card {
@@ -136,8 +141,10 @@ h3 {
   border: none;
   border-radius: 999px;
   min-height: 48px;
+  min-width: 0;
   background: transparent;
   font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
@@ -177,6 +184,7 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .action-buttons {
@@ -262,7 +270,7 @@ button {
 }
 
 .details-screen {
-  min-height: calc(100vh - 13rem);
+  min-height: auto;
   align-content: start;
 }
 
@@ -277,6 +285,7 @@ button {
   gap: 0.45rem;
   background: #fff9f1;
   border-top: 1px solid #decdbb;
+  z-index: 10;
 }
 
 .bottom-nav button {
@@ -286,6 +295,9 @@ button {
   color: #3b3936;
   padding: 0.4rem 0.35rem;
   border: 1px solid #d8c7b5;
+  font-size: 0.82rem;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .bottom-nav button.active {
@@ -298,24 +310,77 @@ button {
   display: grid;
   gap: 0.25rem;
   font-size: 0.88rem;
+  word-break: break-word;
 }
 
-@media (min-width: 820px) {
+@media (min-width: 700px) {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .discover-tab .stack {
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .screen {
+    padding-bottom: 0;
+  }
+
   .app-shell {
-    padding-top: 1.5rem;
+    padding-top: 1.25rem;
   }
 
   .bottom-nav {
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 760px;
+    position: static;
+    transform: none;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    padding: 0.45rem;
     border: 1px solid #decdbb;
-    border-bottom: none;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    border-radius: 14px;
+    background: #fffdf9;
+  }
+
+  .bottom-nav button {
+    font-size: 0.9rem;
   }
 
   .card-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .profile-tab {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .profile-tab .panel,
+  .profile-tab .status {
+    grid-column: 1 / -1;
+  }
+
+  .slot-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar h1 {
+    font-size: 1.55rem;
+  }
+
+  .bottom-nav {
+    gap: 0.35rem;
+    padding-left: 0.45rem;
+    padding-right: 0.45rem;
+  }
+
+  .bottom-nav button {
+    font-size: 0.76rem;
+    padding: 0.35rem 0.2rem;
   }
 }

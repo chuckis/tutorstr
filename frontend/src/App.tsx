@@ -232,7 +232,7 @@ export default function App() {
         <IdentityCard npub={keypair.npub} />
 
         {activeTab === "discover" ? (
-          <section className="tab-panel">
+          <section className="tab-panel discover-tab">
             {selectedTutor ? (
               <div className="stack">
                 <button
@@ -307,7 +307,7 @@ export default function App() {
         ) : null}
 
         {activeTab === "requests" ? (
-          <section className="tab-panel">
+          <section className="tab-panel requests-tab">
             <div className="segmented">
               <button
                 type="button"
@@ -391,7 +391,7 @@ export default function App() {
         ) : null}
 
         {activeTab === "lessons" ? (
-          <section className="tab-panel">
+          <section className="tab-panel lessons-tab">
             {selectedLesson ? (
               <article className="panel details-screen">
                 <button
@@ -550,7 +550,7 @@ export default function App() {
         ) : null}
 
         {activeTab === "profile" ? (
-          <section className="tab-panel">
+          <section className="tab-panel profile-tab">
             <ProfileForm
               profile={profile}
               onChange={setProfile}
