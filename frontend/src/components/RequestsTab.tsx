@@ -24,8 +24,8 @@ type RequestsTabProps = {
   onRespondToBooking: (
     request: Booking,
     nextStatus: "accepted" | "rejected"
-  ) => void;
-  onCancelRequest: (request: Booking) => void;
+  ) => void | Promise<void>;
+  onCancelRequest: (request: Booking) => void | Promise<void>;
   messagesByCounterparty: Record<string, EncryptedMessage[]>;
   onSendMessage: (recipientPubkey: string, text: string) => void;
   messageStatus: string;
@@ -49,6 +49,7 @@ export function RequestsTab({
       selectedRequest.segment === "incoming"
         ? selectedRequest.request.studentId
         : selectedRequest.request.tutorId;
+    const isPending = selectedRequest.request.status === "pending";
 
     return (
       <section className="tab-panel requests-tab">
@@ -60,15 +61,69 @@ export function RequestsTab({
           >
             Back to requests
           </button>
-          <h2>Accepted lesson request</h2>
+          <h2>Lesson request details</h2>
           <p>
             <strong>Scheduled:</strong>{" "}
             {formatDateTime(selectedRequest.request.scheduledAt)}
+          </p>
+          {selectedRequest.request.scheduledEnd ? (
+            <p>
+              <strong>Ends:</strong>{" "}
+              {formatDateTime(selectedRequest.request.scheduledEnd)}
+            </p>
+          ) : null}
+          <p>
+            <strong>Counterparty:</strong>{" "}
+            {selectedRequest.segment === "incoming"
+              ? tutors[selectedRequest.request.studentId]?.profile.name ||
+                toDisplayId(selectedRequest.request.studentId)
+              : tutors[selectedRequest.request.tutorId]?.profile.name ||
+                toDisplayId(selectedRequest.request.tutorId)}
           </p>
           <p>
             <strong>Status:</strong>{" "}
             {requestStatusLabel(selectedRequest.request.status)}
           </p>
+          {selectedRequest.segment === "incoming" && isPending ? (
+            <div className="action-buttons">
+              <button
+                type="button"
+                onClick={() =>
+                  Promise.resolve(
+                    onRespondToBooking(selectedRequest.request, "accepted")
+                  ).then(() => onSelectRequest(null))
+                }
+              >
+                Accept
+              </button>
+              <button
+                type="button"
+                className="ghost-action"
+                onClick={() =>
+                  Promise.resolve(
+                    onRespondToBooking(selectedRequest.request, "rejected")
+                  ).then(() => onSelectRequest(null))
+                }
+              >
+                Decline
+              </button>
+            </div>
+          ) : null}
+          {selectedRequest.segment === "outgoing" && isPending ? (
+            <div className="action-buttons">
+              <button
+                type="button"
+                className="ghost-action"
+                onClick={() =>
+                  Promise.resolve(onCancelRequest(selectedRequest.request)).then(() =>
+                    onSelectRequest(null)
+                  )
+                }
+              >
+                Cancel request
+              </button>
+            </div>
+          ) : null}
           <div className="stack">
             <h3>Encrypted messages</h3>
             <MessageThread
@@ -155,19 +210,17 @@ export function RequestsTab({
                       </button>
                     </div>
                   ) : null}
-                  {statusRaw === "accepted" ? (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onSelectRequest({
-                          request,
-                          segment: requestSegment
-                        })
-                      }
-                    >
-                      Details
-                    </button>
-                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSelectRequest({
+                        request,
+                        segment: requestSegment
+                      })
+                    }
+                  >
+                    Details
+                  </button>
                   {requestSegment === "outgoing" && isPending ? (
                     <button
                       type="button"
