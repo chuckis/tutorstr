@@ -1,47 +1,18 @@
-import { nip19 } from "nostr-tools";
-import {
-  LessonAgreementEvent,
-  LessonAgreementStatus,
-  TutorProfileEvent
-} from "../types/nostr";
+import { Lesson, LessonStatus } from "../domain/lesson";
+import { TutorProfileEvent } from "../types/nostr";
+import { formatDateTime, toDisplayId } from "../utils/display";
 
 type LessonAgreementsPanelProps = {
   title: string;
   currentPubkey: string;
-  agreements: LessonAgreementEvent[];
+  agreements: Lesson[];
   profilesByPubkey: Record<string, TutorProfileEvent>;
-  onStatusChange?: (
-    agreement: LessonAgreementEvent,
-    status: LessonAgreementStatus
-  ) => void;
+  onStatusChange?: (agreement: Lesson, status: LessonStatus) => void;
 };
 
-function toDisplayId(pubkey: string) {
-  if (!pubkey) {
-    return "Unknown";
-  }
-  try {
-    const npub = nip19.npubEncode(pubkey);
-    return `${npub.slice(0, 20)}...`;
-  } catch {
-    return `${pubkey.slice(0, 12)}...`;
-  }
-}
-
-function formatDate(value: string) {
-  const timestamp = Date.parse(value);
-  if (Number.isNaN(timestamp)) {
-    return value;
-  }
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(timestamp);
-}
-
-function nextStatuses(current: LessonAgreementStatus) {
+function nextStatuses(current: LessonStatus) {
   if (current === "scheduled") {
-    return ["completed", "cancelled"] as const;
+    return ["completed", "canceled"] as const;
   }
   return [] as const;
 }
@@ -60,24 +31,23 @@ export function LessonAgreementsPanel({
         <p className="muted">No lessons yet.</p>
       ) : (
         <ul className="lesson-list">
-          {agreements.map((agreementEvent) => {
-            const { agreement } = agreementEvent;
+          {agreements.map((agreement) => {
             const counterparty =
-              agreementEvent.tutorPubkey === currentPubkey
-                ? agreementEvent.studentPubkey
-                : agreementEvent.tutorPubkey;
+              agreement.tutorId === currentPubkey
+                ? agreement.studentId
+                : agreement.tutorId;
             const counterpartyName =
               profilesByPubkey[counterparty]?.profile.name || toDisplayId(counterparty);
-            const canUpdate = agreementEvent.tutorPubkey === currentPubkey;
+            const canUpdate = agreement.tutorId === currentPubkey;
             const actions = nextStatuses(agreement.status);
 
             return (
-              <li key={agreementEvent.lessonId} className="lesson-card">
+              <li key={agreement.id} className="lesson-card">
                 <div>
                   <strong>{agreement.subject || "Lesson"}</strong>
                 </div>
                 <div>
-                  <strong>Date/time:</strong> {formatDate(agreement.scheduledAt)}
+                  <strong>Date/time:</strong> {formatDateTime(agreement.scheduledAt)}
                 </div>
                 <div>
                   <strong>Duration:</strong> {agreement.durationMin} min
@@ -98,8 +68,8 @@ export function LessonAgreementsPanel({
                         <button
                           type="button"
                           key={status}
-                          className={status === "cancelled" ? "ghost" : ""}
-                          onClick={() => onStatusChange(agreementEvent, status)}
+                          className={status === "canceled" ? "ghost-action" : ""}
+                          onClick={() => onStatusChange(agreement, status)}
                         >
                           Mark {status}
                         </button>

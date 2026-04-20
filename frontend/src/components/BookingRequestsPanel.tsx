@@ -1,22 +1,14 @@
-import { BookingRequestEvent, BookingStatusEvent } from "../types/nostr";
+import { Booking } from "../domain/booking";
+import { formatDateTime, requestStatusLabel, toDisplayId } from "../utils/display";
 
 type BookingRequestsPanelProps = {
-  requests: BookingRequestEvent[];
-  statuses: Record<string, BookingStatusEvent>;
-  onRespond: (
-    request: BookingRequestEvent,
-    status: "accepted" | "rejected"
-  ) => void;
+  requests: Booking[];
+  onRespond: (request: Booking, status: "accepted" | "rejected") => void;
 };
 
-export function BookingRequestsPanel({
-  requests,
-  statuses,
-  onRespond
-}: BookingRequestsPanelProps) {
+export function BookingRequestsPanel({ requests, onRespond }: BookingRequestsPanelProps) {
   const pendingRequests = requests.filter((request) => {
-    const status = statuses[request.request.bookingId]?.status.status;
-    return status !== "accepted" && status !== "rejected";
+    return request.status !== "accepted" && request.status !== "rejected";
   });
 
   return (
@@ -27,21 +19,17 @@ export function BookingRequestsPanel({
       ) : (
         <ul>
           {pendingRequests.map((request) => {
-            const status = statuses[request.request.bookingId]?.status.status;
             return (
-              <li key={request.request.bookingId}>
+              <li key={request.id}>
                 <div>
-                  <strong>Slot:</strong> {request.request.requestedSlot.start} →{" "}
-                  {request.request.requestedSlot.end}
+                  <strong>Slot:</strong> {formatDateTime(request.scheduledAt)}
+                  {request.scheduledEnd ? ` -> ${formatDateTime(request.scheduledEnd)}` : ""}
                 </div>
                 <div>
-                  <strong>Message:</strong> {request.request.message || "—"}
-                </div>
-                <div>
-                  <strong>Student:</strong> {request.request.studentNpub}
+                  <strong>Student:</strong> {toDisplayId(request.studentId)}
                 </div>
                 <div className="request-actions">
-                  <span className="muted">Status: {status || "pending"}</span>
+                  <span className="muted">Status: {requestStatusLabel(request.status)}</span>
                   <div className="action-buttons">
                     <button
                       type="button"
@@ -51,7 +39,7 @@ export function BookingRequestsPanel({
                     </button>
                     <button
                       type="button"
-                      className="ghost"
+                      className="ghost-action"
                       onClick={() => onRespond(request, "rejected")}
                     >
                       Reject

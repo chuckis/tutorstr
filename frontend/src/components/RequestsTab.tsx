@@ -1,9 +1,5 @@
-import {
-  BookingRequestEvent,
-  BookingStatusEvent,
-  EncryptedMessage,
-  TutorProfileEvent
-} from "../types/nostr";
+import { Booking } from "../domain/booking";
+import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
 import { formatDateTime, requestStatusLabel, toDisplayId } from "../utils/display";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -12,25 +8,24 @@ type RequestSegment = "incoming" | "outgoing";
 
 type RequestsTabProps = {
   selectedRequest: {
-    request: BookingRequestEvent;
+    request: Booking;
     segment: RequestSegment;
   } | null;
   onSelectRequest: (
     next: {
-      request: BookingRequestEvent;
+      request: Booking;
       segment: RequestSegment;
     } | null
   ) => void;
   requestSegment: RequestSegment;
   onRequestSegmentChange: (segment: RequestSegment) => void;
-  requestItems: BookingRequestEvent[];
-  statuses: Record<string, BookingStatusEvent>;
+  requestItems: Booking[];
   tutors: Record<string, TutorProfileEvent>;
   onRespondToBooking: (
-    request: BookingRequestEvent,
+    request: Booking,
     nextStatus: "accepted" | "rejected"
   ) => void;
-  onCancelRequest: (request: BookingRequestEvent) => void;
+  onCancelRequest: (request: Booking) => void;
   messagesByCounterparty: Record<string, EncryptedMessage[]>;
   onSendMessage: (recipientPubkey: string, text: string) => void;
   messageStatus: string;
@@ -42,7 +37,6 @@ export function RequestsTab({
   requestSegment,
   onRequestSegmentChange,
   requestItems,
-  statuses,
   tutors,
   onRespondToBooking,
   onCancelRequest,
@@ -53,8 +47,8 @@ export function RequestsTab({
   if (selectedRequest) {
     const recipientPubkey =
       selectedRequest.segment === "incoming"
-        ? selectedRequest.request.pubkey
-        : selectedRequest.request.tutorPubkey;
+        ? selectedRequest.request.studentId
+        : selectedRequest.request.tutorId;
 
     return (
       <section className="tab-panel requests-tab">
@@ -69,13 +63,11 @@ export function RequestsTab({
           <h2>Accepted lesson request</h2>
           <p>
             <strong>Scheduled:</strong>{" "}
-            {formatDateTime(selectedRequest.request.request.requestedSlot.start)}
+            {formatDateTime(selectedRequest.request.scheduledAt)}
           </p>
           <p>
             <strong>Status:</strong>{" "}
-            {requestStatusLabel(
-              statuses[selectedRequest.request.request.bookingId]?.status.status
-            )}
+            {requestStatusLabel(selectedRequest.request.status)}
           </p>
           <div className="stack">
             <h3>Encrypted messages</h3>
@@ -122,14 +114,13 @@ export function RequestsTab({
       ) : (
         <ul className="requests-list">
           {requestItems.map((request) => {
-            const statusRaw = statuses[request.request.bookingId]?.status.status;
+            const statusRaw = request.status;
             const statusText = requestStatusLabel(statusRaw);
-            const isPending = !statusRaw;
+            const isPending = statusRaw === "pending";
             const counterparty =
               requestSegment === "incoming"
-                ? request.request.studentNpub
-                : tutors[request.tutorPubkey]?.profile.name ||
-                  toDisplayId(request.tutorPubkey);
+                ? tutors[request.studentId]?.profile.name || toDisplayId(request.studentId)
+                : tutors[request.tutorId]?.profile.name || toDisplayId(request.tutorId);
 
             return (
               <li key={request.id}>
@@ -138,7 +129,7 @@ export function RequestsTab({
                 </div>
                 <div>
                   <strong>Scheduled:</strong>{" "}
-                  {formatDateTime(request.request.requestedSlot.start)}
+                  {formatDateTime(request.scheduledAt)}
                 </div>
                 <div>
                   <strong>Counterparty:</strong> {counterparty}

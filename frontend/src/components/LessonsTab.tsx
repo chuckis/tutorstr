@@ -1,4 +1,5 @@
-import { LessonAgreementEvent, LessonAgreementStatus, TutorProfileEvent } from "../types/nostr";
+import { Lesson, LessonStatus } from "../domain/lesson";
+import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
 import { formatDateTime, toDisplayId } from "../utils/display";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -6,13 +7,13 @@ import { MessageThread } from "./MessageThread";
 type LessonSegment = "upcoming" | "past";
 
 type LessonsTabProps = {
-  selectedLesson: LessonAgreementEvent | null;
-  onSelectLesson: (lesson: LessonAgreementEvent | null) => void;
+  selectedLesson: Lesson | null;
+  onSelectLesson: (lesson: Lesson | null) => void;
   lessonSegment: LessonSegment;
   onLessonSegmentChange: (segment: LessonSegment) => void;
   lessonBuckets: {
-    upcoming: LessonAgreementEvent[];
-    past: LessonAgreementEvent[];
+    upcoming: Lesson[];
+    past: Lesson[];
   };
   currentPubkey: string;
   tutors: Record<string, TutorProfileEvent>;
@@ -20,10 +21,10 @@ type LessonsTabProps = {
   onLessonNoteChange: (value: string) => void;
   onSubmitLessonNote: () => void;
   onChangeLessonStatus: (
-    event: LessonAgreementEvent,
-    nextStatus: LessonAgreementStatus
+    lesson: Lesson,
+    nextStatus: LessonStatus
   ) => Promise<void>;
-  messagesByCounterparty: Record<string, { id: string; created_at: number; pubkey: string; counterparty: string; content: string }[]>;
+  messagesByCounterparty: Record<string, EncryptedMessage[]>;
   onSendMessage: (recipientPubkey: string, text: string) => void;
   messageStatus: string;
 };
@@ -46,9 +47,9 @@ export function LessonsTab({
 }: LessonsTabProps) {
   if (selectedLesson) {
     const counterpartyPubkey =
-      selectedLesson.tutorPubkey === currentPubkey
-        ? selectedLesson.studentPubkey
-        : selectedLesson.tutorPubkey;
+      selectedLesson.tutorId === currentPubkey
+        ? selectedLesson.studentId
+        : selectedLesson.tutorId;
 
     return (
       <section className="tab-panel lessons-tab">
@@ -60,13 +61,13 @@ export function LessonsTab({
           >
             Back to lessons
           </button>
-          <h2>{selectedLesson.agreement.subject || "Lesson"}</h2>
+          <h2>{selectedLesson.subject || "Lesson"}</h2>
           <p>
             <strong>Date/time:</strong>{" "}
-            {formatDateTime(selectedLesson.agreement.scheduledAt)}
+            {formatDateTime(selectedLesson.scheduledAt)}
           </p>
           <p>
-            <strong>Duration:</strong> {selectedLesson.agreement.durationMin} min
+            <strong>Duration:</strong> {selectedLesson.durationMin} min
           </p>
           <p>
             <strong>Counterparty:</strong>{" "}
@@ -74,13 +75,13 @@ export function LessonsTab({
           </p>
           <p>
             <strong>Status:</strong>{" "}
-            <span className={`status-pill status-${selectedLesson.agreement.status}`}>
-              {selectedLesson.agreement.status}
+            <span className={`status-pill status-${selectedLesson.status}`}>
+              {selectedLesson.status}
             </span>
           </p>
 
-          {selectedLesson.tutorPubkey === currentPubkey &&
-          selectedLesson.agreement.status === "scheduled" ? (
+          {selectedLesson.tutorId === currentPubkey &&
+          selectedLesson.status === "scheduled" ? (
             <div className="action-buttons">
               <button
                 type="button"
@@ -106,9 +107,9 @@ export function LessonsTab({
             </div>
           ) : null}
 
-          {selectedLesson.studentPubkey === currentPubkey ? (
+          {selectedLesson.studentId === currentPubkey ? (
             <div className="stack">
-              {selectedLesson.agreement.status === "scheduled" ? (
+              {selectedLesson.status === "scheduled" ? (
                 <button
                   type="button"
                   className="ghost-action"
@@ -170,35 +171,32 @@ export function LessonsTab({
           </button>
         </div>
         <ul className="lesson-list">
-          {lessons.map((agreementEvent) => {
-            const { agreement } = agreementEvent;
+          {lessons.map((lesson) => {
             const counterparty =
-              agreementEvent.tutorPubkey === currentPubkey
-                ? agreementEvent.studentPubkey
-                : agreementEvent.tutorPubkey;
+              lesson.tutorId === currentPubkey ? lesson.studentId : lesson.tutorId;
             const name = tutors[counterparty]?.profile.name || toDisplayId(counterparty);
 
             return (
               <li
-                key={agreementEvent.lessonId}
+                key={lesson.id}
                 className="lesson-card"
-                onClick={() => onSelectLesson(agreementEvent)}
+                onClick={() => onSelectLesson(lesson)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    onSelectLesson(agreementEvent);
+                    onSelectLesson(lesson);
                   }
                 }}
                 role="button"
                 tabIndex={0}
               >
                 <div>
-                  <strong>{agreement.subject || "Lesson"}</strong>
+                  <strong>{lesson.subject || "Lesson"}</strong>
                 </div>
-                <div>{formatDateTime(agreement.scheduledAt)}</div>
+                <div>{formatDateTime(lesson.scheduledAt)}</div>
                 <div>{name}</div>
-                <span className={`status-pill status-${agreement.status}`}>
-                  {agreement.status}
+                <span className={`status-pill status-${lesson.status}`}>
+                  {lesson.status}
                 </span>
               </li>
             );
