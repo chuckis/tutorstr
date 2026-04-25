@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { makeSlotAllocationKey } from "../domain/slotAllocation";
 import { nostrClient } from "../nostr/client";
 import {
   BookingRequest,
@@ -17,14 +18,21 @@ export function useBookingActions() {
   const publishBookingRequest = useCallback(
     async (tutorPubkey: string, payload: Omit<BookingRequest, "bookingId">) => {
       const bookingId = makeBookingId();
+      const { pubkey: studentPubkey } = nostrClient.getOrCreateKeypair();
+      const slotAllocationKey =
+        payload.slotAllocationKey ||
+        makeSlotAllocationKey(tutorPubkey, payload.requestedSlot);
       const request: BookingRequest = {
         ...payload,
-        bookingId
+        bookingId,
+        slotAllocationKey
       };
       const tags: string[][] = [
         ["p", tutorPubkey],
         ["t", "booking:request"],
-        ["d", bookingId]
+        ["d", bookingId],
+        ["slot", slotAllocationKey],
+        ["student", studentPubkey]
       ];
       await nostrClient.publishEvent(
         TutorHubKind.BookingRequest,
@@ -44,13 +52,18 @@ export function useBookingActions() {
       const status: BookingStatus = {
         bookingId: payload.bookingId,
         status: payload.status,
-        note: payload.note
+        note: payload.note,
+        reason: payload.reason,
+        slotAllocationKey: payload.slotAllocationKey
       };
       const tags: string[][] = [
         ["p", studentPubkey],
         ["t", "booking:status"],
         ["d", payload.bookingId]
       ];
+      if (payload.slotAllocationKey) {
+        tags.push(["slot", payload.slotAllocationKey]);
+      }
       await nostrClient.publishReplaceableEvent(
         TutorHubKind.BookingStatus,
         JSON.stringify(status),

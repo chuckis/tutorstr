@@ -9,6 +9,7 @@ import { useLessons } from "./useLessons";
 import { useLessonNote } from "./useLessonNote";
 import { useNostrKeypair } from "./useNostrKeypair";
 import { usePrivateMessagingActions } from "./usePrivateMessagingActions";
+import { usePublicAllocatedSlots } from "./usePublicAllocatedSlots";
 import { useRequestAlerts } from "./useRequestAlerts";
 import { useTutorDirectory } from "./useTutorDirectory";
 import { useTutorProfile } from "./useTutorProfile";
@@ -37,6 +38,7 @@ export function useAppController() {
   });
   const lessonsState = useLessons(keypair.pubkey);
   const messagesState = useEncryptedMessages(keypair.pubkey);
+  const publicAllocationState = usePublicAllocatedSlots();
   const lessonNoteState = useLessonNote(
     keypair.pubkey,
     navigation.selectedLesson
@@ -52,9 +54,15 @@ export function useAppController() {
   });
 
   const actions = useAppActions({
+    studentPubkey: keypair.pubkey,
     studentNpub: keypair.npub,
     relayInput,
     publishBookingRequest,
+    activeBidBySlotAndStudent: bookingsState.activeBidBySlotAndStudent,
+    winnerByAllocationKey: {
+      ...publicAllocationState.allocatedSlotsByKey,
+      ...bookingsState.winnerByAllocationKey
+    },
     bookingRepository: bookingsState.bookingRepository,
     lessonRepository: lessonsState.lessonRepository,
     acceptBooking: bookingsState.acceptBooking,
@@ -85,6 +93,7 @@ export function useAppController() {
     directoryState,
     schedulesState,
     bookingsState,
+    publicAllocationState,
     lessonsState,
     messagesState,
     lessonNoteState,

@@ -1,3 +1,4 @@
+import { isActiveBookingStatus } from "../../domain/slotAllocation";
 import { Lesson } from "../../domain/lesson";
 import { BookingRepository } from "../../ports/bookingRepository";
 import { LessonRepository } from "../../ports/lessonRepository";
@@ -36,6 +37,17 @@ export class AcceptBooking {
       return;
     }
 
+    const group = await this.bookingRepo.getByAllocationKey(
+      booking.slotAllocationKey
+    );
+    const existingWinner = group.find(
+      (entry) => entry.id !== booking.id && entry.status === "accepted"
+    );
+
+    if (existingWinner) {
+      return;
+    }
+
     await this.bookingRepo.updateStatus(bookingId, "accepted");
 
     await this.lessonRepo.save(
@@ -45,6 +57,17 @@ export class AcceptBooking {
         studentId: booking.studentId,
         scheduledAt: booking.scheduledAt
       })
+    );
+
+    await Promise.all(
+      group
+        .filter((entry) => entry.id !== booking.id)
+        .filter((entry) => isActiveBookingStatus(entry.status))
+        .map((entry) =>
+          this.bookingRepo.updateStatus(entry.id, "rejected", {
+            reason: "slot_filled"
+          })
+        )
     );
   }
 }

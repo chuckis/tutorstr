@@ -1,3 +1,6 @@
+import { Booking } from "../domain/booking";
+import { SlotOccupancy } from "../domain/slotOccupancy";
+import { makeSlotAllocationKey, makeSlotBidKey } from "../domain/slotAllocation";
 import {
   BookingRequest,
   EncryptedMessage,
@@ -26,6 +29,9 @@ type DiscoverTabProps = {
   onSendMessage: (recipientPubkey: string, text: string) => void;
   messageStatus: string;
   studentNpub: string;
+  studentPubkey: string;
+  activeBidBySlotAndStudent: Record<string, Booking>;
+  winnerByAllocationKey: Record<string, SlotOccupancy>;
   onBookingRequest: (
     tutorPubkey: string,
     payload: Omit<BookingRequest, "bookingId">
@@ -46,8 +52,35 @@ export function DiscoverTab({
   onSendMessage,
   messageStatus,
   studentNpub,
+  studentPubkey,
+  activeBidBySlotAndStudent,
+  winnerByAllocationKey,
   onBookingRequest
 }: DiscoverTabProps) {
+  function getSlotState(tutorPubkey: string, slot: ScheduleSlot) {
+    const slotBidKey = makeSlotBidKey(tutorPubkey, studentPubkey, slot);
+    if (activeBidBySlotAndStudent[slotBidKey]) {
+      return "requested";
+    }
+
+    const slotAllocationKey = makeSlotAllocationKey(tutorPubkey, slot);
+    if (winnerByAllocationKey[slotAllocationKey]) {
+      return "unavailable";
+    }
+
+    return "available";
+  }
+
+  function getSlotActionLabel(slotState: "available" | "requested" | "unavailable") {
+    if (slotState === "requested") {
+      return "Requested";
+    }
+    if (slotState === "unavailable") {
+      return "Unavailable";
+    }
+    return "Request this slot";
+  }
+
   if (selectedTutor) {
     return (
       <section className="tab-panel discover-tab">
@@ -77,25 +110,30 @@ export function DiscoverTab({
               <h3>Published slots</h3>
               {schedules[selectedTutor.pubkey]?.schedule.slots.length ? (
                 <ul className="slot-list">
-                  {schedules[selectedTutor.pubkey].schedule.slots.map((slot, index) => (
-                    <li key={`${slot.start}-${index}`}>
-                      <div className="request-actions">
-                        <span>
-                          {formatDateTime(slot.start)}
-                          {" -> "}
-                          {formatDateTime(slot.end)}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onRequestPublishedSlot(selectedTutor.pubkey, slot)
-                          }
-                        >
-                          Request this slot
-                        </button>
-                      </div>
-                    </li>
-                  ))}
+                  {schedules[selectedTutor.pubkey].schedule.slots.map((slot, index) => {
+                    const slotState = getSlotState(selectedTutor.pubkey, slot);
+
+                    return (
+                      <li key={`${slot.start}-${index}`}>
+                        <div className="request-actions">
+                          <span>
+                            {formatDateTime(slot.start)}
+                            {" -> "}
+                            {formatDateTime(slot.end)}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={slotState !== "available"}
+                            onClick={() =>
+                              onRequestPublishedSlot(selectedTutor.pubkey, slot)
+                            }
+                          >
+                            {getSlotActionLabel(slotState)}
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <p className="muted">No slots published yet.</p>
@@ -117,6 +155,7 @@ export function DiscoverTab({
             tutorPubkey={selectedTutor.pubkey}
             schedule={schedules[selectedTutor.pubkey]}
             studentNpub={studentNpub}
+            getSlotState={(slot) => getSlotState(selectedTutor.pubkey, slot)}
             onSubmit={(payload) => onBookingRequest(selectedTutor.pubkey, payload)}
           />
         </div>

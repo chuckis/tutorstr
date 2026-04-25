@@ -1,4 +1,6 @@
 import { Booking } from "../domain/booking";
+import { SlotOccupancy } from "../domain/slotOccupancy";
+import { makeSlotAllocationKey, makeSlotBidKey } from "../domain/slotAllocation";
 import { Lesson, LessonStatus } from "../domain/lesson";
 import { BookingRepository } from "../ports/bookingRepository";
 import { LessonRepository } from "../ports/lessonRepository";
@@ -10,6 +12,7 @@ type AcceptBookingUseCase = {
 };
 
 type UseAppActionsProps = {
+  studentPubkey: string;
   studentNpub: string;
   relayInput: string;
   publishBookingRequest: (
@@ -18,8 +21,11 @@ type UseAppActionsProps = {
       requestedSlot: ScheduleSlot;
       message: string;
       studentNpub: string;
+      slotAllocationKey?: string;
     }
   ) => Promise<unknown>;
+  activeBidBySlotAndStudent: Record<string, Booking>;
+  winnerByAllocationKey: Record<string, SlotOccupancy>;
   bookingRepository: BookingRepository;
   lessonRepository: LessonRepository;
   acceptBooking: AcceptBookingUseCase;
@@ -37,9 +43,12 @@ function parseRelayList(value: string) {
 }
 
 export function useAppActions({
+  studentPubkey,
   studentNpub,
   relayInput,
   publishBookingRequest,
+  activeBidBySlotAndStudent,
+  winnerByAllocationKey,
   bookingRepository,
   lessonRepository,
   acceptBooking,
@@ -69,14 +78,42 @@ export function useAppActions({
     await bookingRepository.updateStatus(request.id, "cancelled");
   }
 
-  async function requestPublishedSlot(tutorPubkey: string, slot: ScheduleSlot) {
+  async function requestBooking(
+    tutorPubkey: string,
+    payload: {
+      requestedSlot: ScheduleSlot;
+      message: string;
+      studentNpub: string;
+    }
+  ) {
     setDiscoverStatus("");
+
+    const slotAllocationKey = makeSlotAllocationKey(
+      tutorPubkey,
+      payload.requestedSlot
+    );
+    const slotBidKey = makeSlotBidKey(
+      tutorPubkey,
+      studentPubkey,
+      payload.requestedSlot
+    );
+    const existingBid = activeBidBySlotAndStudent[slotBidKey];
+    const winner = winnerByAllocationKey[slotAllocationKey];
+
+    if (existingBid) {
+      setDiscoverStatus("You already requested this slot.");
+      return;
+    }
+
+    if (winner && winner.studentId !== studentPubkey) {
+      setDiscoverStatus("Slot is no longer available.");
+      return;
+    }
 
     try {
       await publishBookingRequest(tutorPubkey, {
-        requestedSlot: slot,
-        message: "",
-        studentNpub
+        ...payload,
+        slotAllocationKey
       });
       setDiscoverStatus("Slot request sent.");
     } catch (error) {
@@ -84,6 +121,14 @@ export function useAppActions({
         error instanceof Error ? error.message : "Failed to send slot request."
       );
     }
+  }
+
+  async function requestPublishedSlot(tutorPubkey: string, slot: ScheduleSlot) {
+    await requestBooking(tutorPubkey, {
+      requestedSlot: slot,
+      message: "",
+      studentNpub
+    });
   }
 
   async function sendEncryptedMessage(recipientPubkey: string, text: string) {
@@ -118,6 +163,7 @@ export function useAppActions({
     respondToBooking,
     changeLessonStatus,
     cancelRequestFromStudent,
+    requestBooking,
     requestPublishedSlot,
     sendEncryptedMessage,
     updateRelays,

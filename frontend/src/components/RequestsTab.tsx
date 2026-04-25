@@ -31,6 +31,25 @@ type RequestsTabProps = {
   messageStatus: string;
 };
 
+function requestReasonLabel(request: Booking) {
+  if (request.resolutionReason === "slot_filled") {
+    return "Filled by another student";
+  }
+  if (request.resolutionReason === "tutor_rejected") {
+    return "Declined by tutor";
+  }
+  if (request.resolutionReason === "duplicate_bid") {
+    return "Duplicate request";
+  }
+  if (request.resolutionReason === "student_cancelled") {
+    return "Cancelled by student";
+  }
+  if (request.status === "accepted") {
+    return "Won slot";
+  }
+  return null;
+}
+
 export function RequestsTab({
   selectedRequest,
   onSelectRequest,
@@ -44,6 +63,31 @@ export function RequestsTab({
   onSendMessage,
   messageStatus
 }: RequestsTabProps) {
+  const groupedIncomingRequests =
+    requestSegment === "incoming"
+      ? Object.values(
+          requestItems.reduce<Record<string, Booking[]>>((acc, request) => {
+            const existing = acc[request.slotAllocationKey] || [];
+            existing.push(request);
+            acc[request.slotAllocationKey] = existing;
+            return acc;
+          }, {})
+        ).map((group) =>
+          [...group].sort((left, right) => {
+            const leftScore =
+              left.status === "accepted" ? 0 : left.status === "pending" ? 1 : 2;
+            const rightScore =
+              right.status === "accepted" ? 0 : right.status === "pending" ? 1 : 2;
+
+            if (leftScore !== rightScore) {
+              return leftScore - rightScore;
+            }
+
+            return Date.parse(left.scheduledAt) - Date.parse(right.scheduledAt);
+          })
+        )
+      : [];
+
   if (selectedRequest) {
     const recipientPubkey =
       selectedRequest.segment === "incoming"
@@ -84,6 +128,12 @@ export function RequestsTab({
             <strong>Status:</strong>{" "}
             {requestStatusLabel(selectedRequest.request.status)}
           </p>
+          {requestReasonLabel(selectedRequest.request) ? (
+            <p>
+              <strong>Resolution:</strong>{" "}
+              {requestReasonLabel(selectedRequest.request)}
+            </p>
+          ) : null}
           {selectedRequest.segment === "incoming" && isPending ? (
             <div className="action-buttons">
               <button
@@ -166,6 +216,84 @@ export function RequestsTab({
 
       {requestItems.length === 0 ? (
         <p className="muted">No requests in this segment.</p>
+      ) : requestSegment === "incoming" ? (
+        <div className="stack">
+          {groupedIncomingRequests.map((group) => {
+            const slot = group[0];
+            const winner = group.find((request) => request.status === "accepted") || null;
+            const pendingCount = group.filter((request) => request.status === "pending").length;
+
+            return (
+              <article className="panel" key={slot.slotAllocationKey}>
+                <h3>
+                  {formatDateTime(slot.scheduledAt)}
+                  {slot.scheduledEnd ? ` -> ${formatDateTime(slot.scheduledEnd)}` : ""}
+                </h3>
+                <p className="muted">
+                  Candidates: {group.length}
+                  {winner ? " • Allocated" : pendingCount ? ` • Pending: ${pendingCount}` : ""}
+                </p>
+                <ul className="requests-list">
+                  {group.map((request) => {
+                    const statusRaw = request.status;
+                    const statusText = requestStatusLabel(statusRaw);
+                    const isPending = statusRaw === "pending";
+                    const counterparty =
+                      tutors[request.studentId]?.profile.name ||
+                      toDisplayId(request.studentId);
+                    const reasonText = requestReasonLabel(request);
+
+                    return (
+                      <li key={request.id}>
+                        <div>
+                          <strong>Student:</strong> {counterparty}
+                        </div>
+                        {reasonText ? (
+                          <div>
+                            <strong>Resolution:</strong> {reasonText}
+                          </div>
+                        ) : null}
+                        <div className="request-actions">
+                          <span className={`status-pill status-${statusText}`}>
+                            {statusText}
+                          </span>
+                          {isPending ? (
+                            <div className="action-buttons">
+                              <button
+                                type="button"
+                                onClick={() => onRespondToBooking(request, "accepted")}
+                              >
+                                Accept
+                              </button>
+                              <button
+                                type="button"
+                                className="ghost-action"
+                                onClick={() => onRespondToBooking(request, "rejected")}
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onSelectRequest({
+                                request,
+                                segment: requestSegment
+                              })
+                            }
+                          >
+                            Details
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </article>
+            );
+          })}
+        </div>
       ) : (
         <ul className="requests-list">
           {requestItems.map((request) => {

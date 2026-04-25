@@ -19,13 +19,14 @@ export default function App() {
     scheduleState,
     directoryState,
     schedulesState,
+    bookingsState,
+    publicAllocationState,
     lessonsState,
     messagesState,
     lessonNoteState,
     alertsState,
     actions,
-    viewModel,
-    publishBookingRequest
+    viewModel
   } = useAppController();
 
   return (
@@ -54,9 +55,13 @@ export default function App() {
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}
             studentNpub={keypair.npub}
-            onBookingRequest={(tutorPubkey, payload) =>
-              publishBookingRequest(tutorPubkey, payload)
-            }
+            studentPubkey={keypair.pubkey}
+            activeBidBySlotAndStudent={bookingsState.activeBidBySlotAndStudent}
+            winnerByAllocationKey={{
+              ...publicAllocationState.allocatedSlotsByKey,
+              ...bookingsState.winnerByAllocationKey
+            }}
+            onBookingRequest={actions.requestBooking}
           />
         ) : null}
 

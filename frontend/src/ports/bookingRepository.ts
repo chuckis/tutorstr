@@ -4,5 +4,10 @@ export interface BookingRepository {
   getIncoming(userId: string): Promise<Booking[]>;
   getOutgoing(userId: string): Promise<Booking[]>;
   getById(id: string): Promise<Booking | null>;
-  updateStatus(id: string, status: Booking["status"]): Promise<void>;
+  getByAllocationKey(allocationKey: string): Promise<Booking[]>;
+  updateStatus(
+    id: string,
+    status: Booking["status"],
+    options?: { reason?: Booking["resolutionReason"] }
+  ): Promise<void>;
 }

@@ -34,6 +34,7 @@ export type BookingRequest = {
   requestedSlot: ScheduleSlot;
   message: string;
   studentNpub: string;
+  slotAllocationKey?: string;
 };
 
 export type BookingRequestEvent = {
@@ -45,10 +46,18 @@ export type BookingRequestEvent = {
   request: BookingRequest;
 };
 
+export type BookingStatusReason =
+  | "tutor_rejected"
+  | "duplicate_bid"
+  | "slot_filled"
+  | "student_cancelled";
+
 export type BookingStatus = {
   bookingId: string;
   status: "accepted" | "rejected" | "completed" | "cancelled";
   note?: string;
+  reason?: BookingStatusReason;
+  slotAllocationKey?: string;
 };
 
 export type BookingStatusEvent = {
