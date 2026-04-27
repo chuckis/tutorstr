@@ -1,0 +1,17 @@
+{
+  "backToLessons": "Back to lessons",
+  "defaultTitle": "Lesson",
+  "dateTime": "Date/time",
+  "duration": "Duration",
+  "minutes": "{{count}} min",
+  "counterparty": "Counterparty",
+  "status": "Status",
+  "markCompleted": "Mark completed",
+  "cancel": "Cancel",
+  "cancelLesson": "Cancel lesson",
+  "personalNote": "Personal note (local only)",
+  "saveNote": "Save note",
+  "upcoming": "Upcoming",
+  "past": "Past",
+  "empty": "No lessons in this segment."
+}

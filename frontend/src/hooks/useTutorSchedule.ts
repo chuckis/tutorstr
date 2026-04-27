@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../i18n/I18nProvider";
 import { nostrClient } from "../nostr/client";
 import { TutorSchedule } from "../types/nostr";
 import { emptySchedule, normalizeSchedule } from "../utils/normalize";
 
 export function useTutorSchedule(pubkey: string) {
+  const { t } = useI18n();
   const [schedule, setSchedule] = useState<TutorSchedule>(emptySchedule);
   const [status, setStatus] = useState<string>("");
 
@@ -38,7 +40,7 @@ export function useTutorSchedule(pubkey: string) {
   }, [pubkey]);
 
   async function publishSchedule(nextSchedule: TutorSchedule) {
-    setStatus("Publishing schedule...");
+    setStatus(t("schedule.publish"));
 
     const tags: string[][] = [["t", "role:tutor"]];
 
@@ -50,10 +52,10 @@ export function useTutorSchedule(pubkey: string) {
         tags
       );
       localStorage.setItem(`tutorhub:schedule:${pubkey}`, JSON.stringify(payload));
-      setStatus("Schedule published.");
+      setStatus(t("schedule.publish"));
     } catch (error) {
       setStatus(
-        error instanceof Error ? error.message : "Failed to publish schedule."
+        error instanceof Error ? error.message : t("schedule.publish")
       );
     }
   }

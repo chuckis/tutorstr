@@ -1,4 +1,5 @@
 import { TutorProfile } from "../types/nostr";
+import { useI18n } from "../i18n/I18nProvider";
 import { parseList } from "../utils/normalize";
 
 type ProfileFormProps = {
@@ -8,6 +9,8 @@ type ProfileFormProps = {
 };
 
 export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
+  const { t } = useI18n();
+
   return (
     <form
       className="profile-form"
@@ -17,30 +20,30 @@ export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
       }}
     >
       <label>
-        Name
+        {t("profile.form.name")}
         <input
           value={profile.name}
           onChange={(event) =>
             onChange({ ...profile, name: event.target.value })
           }
-          placeholder="Ada Lovelace"
+          placeholder={t("profile.form.namePlaceholder")}
         />
       </label>
 
       <label>
-        Bio
+        {t("profile.form.bio")}
         <textarea
           value={profile.bio}
           onChange={(event) =>
             onChange({ ...profile, bio: event.target.value })
           }
           rows={4}
-          placeholder="I help students master math and CS fundamentals."
+          placeholder={t("profile.form.bioPlaceholder")}
         />
       </label>
 
       <label>
-        Subjects (comma-separated)
+        {t("profile.form.subjects")}
         <input
           value={profile.subjects.join(", ")}
           onChange={(event) =>
@@ -49,12 +52,12 @@ export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
               subjects: parseList(event.target.value)
             })
           }
-          placeholder="algebra, calculus, data structures"
+          placeholder={t("profile.form.subjectsPlaceholder")}
         />
       </label>
 
       <label>
-        Languages (comma-separated)
+        {t("profile.form.languages")}
         <input
           value={profile.languages.join(", ")}
           onChange={(event) =>
@@ -63,12 +66,12 @@ export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
               languages: parseList(event.target.value)
             })
           }
-          placeholder="English, Spanish"
+          placeholder={t("profile.form.languagesPlaceholder")}
         />
       </label>
 
       <label>
-        Hourly rate (USD)
+        {t("profile.form.hourlyRate")}
         <input
           type="number"
           min="0"
@@ -83,17 +86,17 @@ export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
       </label>
 
       <label>
-        Avatar URL
+        {t("profile.form.avatarUrl")}
         <input
           value={profile.avatarUrl}
           onChange={(event) =>
             onChange({ ...profile, avatarUrl: event.target.value })
           }
-          placeholder="https://example.com/avatar.png"
+          placeholder={t("profile.form.avatarPlaceholder")}
         />
       </label>
 
-      <button type="submit">Publish Profile</button>
+      <button type="submit">{t("profile.form.publish")}</button>
     </form>
   );
 }

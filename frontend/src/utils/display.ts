@@ -1,19 +1,20 @@
 import { nip19 } from "nostr-tools";
+import { AppLocale } from "../domain/locale";
 
-export function formatDateTime(value: string) {
+export function formatDateTime(value: string, locale: AppLocale) {
   const timestamp = Date.parse(value);
   if (Number.isNaN(timestamp)) {
     return value;
   }
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(timestamp);
 }
 
-export function toDisplayId(pubkey: string) {
+export function toDisplayId(pubkey: string, fallback = "Unknown") {
   if (!pubkey) {
-    return "Unknown";
+    return fallback;
   }
   try {
     const npub = nip19.npubEncode(pubkey);

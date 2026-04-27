@@ -1,6 +1,7 @@
 import { Lesson, LessonStatus } from "../domain/lesson";
+import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
-import { formatDateTime, toDisplayId } from "../utils/display";
+import { toDisplayId } from "../utils/display";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 
@@ -45,6 +46,7 @@ export function LessonsTab({
   onSendMessage,
   messageStatus
 }: LessonsTabProps) {
+  const { t, formatDateTime } = useI18n();
   if (selectedLesson) {
     const counterpartyPubkey =
       selectedLesson.tutorId === currentPubkey
@@ -59,24 +61,26 @@ export function LessonsTab({
             className="ghost"
             onClick={() => onSelectLesson(null)}
           >
-            Back to lessons
+            {t("lessons.backToLessons")}
           </button>
-          <h2>{selectedLesson.subject || "Lesson"}</h2>
+          <h2>{selectedLesson.subject || t("lessons.defaultTitle")}</h2>
           <p>
-            <strong>Date/time:</strong>{" "}
+            <strong>{t("lessons.dateTime")}:</strong>{" "}
             {formatDateTime(selectedLesson.scheduledAt)}
           </p>
           <p>
-            <strong>Duration:</strong> {selectedLesson.durationMin} min
+            <strong>{t("lessons.duration")}:</strong>{" "}
+            {t("lessons.minutes", { count: selectedLesson.durationMin })}
           </p>
           <p>
-            <strong>Counterparty:</strong>{" "}
-            {tutors[counterpartyPubkey]?.profile.name || toDisplayId(counterpartyPubkey)}
+            <strong>{t("lessons.counterparty")}:</strong>{" "}
+            {tutors[counterpartyPubkey]?.profile.name ||
+              toDisplayId(counterpartyPubkey, t("common.states.unknown"))}
           </p>
           <p>
-            <strong>Status:</strong>{" "}
+            <strong>{t("lessons.status")}:</strong>{" "}
             <span className={`status-pill status-${selectedLesson.status}`}>
-              {selectedLesson.status}
+              {t(`common.status.${selectedLesson.status}`)}
             </span>
           </p>
 
@@ -91,7 +95,7 @@ export function LessonsTab({
                   )
                 }
               >
-                Mark completed
+                {t("lessons.markCompleted")}
               </button>
               <button
                 type="button"
@@ -102,7 +106,7 @@ export function LessonsTab({
                   )
                 }
               >
-                Cancel
+                {t("lessons.cancel")}
               </button>
             </div>
           ) : null}
@@ -119,11 +123,11 @@ export function LessonsTab({
                     )
                   }
                 >
-                  Cancel lesson
+                  {t("lessons.cancelLesson")}
                 </button>
               ) : null}
               <label className="filter">
-                Personal note (local only)
+                {t("lessons.personalNote")}
                 <textarea
                   rows={4}
                   value={lessonNote}
@@ -131,12 +135,12 @@ export function LessonsTab({
                 />
               </label>
               <button type="button" onClick={onSubmitLessonNote}>
-                Save note
+                {t("lessons.saveNote")}
               </button>
             </div>
           ) : null}
           <div className="stack">
-            <h3>Encrypted messages</h3>
+            <h3>{t("common.messages.title")}</h3>
             <MessageThread messages={messagesByCounterparty[counterpartyPubkey] || []} />
             <MessageComposer
               onSend={(text) => onSendMessage(counterpartyPubkey, text)}
@@ -160,14 +164,14 @@ export function LessonsTab({
             className={lessonSegment === "upcoming" ? "active" : ""}
             onClick={() => onLessonSegmentChange("upcoming")}
           >
-            Upcoming
+            {t("lessons.upcoming")}
           </button>
           <button
             type="button"
             className={lessonSegment === "past" ? "active" : ""}
             onClick={() => onLessonSegmentChange("past")}
           >
-            Past
+            {t("lessons.past")}
           </button>
         </div>
         <ul className="lesson-list">
@@ -191,19 +195,19 @@ export function LessonsTab({
                 tabIndex={0}
               >
                 <div>
-                  <strong>{lesson.subject || "Lesson"}</strong>
+                  <strong>{lesson.subject || t("lessons.defaultTitle")}</strong>
                 </div>
                 <div>{formatDateTime(lesson.scheduledAt)}</div>
                 <div>{name}</div>
                 <span className={`status-pill status-${lesson.status}`}>
-                  {lesson.status}
+                  {t(`common.status.${lesson.status}`)}
                 </span>
               </li>
             );
           })}
         </ul>
         {lessons.length === 0 ? (
-          <p className="muted">No lessons in this segment.</p>
+          <p className="muted">{t("lessons.empty")}</p>
         ) : null}
       </div>
     </section>

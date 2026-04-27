@@ -1,0 +1,58 @@
+{
+  "app": {
+    "title": "Tutorstr",
+    "subtitle": "Тьютор-хаб на Nostr",
+    "loadingVault": "Завантаження сховища",
+    "checkingVault": "Перевіряємо, чи є на цьому пристрої збережений профіль Tutorstr."
+  },
+  "nav": {
+    "primary": "Основна навігація",
+    "discover": "Пошук",
+    "requests": "Запити",
+    "lessons": "Уроки",
+    "profile": "Профіль"
+  },
+  "buttons": {
+    "back": "Назад",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "details": "Деталі",
+    "logout": "Вийти",
+    "sendMessage": "Надіслати повідомлення"
+  },
+  "states": {
+    "unnamedTutor": "Тьютор без імені",
+    "noBioYet": "Опис ще не додано.",
+    "noBio": "Опис відсутній.",
+    "notSet": "Не вказано",
+    "unknown": "Невідомо"
+  },
+  "language": {
+    "label": "Мова",
+    "en": "English",
+    "uk": "Українська"
+  },
+  "messages": {
+    "empty": "Поки немає повідомлень.",
+    "placeholder": "Напишіть приватне повідомлення...",
+    "title": "Зашифровані повідомлення"
+  },
+  "status": {
+    "pending": "Очікує",
+    "accepted": "Підтверджено",
+    "declined": "Відхилено",
+    "cancelled": "Скасовано",
+    "completed": "Завершено",
+    "scheduled": "Заплановано"
+  },
+  "requestResolution": {
+    "slot_filled": "Слот зайняв інший студент",
+    "tutor_rejected": "Тьютор відхилив запит",
+    "duplicate_bid": "Дубльований запит",
+    "student_cancelled": "Студент скасував запит",
+    "accepted": "Слот отримано"
+  },
+  "validation": {
+    "requiredRelay": "Додайте хоча б один relay URL."
+  }
+}

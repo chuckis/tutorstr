@@ -11,6 +11,7 @@ import { nostrKeyMaterial } from "../adapters/auth/nostrKeyMaterial";
 import { webCryptoVaultCipher } from "../adapters/auth/webCryptoVaultCipher";
 import { createVaultNostrSigner } from "../adapters/nostr/vaultNostrSigner";
 import { AuthError, AuthSession } from "../domain/auth";
+import { useI18n } from "../i18n/I18nProvider";
 import { nostrClient } from "../nostr/client";
 
 type AuthMode = "loading" | "welcome" | "unlock" | "authenticated";
@@ -28,6 +29,7 @@ const authDependencies = {
 };
 
 export function useAuthController() {
+  const { t } = useI18n();
   const [mode, setMode] = useState<AuthMode>("loading");
   const [session, setSession] = useState<AuthSession | null>(null);
   const [status, setStatus] = useState("");
@@ -53,7 +55,7 @@ export function useAuthController() {
   const actions = useMemo(
     () => ({
       async createProfile(passphrase: string) {
-        setStatus("Generating your Nostr key...");
+        setStatus(t("auth.createTitle"));
 
         try {
           const result = await createNewProfile(authDependencies, { passphrase });
@@ -66,12 +68,12 @@ export function useAuthController() {
           setStatus("");
         } catch (error) {
           setStatus(
-            error instanceof Error ? error.message : "Failed to create profile."
+            error instanceof Error ? error.message : t("auth.createTitle")
           );
         }
       },
       async importProfile(secret: string, passphrase: string) {
-        setStatus("Importing your key...");
+        setStatus(t("auth.importPanelTitle"));
 
         try {
           const nextSession = await importExistingKey(authDependencies, {
@@ -86,12 +88,12 @@ export function useAuthController() {
           setStatus("");
         } catch (error) {
           setStatus(
-            error instanceof Error ? error.message : "Failed to import key."
+            error instanceof Error ? error.message : t("auth.importTitle")
           );
         }
       },
       async unlock(passphrase: string) {
-        setStatus("Unlocking your vault...");
+        setStatus(t("auth.unlockTitle"));
 
         try {
           const nextSession = await unlockVault(authDependencies, { passphrase });
@@ -102,7 +104,7 @@ export function useAuthController() {
           setStatus("");
         } catch (error) {
           setStatus(
-            error instanceof Error ? error.message : "Failed to unlock vault."
+            error instanceof Error ? error.message : t("auth.unlockTitle")
           );
         }
       },
@@ -114,7 +116,7 @@ export function useAuthController() {
             throw error;
           }
 
-          throw new Error("Failed to reveal secret key.");
+          throw new Error(t("profile.revealButton"));
         }
       },
       logout() {
@@ -132,7 +134,7 @@ export function useAuthController() {
           return;
         }
 
-        setStatus("Encrypting your vault...");
+        setStatus(t("common.app.loadingVault"));
 
         try {
           await saveGeneratedProfile(authDependencies, {
@@ -153,12 +155,12 @@ export function useAuthController() {
           setStatus("");
         } catch (error) {
           setStatus(
-            error instanceof Error ? error.message : "Failed to secure profile."
+            error instanceof Error ? error.message : t("common.app.loadingVault")
           );
         }
       },
     }),
-    [pendingGeneratedProfile]
+    [pendingGeneratedProfile, t]
   );
 
   return {

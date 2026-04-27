@@ -1,5 +1,6 @@
 import { Booking } from "../domain/booking";
-import { formatDateTime, requestStatusLabel, toDisplayId } from "../utils/display";
+import { useI18n } from "../i18n/I18nProvider";
+import { requestStatusLabel, toDisplayId } from "../utils/display";
 
 type BookingRequestsPanelProps = {
   requests: Booking[];
@@ -7,42 +8,46 @@ type BookingRequestsPanelProps = {
 };
 
 export function BookingRequestsPanel({ requests, onRespond }: BookingRequestsPanelProps) {
+  const { t, formatDateTime } = useI18n();
   const pendingRequests = requests.filter((request) => {
     return request.status !== "accepted" && request.status !== "rejected";
   });
 
   return (
     <div className="requests-panel">
-      <h3>Incoming booking requests</h3>
+      <h3>{t("requests.incoming")}</h3>
       {pendingRequests.length === 0 ? (
-        <p className="muted">No requests yet.</p>
+        <p className="muted">{t("requests.empty")}</p>
       ) : (
         <ul>
           {pendingRequests.map((request) => {
             return (
               <li key={request.id}>
                 <div>
-                  <strong>Slot:</strong> {formatDateTime(request.scheduledAt)}
+                  <strong>{t("discover.selectSlot")}:</strong> {formatDateTime(request.scheduledAt)}
                   {request.scheduledEnd ? ` -> ${formatDateTime(request.scheduledEnd)}` : ""}
                 </div>
                 <div>
-                  <strong>Student:</strong> {toDisplayId(request.studentId)}
+                  <strong>{t("requests.student")}:</strong>{" "}
+                  {toDisplayId(request.studentId, t("common.states.unknown"))}
                 </div>
                 <div className="request-actions">
-                  <span className="muted">Status: {requestStatusLabel(request.status)}</span>
+                  <span className="muted">
+                    {t("requests.status")}: {t(`common.status.${requestStatusLabel(request.status)}`)}
+                  </span>
                   <div className="action-buttons">
                     <button
                       type="button"
                       onClick={() => onRespond(request, "accepted")}
                     >
-                      Accept
+                      {t("requests.accept")}
                     </button>
                     <button
                       type="button"
                       className="ghost-action"
                       onClick={() => onRespond(request, "rejected")}
                     >
-                      Reject
+                      {t("requests.decline")}
                     </button>
                   </div>
                 </div>

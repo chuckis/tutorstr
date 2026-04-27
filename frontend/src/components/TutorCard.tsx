@@ -1,4 +1,5 @@
 import { nip19 } from "nostr-tools";
+import { useI18n } from "../i18n/I18nProvider";
 import { TutorProfileEvent } from "../types/nostr";
 
 type TutorCardProps = {
@@ -7,6 +8,7 @@ type TutorCardProps = {
 };
 
 export function TutorCard({ entry, onSelect }: TutorCardProps) {
+  const { t } = useI18n();
   const displayName = entry.profile.name || toDisplayId(entry.pubkey);
 
   return (
@@ -16,14 +18,14 @@ export function TutorCard({ entry, onSelect }: TutorCardProps) {
       onClick={() => onSelect(entry)}
     >
       <h3>{displayName}</h3>
-      <p>{entry.profile.bio || "No bio provided yet."}</p>
+      <p>{entry.profile.bio || t("common.states.noBioYet")}</p>
       <div className="chips">
         {entry.profile.subjects.length > 0 ? (
           entry.profile.subjects.slice(0, 3).map((subject) => (
             <span key={subject}>{subject}</span>
           ))
         ) : (
-          <span>No subjects set</span>
+          <span>{t("discover.noSubjects")}</span>
         )}
       </div>
     </button>

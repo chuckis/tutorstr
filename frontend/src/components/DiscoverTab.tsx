@@ -9,7 +9,7 @@ import {
   TutorProfileEvent,
   TutorScheduleEvent
 } from "../types/nostr";
-import { formatDateTime } from "../utils/display";
+import { useI18n } from "../i18n/I18nProvider";
 import { BookingRequestForm } from "./BookingRequestForm";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -57,6 +57,8 @@ export function DiscoverTab({
   winnerByAllocationKey,
   onBookingRequest
 }: DiscoverTabProps) {
+  const { t, formatDateTime, formatNumber } = useI18n();
+
   function getSlotState(tutorPubkey: string, slot: ScheduleSlot) {
     const slotBidKey = makeSlotBidKey(tutorPubkey, studentPubkey, slot);
     if (activeBidBySlotAndStudent[slotBidKey]) {
@@ -73,12 +75,12 @@ export function DiscoverTab({
 
   function getSlotActionLabel(slotState: "available" | "requested" | "unavailable") {
     if (slotState === "requested") {
-      return "Requested";
+      return t("discover.requested");
     }
     if (slotState === "unavailable") {
-      return "Unavailable";
+      return t("discover.unavailable");
     }
-    return "Request this slot";
+    return t("discover.requestSlot");
   }
 
   if (selectedTutor) {
@@ -90,24 +92,26 @@ export function DiscoverTab({
             className="ghost"
             onClick={() => onSelectTutor(null)}
           >
-            Back to discover
+            {t("discover.backToDiscover")}
           </button>
           <article className="panel">
-            <h2>{selectedTutor.profile.name || "Unnamed Tutor"}</h2>
-            <p>{selectedTutor.profile.bio || "No bio provided yet."}</p>
+            <h2>{selectedTutor.profile.name || t("common.states.unnamedTutor")}</h2>
+            <p>{selectedTutor.profile.bio || t("common.states.noBioYet")}</p>
             <div className="chips">
               {selectedTutor.profile.subjects.map((subject) => (
                 <span key={subject}>{subject}</span>
               ))}
             </div>
             <p className="muted">
-              Rate:{" "}
+              {t("discover.rate")}:{" "}
               {selectedTutor.profile.hourlyRate
-                ? `$${selectedTutor.profile.hourlyRate}/hr`
-                : "Not set"}
+                ? t("discover.hourlyRate", {
+                    count: formatNumber(selectedTutor.profile.hourlyRate)
+                  })
+                : t("common.states.notSet")}
             </p>
             <div className="stack">
-              <h3>Published slots</h3>
+              <h3>{t("discover.publishedSlots")}</h3>
               {schedules[selectedTutor.pubkey]?.schedule.slots.length ? (
                 <ul className="slot-list">
                   {schedules[selectedTutor.pubkey].schedule.slots.map((slot, index) => {
@@ -136,13 +140,13 @@ export function DiscoverTab({
                   })}
                 </ul>
               ) : (
-                <p className="muted">No slots published yet.</p>
+                <p className="muted">{t("discover.noSlots")}</p>
               )}
               {discoverStatus ? <p className="muted">{discoverStatus}</p> : null}
             </div>
           </article>
           <article className="panel">
-            <h3>Encrypted messages</h3>
+            <h3>{t("common.messages.title")}</h3>
             <MessageThread
               messages={messagesByCounterparty[selectedTutor.pubkey] || []}
             />
@@ -167,25 +171,25 @@ export function DiscoverTab({
     <section className="tab-panel discover-tab">
       <div className="stack">
         <article className="panel">
-          <h2>Public profile preview</h2>
+          <h2>{t("discover.profilePreview")}</h2>
           <p>
-            <strong>{profile.name || "Unnamed Tutor"}</strong>
+            <strong>{profile.name || t("common.states.unnamedTutor")}</strong>
           </p>
-          <p className="muted">{profile.bio || "No bio provided."}</p>
+          <p className="muted">{profile.bio || t("common.states.noBio")}</p>
         </article>
 
         <label className="filter">
-          Search tutors by subject
+          {t("discover.searchLabel")}
           <input
             value={subjectFilter}
             onChange={(event) => onSubjectFilterChange(event.target.value)}
-            placeholder="calculus"
+            placeholder={t("discover.searchPlaceholder")}
           />
         </label>
 
         <div className="card-grid">
           {filteredTutors.length === 0 ? (
-            <p className="muted">No tutors found yet.</p>
+            <p className="muted">{t("discover.noTutors")}</p>
           ) : (
             filteredTutors.map((entry) => (
               <TutorCard

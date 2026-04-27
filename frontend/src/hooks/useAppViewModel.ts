@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Booking } from "../domain/booking";
+import { useI18n } from "../i18n/I18nProvider";
 import { toDisplayId } from "../utils/display";
 import { RequestSegment } from "./useAppNavigation";
 
@@ -18,14 +19,15 @@ export function useAppViewModel({
   incomingRequests,
   outgoingRequests
 }: UseAppViewModelProps) {
+  const { t } = useI18n();
   const requestItems = useMemo(
     () => (requestSegment === "incoming" ? incomingRequests : outgoingRequests),
     [incomingRequests, outgoingRequests, requestSegment]
   );
 
   const viewerLabel = useMemo(
-    () => viewerName.trim() || toDisplayId(viewerPubkey),
-    [viewerName, viewerPubkey]
+    () => viewerName.trim() || toDisplayId(viewerPubkey, t("common.states.unknown")),
+    [t, viewerName, viewerPubkey]
   );
 
   return {

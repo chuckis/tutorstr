@@ -140,6 +140,7 @@ p {
 }
 
 .filter input,
+.filter select,
 .filter textarea,
 .profile-form input,
 .profile-form textarea,
@@ -160,6 +161,7 @@ p {
 }
 
 .filter input:focus,
+.filter select:focus,
 .filter textarea:focus,
 .profile-form input:focus,
 .profile-form textarea:focus,

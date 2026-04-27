@@ -1,6 +1,7 @@
 import { Lesson, LessonStatus } from "../domain/lesson";
+import { useI18n } from "../i18n/I18nProvider";
 import { TutorProfileEvent } from "../types/nostr";
-import { formatDateTime, toDisplayId } from "../utils/display";
+import { toDisplayId } from "../utils/display";
 
 type LessonAgreementsPanelProps = {
   title: string;
@@ -24,11 +25,13 @@ export function LessonAgreementsPanel({
   profilesByPubkey,
   onStatusChange
 }: LessonAgreementsPanelProps) {
+  const { t, formatDateTime } = useI18n();
+
   return (
     <div className="requests-panel">
       <h3>{title}</h3>
       {agreements.length === 0 ? (
-        <p className="muted">No lessons yet.</p>
+        <p className="muted">{t("lessons.empty")}</p>
       ) : (
         <ul className="lesson-list">
           {agreements.map((agreement) => {
@@ -37,29 +40,31 @@ export function LessonAgreementsPanel({
                 ? agreement.studentId
                 : agreement.tutorId;
             const counterpartyName =
-              profilesByPubkey[counterparty]?.profile.name || toDisplayId(counterparty);
+              profilesByPubkey[counterparty]?.profile.name ||
+              toDisplayId(counterparty, t("common.states.unknown"));
             const canUpdate = agreement.tutorId === currentPubkey;
             const actions = nextStatuses(agreement.status);
 
             return (
               <li key={agreement.id} className="lesson-card">
                 <div>
-                  <strong>{agreement.subject || "Lesson"}</strong>
+                  <strong>{agreement.subject || t("lessons.defaultTitle")}</strong>
                 </div>
                 <div>
-                  <strong>Date/time:</strong> {formatDateTime(agreement.scheduledAt)}
+                  <strong>{t("lessons.dateTime")}:</strong> {formatDateTime(agreement.scheduledAt)}
                 </div>
                 <div>
-                  <strong>Duration:</strong> {agreement.durationMin} min
+                  <strong>{t("lessons.duration")}:</strong>{" "}
+                  {t("lessons.minutes", { count: agreement.durationMin })}
                 </div>
                 <div>
-                  <strong>Counterparty:</strong> {counterpartyName}
+                  <strong>{t("lessons.counterparty")}:</strong> {counterpartyName}
                 </div>
                 <div className="request-actions">
                   <span className="muted">
-                    Status:{" "}
+                    {t("lessons.status")}:{" "}
                     <span className={`lesson-status status-${agreement.status}`}>
-                      {agreement.status}
+                      {t(`common.status.${agreement.status}`)}
                     </span>
                   </span>
                   {canUpdate && onStatusChange && actions.length > 0 ? (
@@ -71,7 +76,9 @@ export function LessonAgreementsPanel({
                           className={status === "canceled" ? "ghost-action" : ""}
                           onClick={() => onStatusChange(agreement, status)}
                         >
-                          Mark {status}
+                          {status === "completed"
+                            ? t("lessons.markCompleted")
+                            : t("lessons.cancel")}
                         </button>
                       ))}
                     </div>

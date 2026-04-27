@@ -1,0 +1,25 @@
+{
+  "identity": "Identity",
+  "pubkeyHex": "pubkey (hex)",
+  "relayConfig": "Relay configuration",
+  "relaysLabel": "Relays (comma-separated)",
+  "saveRelays": "Save relays",
+  "session": "Session",
+  "revealPassword": "Master password to reveal nsec",
+  "revealButton": "Reveal my secret key",
+  "lastEvent": "Last event: {{id}}",
+  "form": {
+    "name": "Name",
+    "namePlaceholder": "Ada Lovelace",
+    "bio": "Bio",
+    "bioPlaceholder": "I help students master math and CS fundamentals.",
+    "subjects": "Subjects (comma-separated)",
+    "subjectsPlaceholder": "algebra, calculus, data structures",
+    "languages": "Languages (comma-separated)",
+    "languagesPlaceholder": "English, Spanish",
+    "hourlyRate": "Hourly rate (USD)",
+    "avatarUrl": "Avatar URL",
+    "avatarPlaceholder": "https://example.com/avatar.png",
+    "publish": "Publish profile"
+  }
+}

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { AppLocale, SUPPORTED_LOCALES } from "../domain/locale";
+import { useI18n } from "../i18n/I18nProvider";
 import { ProfileForm } from "./ProfileForm";
 import { ScheduleForm } from "./ScheduleForm";
 import { TutorProfile, TutorSchedule } from "../types/nostr";
@@ -42,6 +44,7 @@ export function ProfileTab({
   profileStatus,
   lastEventId
 }: ProfileTabProps) {
+  const { t, locale, setLocale } = useI18n();
   const [revealPassphrase, setRevealPassphrase] = useState("");
   const [revealError, setRevealError] = useState("");
   const [revealedSecret, setRevealedSecret] = useState("");
@@ -54,7 +57,7 @@ export function ProfileTab({
       setRevealPassphrase("");
     } catch (error) {
       setRevealError(
-        error instanceof Error ? error.message : "Failed to reveal secret key."
+        error instanceof Error ? error.message : t("profile.revealButton")
       );
     }
   }
@@ -62,10 +65,10 @@ export function ProfileTab({
   return (
     <section className="tab-panel profile-tab">
       <article className="panel">
-        <h3>Identity</h3>
+        <h3>{t("profile.identity")}</h3>
         <p className="muted">npub</p>
         <p className="identity-value">{npub}</p>
-        <p className="muted">pubkey (hex)</p>
+        <p className="muted">{t("profile.pubkeyHex")}</p>
         <p className="identity-value">{pubkey}</p>
       </article>
 
@@ -81,9 +84,22 @@ export function ProfileTab({
       />
 
       <article className="panel">
-        <h3>Relay configuration</h3>
+        <h3>{t("profile.relayConfig")}</h3>
         <label className="filter">
-          Relays (comma-separated)
+          {t("common.language.label")}
+          <select
+            value={locale}
+            onChange={(event) => setLocale(event.target.value as AppLocale)}
+          >
+            {SUPPORTED_LOCALES.map((entry) => (
+              <option key={entry} value={entry}>
+                {t(`common.language.${entry}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="filter">
+          {t("profile.relaysLabel")}
           <textarea
             rows={3}
             value={relayInput}
@@ -91,15 +107,15 @@ export function ProfileTab({
           />
         </label>
         <button type="button" onClick={onUpdateRelays}>
-          Save relays
+          {t("profile.saveRelays")}
         </button>
         {relayStatus ? <p className="muted">{relayStatus}</p> : null}
       </article>
 
       <article className="panel">
-        <h3>Session</h3>
+        <h3>{t("profile.session")}</h3>
         <label className="filter">
-          Master password to reveal `nsec`
+          {t("profile.revealPassword")}
           <input
             type="password"
             autoComplete="current-password"
@@ -108,18 +124,20 @@ export function ProfileTab({
           />
         </label>
         <button type="button" onClick={handleRevealSecret}>
-          Reveal my secret key
+          {t("profile.revealButton")}
         </button>
         {revealedSecret ? <p className="identity-value">{revealedSecret}</p> : null}
         {revealError ? <p className="muted">{revealError}</p> : null}
         <button type="button" className="ghost-action" onClick={onLogout}>
-          Logout
+          {t("common.buttons.logout")}
         </button>
       </article>
 
       <div className="status">
         <span>{scheduleStatus || profileStatus}</span>
-        {lastEventId ? <span className="muted">Last event: {lastEventId}</span> : null}
+        {lastEventId ? (
+          <span className="muted">{t("profile.lastEvent", { id: lastEventId })}</span>
+        ) : null}
       </div>
     </section>
   );

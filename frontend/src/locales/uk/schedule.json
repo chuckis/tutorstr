@@ -1,0 +1,11 @@
+{
+  "availability": "Доступність",
+  "timezone": "Часовий пояс",
+  "timezonePlaceholder": "Europe/Kyiv",
+  "start": "Початок",
+  "end": "Кінець",
+  "addSlot": "Додати слот",
+  "remove": "Видалити",
+  "noSlots": "Поки не додано жодного слота.",
+  "publish": "Опублікувати розклад"
+}

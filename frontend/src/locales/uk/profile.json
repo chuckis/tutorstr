@@ -1,0 +1,25 @@
+{
+  "identity": "Ідентичність",
+  "pubkeyHex": "pubkey (hex)",
+  "relayConfig": "Налаштування relay",
+  "relaysLabel": "Relay (через кому)",
+  "saveRelays": "Зберегти relay",
+  "session": "Сесія",
+  "revealPassword": "Master password для показу nsec",
+  "revealButton": "Показати мій секретний ключ",
+  "lastEvent": "Остання подія: {{id}}",
+  "form": {
+    "name": "Ім'я",
+    "namePlaceholder": "Ада Лавлейс",
+    "bio": "Опис",
+    "bioPlaceholder": "Допомагаю студентам освоїти математику та основи CS.",
+    "subjects": "Предмети (через кому)",
+    "subjectsPlaceholder": "алгебра, аналіз, структури даних",
+    "languages": "Мови (через кому)",
+    "languagesPlaceholder": "Українська, English",
+    "hourlyRate": "Погодинна ставка (USD)",
+    "avatarUrl": "URL аватара",
+    "avatarPlaceholder": "https://example.com/avatar.png",
+    "publish": "Опублікувати профіль"
+  }
+}

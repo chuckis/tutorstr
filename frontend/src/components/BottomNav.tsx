@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/I18nProvider";
+
 type MainTab = "discover" | "requests" | "lessons" | "profile";
 
 type BottomNavProps = {
@@ -11,14 +13,16 @@ export function BottomNav({
   requestsHasAlert,
   onSelectTab
 }: BottomNavProps) {
+  const { t } = useI18n();
+
   return (
-    <nav className="bottom-nav" aria-label="Primary">
+    <nav className="bottom-nav" aria-label={t("common.nav.primary")}>
       <button
         type="button"
         className={activeTab === "discover" ? "active" : ""}
         onClick={() => onSelectTab("discover")}
       >
-        Discover
+        {t("common.nav.discover")}
       </button>
       <button
         type="button"
@@ -27,21 +31,21 @@ export function BottomNav({
         }`.trim()}
         onClick={() => onSelectTab("requests")}
       >
-        Requests
+        {t("common.nav.requests")}
       </button>
       <button
         type="button"
         className={activeTab === "lessons" ? "active" : ""}
         onClick={() => onSelectTab("lessons")}
       >
-        Lessons
+        {t("common.nav.lessons")}
       </button>
       <button
         type="button"
         className={activeTab === "profile" ? "active" : ""}
         onClick={() => onSelectTab("profile")}
       >
-        Profile
+        {t("common.nav.profile")}
       </button>
     </nav>
   );

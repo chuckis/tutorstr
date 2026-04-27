@@ -1,0 +1,21 @@
+{
+  "backToRequests": "Назад до запитів",
+  "detailsTitle": "Деталі запиту на урок",
+  "scheduled": "Заплановано",
+  "ends": "Завершення",
+  "counterparty": "Співрозмовник",
+  "status": "Статус",
+  "resolution": "Результат",
+  "accept": "Підтвердити",
+  "decline": "Відхилити",
+  "cancelRequest": "Скасувати запит",
+  "incoming": "Вхідні",
+  "outgoing": "Вихідні",
+  "empty": "У цьому сегменті немає запитів.",
+  "candidates": "Кандидати: {{count}}",
+  "allocated": "Розподілено",
+  "pendingCount": "Очікують: {{count}}",
+  "student": "Студент",
+  "subject": "Предмет",
+  "defaultSubject": "Урок із тьютором"
+}

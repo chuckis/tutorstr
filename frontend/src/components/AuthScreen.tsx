@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { useI18n } from "../i18n/I18nProvider";
 
 type AuthScreenProps = {
   mode: "welcome" | "unlock";
@@ -21,6 +22,7 @@ export function AuthScreen({
   onUnlock,
   onDismissGeneratedSecret
 }: AuthScreenProps) {
+  const { t } = useI18n();
   const [flow, setFlow] = useState<WelcomeFlow>("choice");
   const [passphrase, setPassphrase] = useState("");
   const [passphraseConfirm, setPassphraseConfirm] = useState("");
@@ -32,11 +34,11 @@ export function AuthScreen({
   async function handleCreateProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!passphrase.trim()) {
-      setLocalError("Set a master password first.");
+      setLocalError(t("auth.errors.setPassword"));
       return;
     }
     if (passphrase !== passphraseConfirm) {
-      setLocalError("Master passwords do not match.");
+      setLocalError(t("auth.errors.passwordMismatch"));
       return;
     }
 
@@ -47,15 +49,15 @@ export function AuthScreen({
   async function handleImportProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!secretInput.trim()) {
-      setLocalError("Paste your nsec, hex key, or seed phrase.");
+      setLocalError(t("auth.errors.secretRequired"));
       return;
     }
     if (!passphrase.trim()) {
-      setLocalError("Set a master password first.");
+      setLocalError(t("auth.errors.setPassword"));
       return;
     }
     if (passphrase !== passphraseConfirm) {
-      setLocalError("Master passwords do not match.");
+      setLocalError(t("auth.errors.passwordMismatch"));
       return;
     }
 
@@ -68,7 +70,7 @@ export function AuthScreen({
   async function handleUnlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!passphrase.trim()) {
-      setLocalError("Enter your master password.");
+      setLocalError(t("auth.errors.unlockPassword"));
       return;
     }
 
@@ -80,49 +82,41 @@ export function AuthScreen({
     <main className="auth-shell">
       <section className="auth-hero">
         <p className="eyebrow">Tutorstr</p>
-        <h1>Nostr tutor hub</h1>
-        <p className="muted">
-          Your secret key never leaves this device. We encrypt it locally before
-          saving anything.
-        </p>
+        <h1>{t("auth.heroTitle")}</h1>
+        <p className="muted">{t("auth.heroBody")}</p>
       </section>
 
       {generatedNsec ? (
         <section className="auth-panel auth-warning">
-          <p className="eyebrow">Save this now</p>
-          <h2>Your secret key</h2>
+          <p className="eyebrow">{t("auth.saveNow")}</p>
+          <h2>{t("auth.yourSecretKey")}</h2>
           <p className="secret-value">{generatedNsec}</p>
-          <p className="warning-text">
-            Never share this. Do not lose it. We cannot recover it for you.
-          </p>
+          <p className="warning-text">{t("auth.warning")}</p>
           <label className="check-row">
             <input
               type="checkbox"
               checked={backupConfirmed}
               onChange={(event) => setBackupConfirmed(event.target.checked)}
             />
-            <span>I have saved my secret key in a safe place.</span>
+            <span>{t("auth.backupConfirmed")}</span>
           </label>
           <button
             type="button"
             onClick={onDismissGeneratedSecret}
             disabled={!backupConfirmed}
           >
-            Continue to app
+            {t("auth.continueToApp")}
           </button>
         </section>
       ) : null}
 
       {!generatedNsec && mode === "unlock" ? (
         <section className="auth-panel">
-          <h2>Unlock saved profile</h2>
-          <p className="muted">
-            Your profile is stored on this device. Enter the master password to
-            decrypt it for this session.
-          </p>
+          <h2>{t("auth.unlockTitle")}</h2>
+          <p className="muted">{t("auth.unlockBody")}</p>
           <form className="auth-form" onSubmit={handleUnlock}>
             <label>
-              Master password
+              {t("auth.masterPassword")}
               <input
                 type="password"
                 autoComplete="current-password"
@@ -130,7 +124,7 @@ export function AuthScreen({
                 onChange={(event) => setPassphrase(event.target.value)}
               />
             </label>
-            <button type="submit">Unlock</button>
+            <button type="submit">{t("auth.unlock")}</button>
           </form>
         </section>
       ) : null}
@@ -139,7 +133,7 @@ export function AuthScreen({
         <section className="auth-panel stack">
           {flow === "choice" ? (
             <>
-              <h2>Choose your start</h2>
+              <h2>{t("auth.chooseStart")}</h2>
               <div className="auth-card-grid">
                 <button
                   type="button"
@@ -149,10 +143,8 @@ export function AuthScreen({
                     setLocalError("");
                   }}
                 >
-                  <span className="auth-card-title">Create new profile</span>
-                  <span className="muted">
-                    Generate a fresh Nostr identity in the app.
-                  </span>
+                  <span className="auth-card-title">{t("auth.createTitle")}</span>
+                  <span className="muted">{t("auth.createBody")}</span>
                 </button>
                 <button
                   type="button"
@@ -162,10 +154,8 @@ export function AuthScreen({
                     setLocalError("");
                   }}
                 >
-                  <span className="auth-card-title">I already have a key</span>
-                  <span className="muted">
-                    Import your `nsec`, raw hex key, or seed phrase.
-                  </span>
+                  <span className="auth-card-title">{t("auth.importTitle")}</span>
+                  <span className="muted">{t("auth.importBody")}</span>
                 </button>
               </div>
             </>
@@ -173,13 +163,10 @@ export function AuthScreen({
 
           {flow === "create" ? (
             <form className="auth-form" onSubmit={handleCreateProfile}>
-              <h2>Create new profile</h2>
-              <p className="muted">
-                Set a master password. We will encrypt your private key before
-                saving it on this device.
-              </p>
+              <h2>{t("auth.createPanelTitle")}</h2>
+              <p className="muted">{t("auth.createPanelBody")}</p>
               <label>
-                Master password
+                {t("auth.masterPassword")}
                 <input
                   type="password"
                   autoComplete="new-password"
@@ -188,7 +175,7 @@ export function AuthScreen({
                 />
               </label>
               <label>
-                Confirm master password
+                {t("auth.confirmMasterPassword")}
                 <input
                   type="password"
                   autoComplete="new-password"
@@ -197,13 +184,13 @@ export function AuthScreen({
                 />
               </label>
               <div className="auth-actions">
-                <button type="submit">Generate my key</button>
+                <button type="submit">{t("auth.generateKey")}</button>
                 <button
                   type="button"
                   className="ghost-action"
                   onClick={() => setFlow("choice")}
                 >
-                  Back
+                  {t("auth.back")}
                 </button>
               </div>
             </form>
@@ -211,15 +198,15 @@ export function AuthScreen({
 
           {flow === "import" ? (
             <form className="auth-form" onSubmit={handleImportProfile}>
-              <h2>Import existing profile</h2>
+              <h2>{t("auth.importPanelTitle")}</h2>
               <label>
-                Secret key
+                {t("auth.secretKey")}
                 <textarea
                   className={showSecretInput ? "" : "secret-mask"}
                   rows={4}
                   value={secretInput}
                   onChange={(event) => setSecretInput(event.target.value)}
-                  placeholder="Paste your nsec, hex key, or seed phrase."
+                  placeholder={t("auth.secretPlaceholder")}
                 />
               </label>
               <label className="check-row">
@@ -228,10 +215,10 @@ export function AuthScreen({
                   checked={showSecretInput}
                   onChange={(event) => setShowSecretInput(event.target.checked)}
                 />
-                <span>Keep input visible while typing</span>
+                <span>{t("auth.showInput")}</span>
               </label>
               <label>
-                Master password
+                {t("auth.masterPassword")}
                 <input
                   type="password"
                   autoComplete="new-password"
@@ -240,7 +227,7 @@ export function AuthScreen({
                 />
               </label>
               <label>
-                Confirm master password
+                {t("auth.confirmMasterPassword")}
                 <input
                   type="password"
                   autoComplete="new-password"
@@ -249,13 +236,13 @@ export function AuthScreen({
                 />
               </label>
               <div className="auth-actions">
-                <button type="submit">Import key</button>
+                <button type="submit">{t("auth.importKey")}</button>
                 <button
                   type="button"
                   className="ghost-action"
                   onClick={() => setFlow("choice")}
                 >
-                  Back
+                  {t("auth.back")}
                 </button>
               </div>
             </form>

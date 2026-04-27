@@ -1,6 +1,7 @@
 import { Booking } from "../domain/booking";
+import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
-import { formatDateTime, requestStatusLabel, toDisplayId } from "../utils/display";
+import { requestStatusLabel, toDisplayId } from "../utils/display";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 
@@ -33,19 +34,19 @@ type RequestsTabProps = {
 
 function requestReasonLabel(request: Booking) {
   if (request.resolutionReason === "slot_filled") {
-    return "Filled by another student";
+    return "slot_filled";
   }
   if (request.resolutionReason === "tutor_rejected") {
-    return "Declined by tutor";
+    return "tutor_rejected";
   }
   if (request.resolutionReason === "duplicate_bid") {
-    return "Duplicate request";
+    return "duplicate_bid";
   }
   if (request.resolutionReason === "student_cancelled") {
-    return "Cancelled by student";
+    return "student_cancelled";
   }
   if (request.status === "accepted") {
-    return "Won slot";
+    return "accepted";
   }
   return null;
 }
@@ -63,6 +64,7 @@ export function RequestsTab({
   onSendMessage,
   messageStatus
 }: RequestsTabProps) {
+  const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
   const groupedIncomingRequests =
     requestSegment === "incoming"
       ? Object.values(
@@ -103,35 +105,35 @@ export function RequestsTab({
             className="ghost"
             onClick={() => onSelectRequest(null)}
           >
-            Back to requests
+            {t("requests.backToRequests")}
           </button>
-          <h2>Lesson request details</h2>
+          <h2>{t("requests.detailsTitle")}</h2>
           <p>
-            <strong>Scheduled:</strong>{" "}
-            {formatDateTime(selectedRequest.request.scheduledAt)}
+            <strong>{t("requests.scheduled")}:</strong>{" "}
+            {formatLocalizedDateTime(selectedRequest.request.scheduledAt)}
           </p>
           {selectedRequest.request.scheduledEnd ? (
             <p>
-              <strong>Ends:</strong>{" "}
-              {formatDateTime(selectedRequest.request.scheduledEnd)}
+              <strong>{t("requests.ends")}:</strong>{" "}
+              {formatLocalizedDateTime(selectedRequest.request.scheduledEnd)}
             </p>
           ) : null}
           <p>
-            <strong>Counterparty:</strong>{" "}
+            <strong>{t("requests.counterparty")}:</strong>{" "}
             {selectedRequest.segment === "incoming"
               ? tutors[selectedRequest.request.studentId]?.profile.name ||
-                toDisplayId(selectedRequest.request.studentId)
+                toDisplayId(selectedRequest.request.studentId, t("common.states.unknown"))
               : tutors[selectedRequest.request.tutorId]?.profile.name ||
-                toDisplayId(selectedRequest.request.tutorId)}
+                toDisplayId(selectedRequest.request.tutorId, t("common.states.unknown"))}
           </p>
           <p>
-            <strong>Status:</strong>{" "}
-            {requestStatusLabel(selectedRequest.request.status)}
+            <strong>{t("requests.status")}:</strong>{" "}
+            {t(`common.status.${requestStatusLabel(selectedRequest.request.status)}`)}
           </p>
           {requestReasonLabel(selectedRequest.request) ? (
             <p>
-              <strong>Resolution:</strong>{" "}
-              {requestReasonLabel(selectedRequest.request)}
+              <strong>{t("requests.resolution")}:</strong>{" "}
+              {t(`common.requestResolution.${requestReasonLabel(selectedRequest.request)}`)}
             </p>
           ) : null}
           {selectedRequest.segment === "incoming" && isPending ? (
@@ -144,7 +146,7 @@ export function RequestsTab({
                   ).then(() => onSelectRequest(null))
                 }
               >
-                Accept
+                {t("requests.accept")}
               </button>
               <button
                 type="button"
@@ -155,7 +157,7 @@ export function RequestsTab({
                   ).then(() => onSelectRequest(null))
                 }
               >
-                Decline
+                {t("requests.decline")}
               </button>
             </div>
           ) : null}
@@ -170,12 +172,12 @@ export function RequestsTab({
                   )
                 }
               >
-                Cancel request
+                {t("requests.cancelRequest")}
               </button>
             </div>
           ) : null}
           <div className="stack">
-            <h3>Encrypted messages</h3>
+            <h3>{t("common.messages.title")}</h3>
             <MessageThread
               messages={messagesByCounterparty[recipientPubkey] || []}
             />
@@ -200,7 +202,7 @@ export function RequestsTab({
             onSelectRequest(null);
           }}
         >
-          Incoming
+          {t("requests.incoming")}
         </button>
         <button
           type="button"
@@ -210,12 +212,12 @@ export function RequestsTab({
             onSelectRequest(null);
           }}
         >
-          Outgoing
+          {t("requests.outgoing")}
         </button>
       </div>
 
       {requestItems.length === 0 ? (
-        <p className="muted">No requests in this segment.</p>
+        <p className="muted">{t("requests.empty")}</p>
       ) : requestSegment === "incoming" ? (
         <div className="stack">
           {groupedIncomingRequests.map((group) => {
@@ -226,12 +228,16 @@ export function RequestsTab({
             return (
               <article className="panel" key={slot.slotAllocationKey}>
                 <h3>
-                  {formatDateTime(slot.scheduledAt)}
-                  {slot.scheduledEnd ? ` -> ${formatDateTime(slot.scheduledEnd)}` : ""}
+                  {formatLocalizedDateTime(slot.scheduledAt)}
+                  {slot.scheduledEnd ? ` -> ${formatLocalizedDateTime(slot.scheduledEnd)}` : ""}
                 </h3>
                 <p className="muted">
-                  Candidates: {group.length}
-                  {winner ? " • Allocated" : pendingCount ? ` • Pending: ${pendingCount}` : ""}
+                  {t("requests.candidates", { count: group.length })}
+                  {winner
+                    ? ` • ${t("requests.allocated")}`
+                    : pendingCount
+                      ? ` • ${t("requests.pendingCount", { count: pendingCount })}`
+                      : ""}
                 </p>
                 <ul className="requests-list">
                   {group.map((request) => {
@@ -240,22 +246,23 @@ export function RequestsTab({
                     const isPending = statusRaw === "pending";
                     const counterparty =
                       tutors[request.studentId]?.profile.name ||
-                      toDisplayId(request.studentId);
+                      toDisplayId(request.studentId, t("common.states.unknown"));
                     const reasonText = requestReasonLabel(request);
 
                     return (
                       <li key={request.id}>
                         <div>
-                          <strong>Student:</strong> {counterparty}
+                          <strong>{t("requests.student")}:</strong> {counterparty}
                         </div>
                         {reasonText ? (
                           <div>
-                            <strong>Resolution:</strong> {reasonText}
+                            <strong>{t("requests.resolution")}:</strong>{" "}
+                            {t(`common.requestResolution.${reasonText}`)}
                           </div>
                         ) : null}
                         <div className="request-actions">
                           <span className={`status-pill status-${statusText}`}>
-                            {statusText}
+                            {t(`common.status.${statusText}`)}
                           </span>
                           {isPending ? (
                             <div className="action-buttons">
@@ -263,14 +270,14 @@ export function RequestsTab({
                                 type="button"
                                 onClick={() => onRespondToBooking(request, "accepted")}
                               >
-                                Accept
+                                {t("requests.accept")}
                               </button>
                               <button
                                 type="button"
                                 className="ghost-action"
                                 onClick={() => onRespondToBooking(request, "rejected")}
                               >
-                                Decline
+                                {t("requests.decline")}
                               </button>
                             </div>
                           ) : null}
@@ -283,7 +290,7 @@ export function RequestsTab({
                               })
                             }
                           >
-                            Details
+                            {t("common.buttons.details")}
                           </button>
                         </div>
                       </li>
@@ -302,24 +309,26 @@ export function RequestsTab({
             const isPending = statusRaw === "pending";
             const counterparty =
               requestSegment === "incoming"
-                ? tutors[request.studentId]?.profile.name || toDisplayId(request.studentId)
-                : tutors[request.tutorId]?.profile.name || toDisplayId(request.tutorId);
+                ? tutors[request.studentId]?.profile.name ||
+                  toDisplayId(request.studentId, t("common.states.unknown"))
+                : tutors[request.tutorId]?.profile.name ||
+                  toDisplayId(request.tutorId, t("common.states.unknown"));
 
             return (
               <li key={request.id}>
                 <div>
-                  <strong>Subject:</strong> Tutoring lesson
+                  <strong>{t("requests.subject")}:</strong> {t("requests.defaultSubject")}
                 </div>
                 <div>
-                  <strong>Scheduled:</strong>{" "}
-                  {formatDateTime(request.scheduledAt)}
+                  <strong>{t("requests.scheduled")}:</strong>{" "}
+                  {formatLocalizedDateTime(request.scheduledAt)}
                 </div>
                 <div>
-                  <strong>Counterparty:</strong> {counterparty}
+                  <strong>{t("requests.counterparty")}:</strong> {counterparty}
                 </div>
                 <div className="request-actions">
                   <span className={`status-pill status-${statusText}`}>
-                    {statusText}
+                    {t(`common.status.${statusText}`)}
                   </span>
                   {requestSegment === "incoming" && isPending ? (
                     <div className="action-buttons">
@@ -327,14 +336,14 @@ export function RequestsTab({
                         type="button"
                         onClick={() => onRespondToBooking(request, "accepted")}
                       >
-                        Accept
+                        {t("requests.accept")}
                       </button>
                       <button
                         type="button"
                         className="ghost-action"
                         onClick={() => onRespondToBooking(request, "rejected")}
                       >
-                        Decline
+                        {t("requests.decline")}
                       </button>
                     </div>
                   ) : null}
@@ -347,7 +356,7 @@ export function RequestsTab({
                       })
                     }
                   >
-                    Details
+                    {t("common.buttons.details")}
                   </button>
                   {requestSegment === "outgoing" && isPending ? (
                     <button
@@ -355,7 +364,7 @@ export function RequestsTab({
                       className="ghost-action"
                       onClick={() => onCancelRequest(request)}
                     >
-                      Cancel
+                      {t("common.buttons.cancel")}
                     </button>
                   ) : null}
                 </div>

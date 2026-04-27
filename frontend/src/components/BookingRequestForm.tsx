@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useI18n } from "../i18n/I18nProvider";
 import { BookingRequest, TutorScheduleEvent } from "../types/nostr";
 
 const emptySlot = { start: "", end: "" };
@@ -20,6 +21,7 @@ export function BookingRequestForm({
   getSlotState,
   onSubmit
 }: BookingRequestFormProps) {
+  const { t, formatDateTime } = useI18n();
   const [message, setMessage] = useState("");
   const [selectedSlot, setSelectedSlot] = useState("");
   const [customSlot, setCustomSlot] = useState(emptySlot);
@@ -59,26 +61,26 @@ export function BookingRequestForm({
 
   return (
     <form className="booking-form" onSubmit={handleSubmit}>
-      <h3>Request a lesson</h3>
+      <h3>{t("discover.requestLesson")}</h3>
       {availableSlots.length ? (
         <label>
-          Select a slot
+          {t("discover.selectSlot")}
           <select
             value={selectedSlot}
             onChange={(event) => setSelectedSlot(event.target.value)}
           >
-            <option value="">Custom time</option>
+            <option value="">{t("discover.customTime")}</option>
             {availableSlots.map((slot, index) => (
               <option
                 key={`${slot.start}-${index}`}
                 value={`${slot.start}|${slot.end}`}
                 disabled={getSlotState?.(slot) !== "available"}
               >
-                {slot.start} → {slot.end}
+                {formatDateTime(slot.start)} → {formatDateTime(slot.end)}
                 {getSlotState?.(slot) === "requested"
-                  ? " (Requested)"
+                  ? ` (${t("discover.requested")})`
                   : getSlotState?.(slot) === "unavailable"
-                    ? " (Unavailable)"
+                    ? ` (${t("discover.unavailable")})`
                     : ""}
               </option>
             ))}
@@ -89,7 +91,7 @@ export function BookingRequestForm({
       {!selectedSlot ? (
         <div className="slot-row">
           <label>
-            Start
+            {t("discover.start")}
             <input
               type="datetime-local"
               value={customSlot.start}
@@ -99,7 +101,7 @@ export function BookingRequestForm({
             />
           </label>
           <label>
-            End
+            {t("discover.end")}
             <input
               type="datetime-local"
               value={customSlot.end}
@@ -112,28 +114,28 @@ export function BookingRequestForm({
       ) : null}
 
       <label>
-        Message
+        {t("discover.message")}
         <textarea
           rows={3}
           value={message}
           onChange={(event) => setMessage(event.target.value)}
-          placeholder="Share your goals or preferred topics."
+          placeholder={t("discover.messagePlaceholder")}
         />
       </label>
 
       <button type="submit" disabled={isSubmitBlocked}>
         {selectedSlotState === "requested"
-          ? "Already requested"
+          ? t("discover.alreadyRequested")
           : selectedSlotState === "unavailable"
-            ? "Unavailable"
-            : "Send request"}
+            ? t("discover.unavailable")
+            : t("discover.sendRequest")}
       </button>
-      <p className="muted">Sent to: {tutorPubkey.slice(0, 12)}…</p>
+      <p className="muted">{t("discover.sentTo", { value: `${tutorPubkey.slice(0, 12)}…` })}</p>
       {selectedSlotState === "requested" ? (
-        <p className="muted">You already have an active request for this slot.</p>
+        <p className="muted">{t("discover.activeRequestHint")}</p>
       ) : null}
       {selectedSlotState === "unavailable" ? (
-        <p className="muted">This slot has already been allocated.</p>
+        <p className="muted">{t("discover.slotAllocatedHint")}</p>
       ) : null}
     </form>
   );

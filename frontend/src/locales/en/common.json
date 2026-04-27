@@ -1,0 +1,58 @@
+{
+  "app": {
+    "title": "Tutorstr",
+    "subtitle": "Nostr tutor hub",
+    "loadingVault": "Loading vault",
+    "checkingVault": "Checking this device for a saved Tutorstr profile."
+  },
+  "nav": {
+    "primary": "Primary",
+    "discover": "Discover",
+    "requests": "Requests",
+    "lessons": "Lessons",
+    "profile": "Profile"
+  },
+  "buttons": {
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "details": "Details",
+    "logout": "Logout",
+    "sendMessage": "Send message"
+  },
+  "states": {
+    "unnamedTutor": "Unnamed Tutor",
+    "noBioYet": "No bio provided yet.",
+    "noBio": "No bio provided.",
+    "notSet": "Not set",
+    "unknown": "Unknown"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "uk": "Українська"
+  },
+  "messages": {
+    "empty": "No messages yet.",
+    "placeholder": "Write a private message...",
+    "title": "Encrypted messages"
+  },
+  "status": {
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "cancelled": "Cancelled",
+    "completed": "Completed",
+    "scheduled": "Scheduled"
+  },
+  "requestResolution": {
+    "slot_filled": "Filled by another student",
+    "tutor_rejected": "Declined by tutor",
+    "duplicate_bid": "Duplicate request",
+    "student_cancelled": "Cancelled by student",
+    "accepted": "Won slot"
+  },
+  "validation": {
+    "requiredRelay": "Add at least one relay URL."
+  }
+}

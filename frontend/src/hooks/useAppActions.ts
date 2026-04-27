@@ -4,6 +4,7 @@ import { makeSlotAllocationKey, makeSlotBidKey } from "../domain/slotAllocation"
 import { Lesson, LessonStatus } from "../domain/lesson";
 import { BookingRepository } from "../ports/bookingRepository";
 import { LessonRepository } from "../ports/lessonRepository";
+import { useI18n } from "../i18n/I18nProvider";
 import { nostrClient } from "../nostr/client";
 import { ScheduleSlot } from "../types/nostr";
 
@@ -59,6 +60,8 @@ export function useAppActions({
   setRelayStatus,
   onLogout
 }: UseAppActionsProps) {
+  const { t } = useI18n();
+
   async function respondToBooking(request: Booking, nextStatus: "accepted" | "rejected") {
     if (nextStatus !== "accepted") {
       await bookingRepository.updateStatus(request.id, nextStatus);
@@ -103,12 +106,12 @@ export function useAppActions({
     const winner = winnerByAllocationKey[slotAllocationKey];
 
     if (existingBid) {
-      setDiscoverStatus("You already requested this slot.");
+      setDiscoverStatus(t("discover.activeRequestHint"));
       return;
     }
 
     if (winner && winner.studentId !== studentPubkey) {
-      setDiscoverStatus("Slot is no longer available.");
+      setDiscoverStatus(t("discover.unavailable"));
       return;
     }
 
@@ -117,10 +120,10 @@ export function useAppActions({
         ...payload,
         slotAllocationKey
       });
-      setDiscoverStatus("Slot request sent.");
+      setDiscoverStatus(t("discover.sendRequest"));
     } catch (error) {
       setDiscoverStatus(
-        error instanceof Error ? error.message : "Failed to send slot request."
+        error instanceof Error ? error.message : t("discover.sendRequest")
       );
     }
   }
@@ -140,7 +143,7 @@ export function useAppActions({
       await sendMessage(recipientPubkey, text);
     } catch (error) {
       setMessageStatus(
-        error instanceof Error ? error.message : "Failed to send message."
+        error instanceof Error ? error.message : t("common.buttons.sendMessage")
       );
     }
   }
@@ -148,12 +151,12 @@ export function useAppActions({
   function updateRelays() {
     const parsed = parseRelayList(relayInput);
     if (parsed.length === 0) {
-      setRelayStatus("Add at least one relay URL.");
+      setRelayStatus(t("common.validation.requiredRelay"));
       return;
     }
 
     nostrClient.setRelays(parsed);
-    setRelayStatus("Relays updated.");
+    setRelayStatus(t("profile.saveRelays"));
   }
 
   function logout() {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n } from "../i18n/I18nProvider";
 import { ScheduleSlot, TutorSchedule } from "../types/nostr";
 
 const emptySlot: ScheduleSlot = { start: "", end: "" };
@@ -10,6 +11,7 @@ type ScheduleFormProps = {
 };
 
 export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps) {
+  const { t, formatDateTime } = useI18n();
   const [newSlot, setNewSlot] = useState<ScheduleSlot>(emptySlot);
 
   function addSlot() {
@@ -39,24 +41,24 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
       }}
     >
       <div className="schedule-header">
-        <h3>Availability</h3>
+        <h3>{t("schedule.availability")}</h3>
         <span className="muted">{schedule.timezone}</span>
       </div>
 
       <label>
-        Timezone
+        {t("schedule.timezone")}
         <input
           value={schedule.timezone}
           onChange={(event) =>
             onChange({ ...schedule, timezone: event.target.value })
           }
-          placeholder="UTC"
+          placeholder={t("schedule.timezonePlaceholder")}
         />
       </label>
 
       <div className="slot-row">
         <label>
-          Start
+          {t("schedule.start")}
           <input
             type="datetime-local"
             value={newSlot.start}
@@ -66,7 +68,7 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
           />
         </label>
         <label>
-          End
+          {t("schedule.end")}
           <input
             type="datetime-local"
             value={newSlot.end}
@@ -76,7 +78,7 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
           />
         </label>
         <button type="button" className="ghost" onClick={addSlot}>
-          Add slot
+          {t("schedule.addSlot")}
         </button>
       </div>
 
@@ -85,23 +87,23 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
           {schedule.slots.map((slot, index) => (
             <li key={`${slot.start}-${index}`}>
               <span>
-                {slot.start} → {slot.end}
+                {formatDateTime(slot.start)} → {formatDateTime(slot.end)}
               </span>
               <button
                 type="button"
                 className="ghost"
                 onClick={() => removeSlot(index)}
               >
-                Remove
+                {t("schedule.remove")}
               </button>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="muted">No slots added yet.</p>
+        <p className="muted">{t("schedule.noSlots")}</p>
       )}
 
-      <button type="submit">Publish Schedule</button>
+      <button type="submit">{t("schedule.publish")}</button>
     </form>
   );
 }

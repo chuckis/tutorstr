@@ -7,16 +7,18 @@ import { ProfileTab } from "./components/ProfileTab";
 import { RequestsTab } from "./components/RequestsTab";
 import { useAuthController } from "./hooks/useAuthController";
 import { useAppController } from "./hooks/useAppController";
+import { useI18n } from "./i18n/I18nProvider";
 
 export default function App() {
   const auth = useAuthController();
+  const { t } = useI18n();
 
   if (auth.mode === "loading") {
     return (
       <main className="auth-shell">
         <section className="auth-panel">
-          <h2>Loading vault</h2>
-          <p className="muted">Checking this device for a saved Tutorstr profile.</p>
+          <h2>{t("common.app.loadingVault")}</h2>
+          <p className="muted">{t("common.app.checkingVault")}</p>
         </section>
       </main>
     );
@@ -70,9 +72,9 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <h1>Tutorstr</h1>
+        <h1>{t("common.app.title")}</h1>
         <div className="topbar-meta">
-          <p className="muted">Nostr tutor hub</p>
+          <p className="muted">{t("common.app.subtitle")}</p>
           <span className="topbar-identity">{viewModel.viewerLabel}</span>
         </div>
       </header>

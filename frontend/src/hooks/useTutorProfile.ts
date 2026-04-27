@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../i18n/I18nProvider";
 import { nostrClient } from "../nostr/client";
 import { TutorProfile } from "../types/nostr";
 import { emptyProfile, normalizeProfile } from "../utils/normalize";
 
 export function useTutorProfile(pubkey: string) {
+  const { t } = useI18n();
   const [profile, setProfile] = useState<TutorProfile>(emptyProfile);
   const [status, setStatus] = useState<string>("");
   const [lastEventId, setLastEventId] = useState<string>("");
@@ -40,7 +42,7 @@ export function useTutorProfile(pubkey: string) {
   }, [pubkey]);
 
   async function publishProfile(nextProfile: TutorProfile) {
-    setStatus("Publishing...");
+    setStatus(t("profile.form.publish"));
 
     const tags: string[][] = [
       ["t", "role:tutor"],
@@ -56,10 +58,10 @@ export function useTutorProfile(pubkey: string) {
       );
       localStorage.setItem(`tutorhub:profile:${pubkey}`, JSON.stringify(nextProfile));
       setLastEventId(published.id);
-      setStatus("Profile published.");
+      setStatus(t("profile.form.publish"));
     } catch (error) {
       setStatus(
-        error instanceof Error ? error.message : "Failed to publish profile."
+        error instanceof Error ? error.message : t("profile.form.publish")
       );
     }
   }

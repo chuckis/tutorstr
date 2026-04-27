@@ -1,0 +1,21 @@
+{
+  "backToRequests": "Back to requests",
+  "detailsTitle": "Lesson request details",
+  "scheduled": "Scheduled",
+  "ends": "Ends",
+  "counterparty": "Counterparty",
+  "status": "Status",
+  "resolution": "Resolution",
+  "accept": "Accept",
+  "decline": "Decline",
+  "cancelRequest": "Cancel request",
+  "incoming": "Incoming",
+  "outgoing": "Outgoing",
+  "empty": "No requests in this segment.",
+  "candidates": "Candidates: {{count}}",
+  "allocated": "Allocated",
+  "pendingCount": "Pending: {{count}}",
+  "student": "Student",
+  "subject": "Subject",
+  "defaultSubject": "Tutoring lesson"
+}
