@@ -1,12 +1,50 @@
 import "./App.css";
+import { AuthScreen } from "./components/AuthScreen";
 import { BottomNav } from "./components/BottomNav";
 import { DiscoverTab } from "./components/DiscoverTab";
 import { LessonsTab } from "./components/LessonsTab";
 import { ProfileTab } from "./components/ProfileTab";
 import { RequestsTab } from "./components/RequestsTab";
+import { useAuthController } from "./hooks/useAuthController";
 import { useAppController } from "./hooks/useAppController";
 
 export default function App() {
+  const auth = useAuthController();
+
+  if (auth.mode === "loading") {
+    return (
+      <main className="auth-shell">
+        <section className="auth-panel">
+          <h2>Loading vault</h2>
+          <p className="muted">Checking this device for a saved Tutorstr profile.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (auth.generatedNsec || !auth.isAuthenticated || !auth.session) {
+    return (
+      <AuthScreen
+        mode={auth.mode === "unlock" ? "unlock" : "welcome"}
+        status={auth.status}
+        generatedNsec={auth.generatedNsec}
+        onCreateProfile={auth.actions.createProfile}
+        onImportProfile={auth.actions.importProfile}
+        onUnlock={auth.actions.unlock}
+        onDismissGeneratedSecret={auth.actions.dismissGeneratedSecret}
+      />
+    );
+  }
+
+  return <AuthenticatedApp onLogout={auth.actions.logout} onRevealSecret={auth.actions.revealSecret} />;
+}
+
+type AuthenticatedAppProps = {
+  onLogout: () => void;
+  onRevealSecret: (passphrase: string) => Promise<string>;
+};
+
+function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
   const {
     navigation,
     relayInput,
@@ -27,7 +65,7 @@ export default function App() {
     alertsState,
     actions,
     viewModel
-  } = useAppController();
+  } = useAppController(onLogout);
 
   return (
     <main className="app-shell">
@@ -115,6 +153,7 @@ export default function App() {
             relayStatus={relayStatus}
             onUpdateRelays={actions.updateRelays}
             onLogout={actions.logout}
+            onRevealSecret={onRevealSecret}
             scheduleStatus={scheduleState.status}
             profileStatus={profileState.status}
             lastEventId={profileState.lastEventId}

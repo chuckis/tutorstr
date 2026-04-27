@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ProfileForm } from "./ProfileForm";
 import { ScheduleForm } from "./ScheduleForm";
 import { TutorProfile, TutorSchedule } from "../types/nostr";
@@ -16,6 +17,7 @@ type ProfileTabProps = {
   relayStatus: string;
   onUpdateRelays: () => void;
   onLogout: () => void;
+  onRevealSecret: (passphrase: string) => Promise<string>;
   scheduleStatus: string;
   profileStatus: string;
   lastEventId?: string;
@@ -35,10 +37,28 @@ export function ProfileTab({
   relayStatus,
   onUpdateRelays,
   onLogout,
+  onRevealSecret,
   scheduleStatus,
   profileStatus,
   lastEventId
 }: ProfileTabProps) {
+  const [revealPassphrase, setRevealPassphrase] = useState("");
+  const [revealError, setRevealError] = useState("");
+  const [revealedSecret, setRevealedSecret] = useState("");
+
+  async function handleRevealSecret() {
+    try {
+      const nsec = await onRevealSecret(revealPassphrase);
+      setRevealError("");
+      setRevealedSecret(nsec);
+      setRevealPassphrase("");
+    } catch (error) {
+      setRevealError(
+        error instanceof Error ? error.message : "Failed to reveal secret key."
+      );
+    }
+  }
+
   return (
     <section className="tab-panel profile-tab">
       <article className="panel">
@@ -78,6 +98,20 @@ export function ProfileTab({
 
       <article className="panel">
         <h3>Session</h3>
+        <label className="filter">
+          Master password to reveal `nsec`
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={revealPassphrase}
+            onChange={(event) => setRevealPassphrase(event.target.value)}
+          />
+        </label>
+        <button type="button" onClick={handleRevealSecret}>
+          Reveal my secret key
+        </button>
+        {revealedSecret ? <p className="identity-value">{revealedSecret}</p> : null}
+        {revealError ? <p className="muted">{revealError}</p> : null}
         <button type="button" className="ghost-action" onClick={onLogout}>
           Logout
         </button>

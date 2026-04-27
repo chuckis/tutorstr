@@ -17,7 +17,7 @@ import { useTutorSchedule } from "./useTutorSchedule";
 import { useTutorSchedules } from "./useTutorSchedules";
 import { nostrClient } from "../nostr/client";
 
-export function useAppController() {
+export function useAppController(onLogout: () => void) {
   const navigation = useAppNavigation();
   const [relayInput, setRelayInput] = useState(nostrClient.getRelays().join(", "));
   const [relayStatus, setRelayStatus] = useState("");
@@ -29,7 +29,7 @@ export function useAppController() {
   const scheduleState = useTutorSchedule(keypair.pubkey);
   const directoryState = useTutorDirectory();
   const schedulesState = useTutorSchedules();
-  const { publishBookingRequest } = useBookingActions();
+  const { publishBookingRequest } = useBookingActions(keypair.pubkey);
   const bookingsState = useBookings(keypair.pubkey, {
     durationMin: 60,
     subject: "Tutoring lesson",
@@ -69,7 +69,8 @@ export function useAppController() {
     sendMessage,
     setDiscoverStatus,
     setMessageStatus,
-    setRelayStatus
+    setRelayStatus,
+    onLogout
   });
 
   const viewModel = useAppViewModel({

@@ -3,14 +3,13 @@ import { nostrClient } from "../nostr/client";
 import { TutorSchedule } from "../types/nostr";
 import { emptySchedule, normalizeSchedule } from "../utils/normalize";
 
-const SCHEDULE_STORAGE = "tutorhub:schedule";
-
 export function useTutorSchedule(pubkey: string) {
   const [schedule, setSchedule] = useState<TutorSchedule>(emptySchedule);
   const [status, setStatus] = useState<string>("");
 
   useEffect(() => {
-    const stored = localStorage.getItem(SCHEDULE_STORAGE);
+    const scheduleStorageKey = `tutorhub:schedule:${pubkey}`;
+    const stored = localStorage.getItem(scheduleStorageKey);
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as TutorSchedule;
@@ -28,7 +27,7 @@ export function useTutorSchedule(pubkey: string) {
             JSON.parse(event.content) as TutorSchedule
           );
           setSchedule(parsed);
-          localStorage.setItem(SCHEDULE_STORAGE, JSON.stringify(parsed));
+          localStorage.setItem(scheduleStorageKey, JSON.stringify(parsed));
         } catch {
           // ignore malformed content
         }
@@ -50,7 +49,7 @@ export function useTutorSchedule(pubkey: string) {
         JSON.stringify(payload),
         tags
       );
-      localStorage.setItem(SCHEDULE_STORAGE, JSON.stringify(payload));
+      localStorage.setItem(`tutorhub:schedule:${pubkey}`, JSON.stringify(payload));
       setStatus("Schedule published.");
     } catch (error) {
       setStatus(

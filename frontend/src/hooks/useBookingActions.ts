@@ -14,11 +14,10 @@ function makeBookingId() {
   return `${Date.now().toString(36)}-${random}`;
 }
 
-export function useBookingActions() {
+export function useBookingActions(currentPubkey: string) {
   const publishBookingRequest = useCallback(
     async (tutorPubkey: string, payload: Omit<BookingRequest, "bookingId">) => {
       const bookingId = makeBookingId();
-      const { pubkey: studentPubkey } = nostrClient.getOrCreateKeypair();
       const slotAllocationKey =
         payload.slotAllocationKey ||
         makeSlotAllocationKey(tutorPubkey, payload.requestedSlot);
@@ -32,7 +31,7 @@ export function useBookingActions() {
         ["t", "booking:request"],
         ["d", bookingId],
         ["slot", slotAllocationKey],
-        ["student", studentPubkey]
+        ["student", currentPubkey]
       ];
       await nostrClient.publishEvent(
         TutorHubKind.BookingRequest,
@@ -41,7 +40,7 @@ export function useBookingActions() {
       );
       return bookingId;
     },
-    []
+    [currentPubkey]
   );
 
   const publishBookingStatus = useCallback(
@@ -78,10 +77,9 @@ export function useBookingActions() {
       studentPubkey: string,
       payload: LessonAgreement & { bookingEventId: string }
     ) => {
-      const { pubkey: tutorPubkey } = nostrClient.getOrCreateKeypair();
       const tags: string[][] = [
         ["d", payload.lessonId],
-        ["p", tutorPubkey],
+        ["p", currentPubkey],
         ["p", studentPubkey],
         ["t", "lesson:agreement"]
       ];
@@ -104,7 +102,7 @@ export function useBookingActions() {
         tags
       );
     },
-    []
+    [currentPubkey]
   );
 
   const updateLessonAgreementStatus = useCallback(

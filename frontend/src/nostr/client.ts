@@ -1,7 +1,6 @@
 import { SimplePool } from "nostr-tools/pool";
-import { nip04, nip19 } from "nostr-tools";
-import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
 import { DEFAULT_RELAYS } from "./config";
+import { NostrSigner } from "../adapters/nostr/vaultNostrSigner";
 
 export type NostrFilter = {
   ids?: string[];
@@ -30,8 +29,8 @@ export type SubscribeOptions = {
 export class NostrClient {
   private pool: SimplePool;
   private relays: string[];
+  private signer: NostrSigner | null = null;
 
-  private static readonly KEY_STORAGE = "tutorhub:nsec";
   private static readonly RELAY_STORAGE = "tutorhub:relays";
 
   constructor(relays: string[] = DEFAULT_RELAYS) {
@@ -66,34 +65,41 @@ export class NostrClient {
     await Promise.any(this.pool.publish(this.relays, event));
   }
 
+  setSigner(signer: NostrSigner | null) {
+    this.signer = signer;
+  }
+
+  getSignerSession() {
+    return this.signer?.getSession() ?? null;
+  }
+
+  private requireSigner() {
+    if (!this.signer) {
+      throw new Error("Authentication required.");
+    }
+
+    return this.signer;
+  }
+
   async publishEvent(kind: number, content: string, tags: string[][] = []) {
-    const { secretKey } = this.getOrCreateKeypair();
-    const event = finalizeEvent(
-      {
-        kind,
-        created_at: Math.floor(Date.now() / 1000),
-        tags,
-        content
-      },
-      secretKey
-    ) as NostrEvent;
+    const signer = this.requireSigner();
+    const event = await signer.signEvent({
+      kind,
+      created_at: Math.floor(Date.now() / 1000),
+      tags,
+      content
+    });
 
     await this.publish(event);
     return event;
   }
 
   async encryptContent(recipientPubkey: string, plaintext: string) {
-    const { secretKey } = this.getOrCreateKeypair();
-    return nip04.encrypt(secretKey, recipientPubkey, plaintext);
+    return this.requireSigner().encrypt(recipientPubkey, plaintext);
   }
 
   async decryptContent(senderPubkey: string, ciphertext: string) {
-    const { secretKey } = this.getOrCreateKeypair();
-    try {
-      return await nip04.decrypt(secretKey, senderPubkey, ciphertext);
-    } catch {
-      return null;
-    }
+    return this.requireSigner().decrypt(senderPubkey, ciphertext);
   }
 
   async publishEncryptedEvent(
@@ -107,41 +113,6 @@ export class NostrClient {
     return this.publishEvent(kind, content, mergedTags);
   }
 
-  getOrCreateKeypair() {
-    const stored = localStorage.getItem(NostrClient.KEY_STORAGE);
-    if (stored) {
-      try {
-        const decoded = nip19.decode(stored);
-        if (decoded.type === "nsec") {
-          const secretKey = decoded.data as Uint8Array;
-          return {
-            secretKey,
-            pubkey: getPublicKey(secretKey),
-            nsec: stored,
-            npub: nip19.npubEncode(getPublicKey(secretKey))
-          };
-        }
-      } catch {
-        // fall through to regenerate
-      }
-    }
-
-    const secretKey = generateSecretKey();
-    const nsec = nip19.nsecEncode(secretKey);
-    localStorage.setItem(NostrClient.KEY_STORAGE, nsec);
-    const pubkey = getPublicKey(secretKey);
-    return {
-      secretKey,
-      pubkey,
-      nsec,
-      npub: nip19.npubEncode(pubkey)
-    };
-  }
-
-  clearStoredKeypair() {
-    localStorage.removeItem(NostrClient.KEY_STORAGE);
-  }
-
   async publishReplaceableEvent(
     kind: number,
     content: string,
@@ -151,18 +122,17 @@ export class NostrClient {
   }
 
   async publishTestEvent() {
-    const secretKey = generateSecretKey();
-    const pubkey = getPublicKey(secretKey);
+    const session = this.getSignerSession();
+    if (!session) {
+      throw new Error("Authentication required.");
+    }
 
-    const event = finalizeEvent(
-      {
-        kind: 1,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [["t", "tutorhub:test"]],
-        content: `TutorHub test event from ${pubkey.slice(0, 8)}`
-      },
-      secretKey
-    ) as NostrEvent;
+    const event = await this.requireSigner().signEvent({
+      kind: 1,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [["t", "tutorhub:test"]],
+      content: `TutorHub test event from ${session.pubkey.slice(0, 8)}`
+    });
 
     await this.publish(event);
     return event;

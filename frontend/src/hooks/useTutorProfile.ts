@@ -3,15 +3,14 @@ import { nostrClient } from "../nostr/client";
 import { TutorProfile } from "../types/nostr";
 import { emptyProfile, normalizeProfile } from "../utils/normalize";
 
-const PROFILE_STORAGE = "tutorhub:profile";
-
 export function useTutorProfile(pubkey: string) {
   const [profile, setProfile] = useState<TutorProfile>(emptyProfile);
   const [status, setStatus] = useState<string>("");
   const [lastEventId, setLastEventId] = useState<string>("");
 
   useEffect(() => {
-    const stored = localStorage.getItem(PROFILE_STORAGE);
+    const profileStorageKey = `tutorhub:profile:${pubkey}`;
+    const stored = localStorage.getItem(profileStorageKey);
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as TutorProfile;
@@ -29,7 +28,7 @@ export function useTutorProfile(pubkey: string) {
             JSON.parse(event.content) as TutorProfile
           );
           setProfile(parsed);
-          localStorage.setItem(PROFILE_STORAGE, JSON.stringify(parsed));
+          localStorage.setItem(profileStorageKey, JSON.stringify(parsed));
           setLastEventId(event.id);
         } catch {
           // ignore malformed content
@@ -55,7 +54,7 @@ export function useTutorProfile(pubkey: string) {
         JSON.stringify(nextProfile),
         tags
       );
-      localStorage.setItem(PROFILE_STORAGE, JSON.stringify(nextProfile));
+      localStorage.setItem(`tutorhub:profile:${pubkey}`, JSON.stringify(nextProfile));
       setLastEventId(published.id);
       setStatus("Profile published.");
     } catch (error) {

@@ -33,6 +33,7 @@ type UseAppActionsProps = {
   setDiscoverStatus: (value: string) => void;
   setMessageStatus: (value: string) => void;
   setRelayStatus: (value: string) => void;
+  onLogout: () => void;
 };
 
 function parseRelayList(value: string) {
@@ -55,7 +56,8 @@ export function useAppActions({
   sendMessage,
   setDiscoverStatus,
   setMessageStatus,
-  setRelayStatus
+  setRelayStatus,
+  onLogout
 }: UseAppActionsProps) {
   async function respondToBooking(request: Booking, nextStatus: "accepted" | "rejected") {
     if (nextStatus !== "accepted") {
@@ -155,8 +157,7 @@ export function useAppActions({
   }
 
   function logout() {
-    nostrClient.clearStoredKeypair();
-    window.location.reload();
+    onLogout();
   }
 
   return {
