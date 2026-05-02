@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppActions } from "./useAppActions";
 import { useAppNavigation } from "./useAppNavigation";
 import { useAppViewModel } from "./useAppViewModel";
@@ -10,7 +10,7 @@ import { useLessonNote } from "./useLessonNote";
 import { useNostrKeypair } from "./useNostrKeypair";
 import { usePrivateMessagingActions } from "./usePrivateMessagingActions";
 import { usePublicAllocatedSlots } from "./usePublicAllocatedSlots";
-import { useRequestAlerts } from "./useRequestAlerts";
+import { useMessageIndicators } from "./useMessageIndicators";
 import { useTutorDirectory } from "./useTutorDirectory";
 import { useTutorProfile } from "./useTutorProfile";
 import { useTutorSchedule } from "./useTutorSchedule";
@@ -46,14 +46,38 @@ export function useAppController(onLogout: () => void) {
     navigation.selectedLesson
   );
   const { sendMessage } = usePrivateMessagingActions();
+  const messageIndicators = useMessageIndicators(
+    keypair.pubkey,
+    messagesState.messages,
+    [...bookingsState.incoming, ...bookingsState.outgoing],
+    lessonsState.lessons
+  );
 
-  const alertsState = useRequestAlerts({
-    activeTab: navigation.activeTab,
-    currentUserId: keypair.pubkey,
-    incomingBookings: bookingsState.incoming,
-    latestIncomingRequestTs: bookingsState.latestIncomingRequestTs,
-    messages: messagesState.messages
-  });
+  useEffect(() => {
+    if (!navigation.selectedRequest) {
+      return;
+    }
+
+    const counterparty =
+      navigation.selectedRequest.segment === "incoming"
+        ? navigation.selectedRequest.request.studentId
+        : navigation.selectedRequest.request.tutorId;
+
+    messageIndicators.markRead("requests", counterparty);
+  }, [messageIndicators, navigation.selectedRequest]);
+
+  useEffect(() => {
+    if (!navigation.selectedLesson) {
+      return;
+    }
+
+    const counterparty =
+      navigation.selectedLesson.tutorId === keypair.pubkey
+        ? navigation.selectedLesson.studentId
+        : navigation.selectedLesson.tutorId;
+
+    messageIndicators.markRead("lessons", counterparty);
+  }, [keypair.pubkey, messageIndicators, navigation.selectedLesson]);
 
   const actions = useAppActions({
     studentPubkey: keypair.pubkey,
@@ -100,7 +124,7 @@ export function useAppController(onLogout: () => void) {
     lessonsState,
     messagesState,
     lessonNoteState,
-    alertsState,
+    messageIndicators,
     actions,
     viewModel,
     publishBookingRequest

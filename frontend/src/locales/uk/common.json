@@ -21,6 +21,10 @@
     "logout": "Вийти",
     "sendMessage": "Надіслати повідомлення"
   },
+  "indicators": {
+    "new": "Нове",
+    "newCount": "{{count}} нових"
+  },
   "states": {
     "unnamedTutor": "Тьютор без імені",
     "noBioYet": "Опис ще не додано.",

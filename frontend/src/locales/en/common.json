@@ -21,6 +21,10 @@
     "logout": "Logout",
     "sendMessage": "Send message"
   },
+  "indicators": {
+    "new": "New",
+    "newCount": "{{count}} new"
+  },
   "states": {
     "unnamedTutor": "Unnamed Tutor",
     "noBioYet": "No bio provided yet.",

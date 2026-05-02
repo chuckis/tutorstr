@@ -26,6 +26,7 @@ type LessonsTabProps = {
     nextStatus: LessonStatus
   ) => Promise<void>;
   messagesByCounterparty: Record<string, EncryptedMessage[]>;
+  getUnreadCount: (counterparty: string) => number;
   onSendMessage: (recipientPubkey: string, text: string) => void;
   messageStatus: string;
 };
@@ -43,6 +44,7 @@ export function LessonsTab({
   onSubmitLessonNote,
   onChangeLessonStatus,
   messagesByCounterparty,
+  getUnreadCount,
   onSendMessage,
   messageStatus
 }: LessonsTabProps) {
@@ -179,11 +181,12 @@ export function LessonsTab({
             const counterparty =
               lesson.tutorId === currentPubkey ? lesson.studentId : lesson.tutorId;
             const name = tutors[counterparty]?.profile.name || toDisplayId(counterparty);
+            const unreadCount = getUnreadCount(counterparty);
 
             return (
               <li
                 key={lesson.id}
-                className="lesson-card"
+                className={`lesson-card ${unreadCount > 0 ? "has-unread" : ""}`.trim()}
                 onClick={() => onSelectLesson(lesson)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
@@ -199,6 +202,13 @@ export function LessonsTab({
                 </div>
                 <div>{formatDateTime(lesson.scheduledAt)}</div>
                 <div>{name}</div>
+                {unreadCount > 0 ? (
+                  <span className="inline-indicator">
+                    {unreadCount === 1
+                      ? t("common.indicators.new")
+                      : t("common.indicators.newCount", { count: unreadCount })}
+                  </span>
+                ) : null}
                 <span className={`status-pill status-${lesson.status}`}>
                   {t(`common.status.${lesson.status}`)}
                 </span>

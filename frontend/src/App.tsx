@@ -65,7 +65,7 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
     lessonsState,
     messagesState,
     lessonNoteState,
-    alertsState,
+    messageIndicators,
     actions,
     viewModel
   } = useAppController(onLogout);
@@ -117,6 +117,12 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
             onRespondToBooking={actions.respondToBooking}
             onCancelRequest={actions.cancelRequestFromStudent}
             messagesByCounterparty={messagesState.byCounterparty}
+            getUnreadCount={(counterparty) =>
+              messageIndicators.getUnreadCount("requests", counterparty)
+            }
+            getUnreadTotal={(counterparties) =>
+              messageIndicators.getUnreadTotal("requests", counterparties)
+            }
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}
           />
@@ -136,6 +142,9 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
             onSubmitLessonNote={lessonNoteState.submitLessonNote}
             onChangeLessonStatus={actions.changeLessonStatus}
             messagesByCounterparty={messagesState.byCounterparty}
+            getUnreadCount={(counterparty) =>
+              messageIndicators.getUnreadCount("lessons", counterparty)
+            }
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}
           />
@@ -166,7 +175,8 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
 
       <BottomNav
         activeTab={navigation.activeTab}
-        requestsHasAlert={alertsState.requestsHasAlert}
+        requestsUnreadCount={messageIndicators.requestUnreadCount}
+        lessonsUnreadCount={messageIndicators.lessonUnreadCount}
         onSelectTab={navigation.setActiveTab}
       />
     </main>

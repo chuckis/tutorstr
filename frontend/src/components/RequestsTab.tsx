@@ -28,6 +28,8 @@ type RequestsTabProps = {
   ) => void | Promise<void>;
   onCancelRequest: (request: Booking) => void | Promise<void>;
   messagesByCounterparty: Record<string, EncryptedMessage[]>;
+  getUnreadCount: (counterparty: string) => number;
+  getUnreadTotal: (counterparties: string[]) => number;
   onSendMessage: (recipientPubkey: string, text: string) => void;
   messageStatus: string;
 };
@@ -61,6 +63,8 @@ export function RequestsTab({
   onRespondToBooking,
   onCancelRequest,
   messagesByCounterparty,
+  getUnreadCount,
+  getUnreadTotal,
   onSendMessage,
   messageStatus
 }: RequestsTabProps) {
@@ -224,9 +228,13 @@ export function RequestsTab({
             const slot = group[0];
             const winner = group.find((request) => request.status === "accepted") || null;
             const pendingCount = group.filter((request) => request.status === "pending").length;
+            const unreadCount = getUnreadTotal(group.map((request) => request.studentId));
 
             return (
-              <article className="panel" key={slot.slotAllocationKey}>
+              <article
+                className={`panel ${unreadCount > 0 ? "has-unread" : ""}`.trim()}
+                key={slot.slotAllocationKey}
+              >
                 <h3>
                   {formatLocalizedDateTime(slot.scheduledAt)}
                   {slot.scheduledEnd ? ` -> ${formatLocalizedDateTime(slot.scheduledEnd)}` : ""}
@@ -239,6 +247,13 @@ export function RequestsTab({
                       ? ` • ${t("requests.pendingCount", { count: pendingCount })}`
                       : ""}
                 </p>
+                {unreadCount > 0 ? (
+                  <p className="inline-indicator">
+                    {unreadCount === 1
+                      ? t("common.indicators.new")
+                      : t("common.indicators.newCount", { count: unreadCount })}
+                  </p>
+                ) : null}
                 <ul className="requests-list">
                   {group.map((request) => {
                     const statusRaw = request.status;
@@ -248,9 +263,13 @@ export function RequestsTab({
                       tutors[request.studentId]?.profile.name ||
                       toDisplayId(request.studentId, t("common.states.unknown"));
                     const reasonText = requestReasonLabel(request);
+                    const requestUnreadCount = getUnreadCount(request.studentId);
 
                     return (
-                      <li key={request.id}>
+                      <li
+                        key={request.id}
+                        className={requestUnreadCount > 0 ? "has-unread" : ""}
+                      >
                         <div>
                           <strong>{t("requests.student")}:</strong> {counterparty}
                         </div>
@@ -264,6 +283,15 @@ export function RequestsTab({
                           <span className={`status-pill status-${statusText}`}>
                             {t(`common.status.${statusText}`)}
                           </span>
+                          {requestUnreadCount > 0 ? (
+                            <span className="inline-indicator">
+                              {requestUnreadCount === 1
+                                ? t("common.indicators.new")
+                                : t("common.indicators.newCount", {
+                                    count: requestUnreadCount
+                                  })}
+                            </span>
+                          ) : null}
                           {isPending ? (
                             <div className="action-buttons">
                               <button
@@ -307,6 +335,10 @@ export function RequestsTab({
             const statusRaw = request.status;
             const statusText = requestStatusLabel(statusRaw);
             const isPending = statusRaw === "pending";
+            const unreadCount =
+              requestSegment === "incoming"
+                ? getUnreadCount(request.studentId)
+                : getUnreadCount(request.tutorId);
             const counterparty =
               requestSegment === "incoming"
                 ? tutors[request.studentId]?.profile.name ||
@@ -315,7 +347,7 @@ export function RequestsTab({
                   toDisplayId(request.tutorId, t("common.states.unknown"));
 
             return (
-              <li key={request.id}>
+              <li key={request.id} className={unreadCount > 0 ? "has-unread" : ""}>
                 <div>
                   <strong>{t("requests.subject")}:</strong> {t("requests.defaultSubject")}
                 </div>
@@ -330,6 +362,13 @@ export function RequestsTab({
                   <span className={`status-pill status-${statusText}`}>
                     {t(`common.status.${statusText}`)}
                   </span>
+                  {unreadCount > 0 ? (
+                    <span className="inline-indicator">
+                      {unreadCount === 1
+                        ? t("common.indicators.new")
+                        : t("common.indicators.newCount", { count: unreadCount })}
+                    </span>
+                  ) : null}
                   {requestSegment === "incoming" && isPending ? (
                     <div className="action-buttons">
                       <button

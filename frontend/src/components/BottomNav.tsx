@@ -4,13 +4,15 @@ type MainTab = "discover" | "requests" | "lessons" | "profile";
 
 type BottomNavProps = {
   activeTab: MainTab;
-  requestsHasAlert: boolean;
+  requestsUnreadCount: number;
+  lessonsUnreadCount: number;
   onSelectTab: (tab: MainTab) => void;
 };
 
 export function BottomNav({
   activeTab,
-  requestsHasAlert,
+  requestsUnreadCount,
+  lessonsUnreadCount,
   onSelectTab
 }: BottomNavProps) {
   const { t } = useI18n();
@@ -27,18 +29,26 @@ export function BottomNav({
       <button
         type="button"
         className={`${activeTab === "requests" ? "active" : ""} ${
-          requestsHasAlert ? "has-alert" : ""
+          requestsUnreadCount > 0 ? "has-alert" : ""
         }`.trim()}
         onClick={() => onSelectTab("requests")}
       >
-        {t("common.nav.requests")}
+        <span>{t("common.nav.requests")}</span>
+        {requestsUnreadCount > 0 ? (
+          <span className="tab-badge">{requestsUnreadCount}</span>
+        ) : null}
       </button>
       <button
         type="button"
-        className={activeTab === "lessons" ? "active" : ""}
+        className={`${activeTab === "lessons" ? "active" : ""} ${
+          lessonsUnreadCount > 0 ? "has-alert" : ""
+        }`.trim()}
         onClick={() => onSelectTab("lessons")}
       >
-        {t("common.nav.lessons")}
+        <span>{t("common.nav.lessons")}</span>
+        {lessonsUnreadCount > 0 ? (
+          <span className="tab-badge">{lessonsUnreadCount}</span>
+        ) : null}
       </button>
       <button
         type="button"
