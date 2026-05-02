@@ -66,7 +66,7 @@ export function ProfileTab({
     <section className="tab-panel profile-tab">
       <article className="panel">
         <h3>{t("profile.identity")}</h3>
-        <p className="muted">npub</p>
+        <p className="muted">{t("profile.npubLabel")}</p>
         <p className="identity-value">{npub}</p>
         <p className="muted">{t("profile.pubkeyHex")}</p>
         <p className="identity-value">{pubkey}</p>

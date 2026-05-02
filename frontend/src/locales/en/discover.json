@@ -6,6 +6,7 @@
   "searchLabel": "Search tutors by subject",
   "searchPlaceholder": "calculus",
   "noTutors": "No tutors found yet.",
+  "backToDirectory": "Back to directory",
   "noSubjects": "No subjects set",
   "rate": "Rate",
   "hourlyRate": "${{count}}/hr",

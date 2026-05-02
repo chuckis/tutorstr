@@ -6,6 +6,7 @@ import {
   TutorProfileEvent,
   TutorScheduleEvent
 } from "../types/nostr";
+import { useI18n } from "../i18n/I18nProvider";
 import { BookingRequestForm } from "./BookingRequestForm";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -42,13 +43,15 @@ export function TutorProfileView({
   progressEntries,
   onSendProgress
 }: TutorProfileViewProps) {
+  const { t } = useI18n();
+
   return (
     <div className="profile-view">
       <button type="button" className="ghost" onClick={onBack}>
-        Back to directory
+        {t("discover.backToDirectory")}
       </button>
-      <h2>{entry.profile.name || "Unnamed Tutor"}</h2>
-      <p>{entry.profile.bio || "No bio provided yet."}</p>
+      <h2>{entry.profile.name || t("common.states.unnamedTutor")}</h2>
+      <p>{entry.profile.bio || t("common.states.noBioYet")}</p>
       <div className="chips">
         {entry.profile.subjects.map((subject) => (
           <span key={subject}>{subject}</span>
@@ -56,17 +59,17 @@ export function TutorProfileView({
       </div>
       <div className="meta">
         <span>
-          Languages: {entry.profile.languages.join(", ") || "—"}
+          {t("profile.form.languages")}: {entry.profile.languages.join(", ") || "—"}
         </span>
         <span>
-          Rate:{" "}
+          {t("discover.rate")}:{" "}
           {entry.profile.hourlyRate
-            ? `$${entry.profile.hourlyRate}/hr`
+            ? t("discover.hourlyRate", { count: entry.profile.hourlyRate })
             : "—"}
         </span>
       </div>
       <div className="schedule-view">
-        <h3>Availability</h3>
+        <h3>{t("profile.availability")}</h3>
         {schedule?.schedule.slots.length ? (
           <ul>
             {schedule.schedule.slots.map((slot, index) => (
@@ -76,7 +79,7 @@ export function TutorProfileView({
             ))}
           </ul>
         ) : (
-          <p className="muted">No schedule published yet.</p>
+          <p className="muted">{t("profile.noScheduleYet")}</p>
         )}
       </div>
       <BookingRequestForm
@@ -86,7 +89,7 @@ export function TutorProfileView({
         onSubmit={onRequest}
       />
       <div className="private-panel">
-        <h3>Private messages</h3>
+        <h3>{t("profile.privateMessages")}</h3>
         <MessageThread messages={messages} />
         <MessageComposer onSend={onSendMessage} />
       </div>

@@ -7,6 +7,7 @@ import {
   TutorProfileEvent,
   TutorScheduleEvent
 } from "../types/nostr";
+import { useI18n } from "../i18n/I18nProvider";
 import { TutorCard } from "./TutorCard";
 import { TutorProfileView } from "./TutorProfileView";
 
@@ -42,6 +43,7 @@ export function Directory({
   progressByTutor,
   onSendProgress
 }: DirectoryProps) {
+  const { t } = useI18n();
   const [selectedTutor, setSelectedTutor] = useState<TutorProfileEvent | null>(
     null
   );
@@ -67,17 +69,17 @@ export function Directory({
   return (
     <div className="directory">
       <label className="filter">
-        Filter by subject
+        {t("discover.searchLabel")}
         <input
           value={subjectFilter}
           onChange={(event) => onFilterChange(event.target.value)}
-          placeholder="calculus"
+          placeholder={t("discover.searchPlaceholder")}
         />
       </label>
 
       <div className="card-grid">
         {entries.length === 0 ? (
-          <p className="muted">No tutors found yet.</p>
+          <p className="muted">{t("discover.noTutors")}</p>
         ) : (
           entries.map((entry) => (
             <TutorCard

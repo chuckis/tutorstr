@@ -24,18 +24,18 @@ export class AuthError extends Error {}
 
 export class InvalidSecretInputError extends AuthError {
   constructor() {
-    super("Invalid key format. Please try again.");
+    super("auth.runtime.invalidSecretInput");
   }
 }
 
 export class InvalidPassphraseError extends AuthError {
   constructor() {
-    super("Incorrect master password.");
+    super("auth.runtime.invalidPassphrase");
   }
 }
 
 export class MissingVaultError extends AuthError {
   constructor() {
-    super("No saved profile found on this device.");
+    super("auth.runtime.missingVault");
   }
 }

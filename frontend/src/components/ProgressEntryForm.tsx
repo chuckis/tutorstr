@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n } from "../i18n/I18nProvider";
 import { ProgressEntry } from "../types/nostr";
 
 const emptyEntry: ProgressEntry = {
@@ -13,6 +14,7 @@ type ProgressEntryFormProps = {
 };
 
 export function ProgressEntryForm({ onSubmit }: ProgressEntryFormProps) {
+  const { t } = useI18n();
   const [entry, setEntry] = useState<ProgressEntry>(emptyEntry);
 
   return (
@@ -27,26 +29,26 @@ export function ProgressEntryForm({ onSubmit }: ProgressEntryFormProps) {
         setEntry(emptyEntry);
       }}
     >
-      <h3>Progress log</h3>
+      <h3>{t("progress.title")}</h3>
       <label>
-        Topic
+        {t("progress.topic")}
         <input
           value={entry.topic}
           onChange={(event) => setEntry({ ...entry, topic: event.target.value })}
-          placeholder="Lesson focus"
+          placeholder={t("progress.topicPlaceholder")}
         />
       </label>
       <label>
-        Notes
+        {t("progress.notes")}
         <textarea
           rows={3}
           value={entry.notes}
           onChange={(event) => setEntry({ ...entry, notes: event.target.value })}
-          placeholder="What did you work on?"
+          placeholder={t("progress.notesPlaceholder")}
         />
       </label>
       <label>
-        Score (optional)
+        {t("progress.scoreOptional")}
         <input
           type="number"
           min="0"
@@ -61,16 +63,16 @@ export function ProgressEntryForm({ onSubmit }: ProgressEntryFormProps) {
         />
       </label>
       <label>
-        Booking ID (optional)
+        {t("progress.bookingIdOptional")}
         <input
           value={entry.bookingId}
           onChange={(event) =>
             setEntry({ ...entry, bookingId: event.target.value })
           }
-          placeholder="booking id"
+          placeholder={t("progress.bookingIdPlaceholder")}
         />
       </label>
-      <button type="submit">Send progress</button>
+      <button type="submit">{t("progress.send")}</button>
     </form>
   );
 }

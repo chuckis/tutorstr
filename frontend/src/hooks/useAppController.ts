@@ -15,9 +15,11 @@ import { useTutorDirectory } from "./useTutorDirectory";
 import { useTutorProfile } from "./useTutorProfile";
 import { useTutorSchedule } from "./useTutorSchedule";
 import { useTutorSchedules } from "./useTutorSchedules";
+import { useI18n } from "../i18n/I18nProvider";
 import { nostrClient } from "../nostr/client";
 
 export function useAppController(onLogout: () => void) {
+  const { t } = useI18n();
   const navigation = useAppNavigation();
   const [relayInput, setRelayInput] = useState(nostrClient.getRelays().join(", "));
   const [relayStatus, setRelayStatus] = useState("");
@@ -32,7 +34,7 @@ export function useAppController(onLogout: () => void) {
   const { publishBookingRequest } = useBookingActions(keypair.pubkey);
   const bookingsState = useBookings(keypair.pubkey, {
     durationMin: 60,
-    subject: "Tutoring lesson",
+    subject: t("requests.defaultSubject"),
     price: profileState.profile.hourlyRate || 0,
     currency: "USD"
   });

@@ -37,6 +37,15 @@ type UseAppActionsProps = {
   onLogout: () => void;
 };
 
+function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
+  if (!(error instanceof Error)) {
+    return "";
+  }
+
+  const translated = t(error.message);
+  return translated === error.message ? error.message : translated;
+}
+
 function parseRelayList(value: string) {
   return value
     .split(",")
@@ -123,7 +132,7 @@ export function useAppActions({
       setDiscoverStatus(t("discover.sendRequest"));
     } catch (error) {
       setDiscoverStatus(
-        error instanceof Error ? error.message : t("discover.sendRequest")
+        toLocalizedErrorMessage(error, t) || t("discover.sendRequest")
       );
     }
   }
@@ -143,7 +152,7 @@ export function useAppActions({
       await sendMessage(recipientPubkey, text);
     } catch (error) {
       setMessageStatus(
-        error instanceof Error ? error.message : t("common.buttons.sendMessage")
+        toLocalizedErrorMessage(error, t) || t("common.buttons.sendMessage")
       );
     }
   }

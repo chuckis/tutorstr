@@ -28,6 +28,15 @@ const authDependencies = {
   keyMaterial: nostrKeyMaterial
 };
 
+function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
+  if (!(error instanceof Error)) {
+    return "";
+  }
+
+  const translated = t(error.message);
+  return translated === error.message ? error.message : translated;
+}
+
 export function useAuthController() {
   const { t } = useI18n();
   const [mode, setMode] = useState<AuthMode>("loading");
@@ -67,9 +76,7 @@ export function useAuthController() {
           });
           setStatus("");
         } catch (error) {
-          setStatus(
-            error instanceof Error ? error.message : t("auth.createTitle")
-          );
+          setStatus(toLocalizedErrorMessage(error, t) || t("auth.createTitle"));
         }
       },
       async importProfile(secret: string, passphrase: string) {
@@ -87,9 +94,7 @@ export function useAuthController() {
           setMode("authenticated");
           setStatus("");
         } catch (error) {
-          setStatus(
-            error instanceof Error ? error.message : t("auth.importTitle")
-          );
+          setStatus(toLocalizedErrorMessage(error, t) || t("auth.importTitle"));
         }
       },
       async unlock(passphrase: string) {
@@ -103,9 +108,7 @@ export function useAuthController() {
           setMode("authenticated");
           setStatus("");
         } catch (error) {
-          setStatus(
-            error instanceof Error ? error.message : t("auth.unlockTitle")
-          );
+          setStatus(toLocalizedErrorMessage(error, t) || t("auth.unlockTitle"));
         }
       },
       async revealSecret(passphrase: string) {
@@ -113,10 +116,10 @@ export function useAuthController() {
           return await exportSecretKey(authDependencies, { passphrase });
         } catch (error) {
           if (error instanceof AuthError) {
-            throw error;
+            throw new Error(toLocalizedErrorMessage(error, t) || t("auth.runtime.unexpectedRevealError"));
           }
 
-          throw new Error(t("profile.revealButton"));
+          throw new Error(t("auth.runtime.unexpectedRevealError"));
         }
       },
       logout() {
@@ -155,7 +158,7 @@ export function useAuthController() {
           setStatus("");
         } catch (error) {
           setStatus(
-            error instanceof Error ? error.message : t("common.app.loadingVault")
+            toLocalizedErrorMessage(error, t) || t("common.app.loadingVault")
           );
         }
       },

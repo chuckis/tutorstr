@@ -1,0 +1,14 @@
+{
+  "title": "Журнал прогресу",
+  "topic": "Тема",
+  "topicPlaceholder": "Фокус уроку",
+  "notes": "Нотатки",
+  "notesPlaceholder": "Над чим ви працювали?",
+  "scoreOptional": "Оцінка (необов'язково)",
+  "bookingIdOptional": "ID бронювання (необов'язково)",
+  "bookingIdPlaceholder": "id бронювання",
+  "send": "Надіслати прогрес",
+  "empty": "Поки немає записів прогресу.",
+  "scoreLabel": "Оцінка: {{value}}",
+  "bookingLabel": "Бронювання: {{value}}"
+}

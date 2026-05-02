@@ -4,6 +4,15 @@ import { nostrClient } from "../nostr/client";
 import { TutorProfile } from "../types/nostr";
 import { emptyProfile, normalizeProfile } from "../utils/normalize";
 
+function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
+  if (!(error instanceof Error)) {
+    return "";
+  }
+
+  const translated = t(error.message);
+  return translated === error.message ? error.message : translated;
+}
+
 export function useTutorProfile(pubkey: string) {
   const { t } = useI18n();
   const [profile, setProfile] = useState<TutorProfile>(emptyProfile);
@@ -61,7 +70,7 @@ export function useTutorProfile(pubkey: string) {
       setStatus(t("profile.form.publish"));
     } catch (error) {
       setStatus(
-        error instanceof Error ? error.message : t("profile.form.publish")
+        toLocalizedErrorMessage(error, t) || t("profile.form.publish")
       );
     }
   }

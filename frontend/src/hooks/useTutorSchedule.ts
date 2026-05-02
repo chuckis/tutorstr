@@ -4,6 +4,15 @@ import { nostrClient } from "../nostr/client";
 import { TutorSchedule } from "../types/nostr";
 import { emptySchedule, normalizeSchedule } from "../utils/normalize";
 
+function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
+  if (!(error instanceof Error)) {
+    return "";
+  }
+
+  const translated = t(error.message);
+  return translated === error.message ? error.message : translated;
+}
+
 export function useTutorSchedule(pubkey: string) {
   const { t } = useI18n();
   const [schedule, setSchedule] = useState<TutorSchedule>(emptySchedule);
@@ -55,7 +64,7 @@ export function useTutorSchedule(pubkey: string) {
       setStatus(t("schedule.publish"));
     } catch (error) {
       setStatus(
-        error instanceof Error ? error.message : t("schedule.publish")
+        toLocalizedErrorMessage(error, t) || t("schedule.publish")
       );
     }
   }

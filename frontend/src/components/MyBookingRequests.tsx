@@ -1,4 +1,5 @@
 import { BookingRequestEvent, BookingStatusEvent } from "../types/nostr";
+import { useI18n } from "../i18n/I18nProvider";
 
 type MyBookingRequestsProps = {
   requests: BookingRequestEvent[];
@@ -11,6 +12,7 @@ export function MyBookingRequests({
   statuses,
   tutorPubkey
 }: MyBookingRequestsProps) {
+  const { t } = useI18n();
   const filtered = requests.filter(
     (request) => request.tutorPubkey === tutorPubkey
   );
@@ -21,18 +23,19 @@ export function MyBookingRequests({
 
   return (
     <div className="requests-panel">
-      <h3>Your requests</h3>
+      <h3>{t("profile.yourRequests")}</h3>
       <ul>
         {filtered.map((request) => {
           const status = statuses[request.request.bookingId]?.status.status;
           return (
             <li key={request.request.bookingId}>
               <div>
-                <strong>Slot:</strong> {request.request.requestedSlot.start} →{" "}
+                <strong>{t("profile.slot")}:</strong> {request.request.requestedSlot.start} →{" "}
                 {request.request.requestedSlot.end}
               </div>
               <div>
-                <strong>Status:</strong> {status || "pending"}
+                <strong>{t("requests.status")}:</strong>{" "}
+                {t(`common.status.${status || "pending"}`)}
               </div>
             </li>
           );

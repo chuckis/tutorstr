@@ -3,7 +3,8 @@
     "title": "Tutorstr",
     "subtitle": "Тьютор-хаб на Nostr",
     "loadingVault": "Завантаження сховища",
-    "checkingVault": "Перевіряємо, чи є на цьому пристрої збережений профіль Tutorstr."
+    "checkingVault": "Перевіряємо, чи є на цьому пристрої збережений профіль Tutorstr.",
+    "authSessionNotReady": "Сесію автентифікації ще не підготовлено."
   },
   "nav": {
     "primary": "Основна навігація",
@@ -32,10 +33,17 @@
     "en": "English",
     "uk": "Українська"
   },
+  "identity": {
+    "npub": "npub"
+  },
   "messages": {
     "empty": "Поки немає повідомлень.",
     "placeholder": "Напишіть приватне повідомлення...",
     "title": "Зашифровані повідомлення"
+  },
+  "runtime": {
+    "noRelaysConfigured": "Не налаштовано жодного relay.",
+    "authenticationRequired": "Потрібна автентифікація."
   },
   "status": {
     "pending": "Очікує",
@@ -53,6 +61,6 @@
     "accepted": "Слот отримано"
   },
   "validation": {
-    "requiredRelay": "Додайте хоча б один relay URL."
+    "requiredRelay": "Додайте принаймні один URL relay."
   }
 }

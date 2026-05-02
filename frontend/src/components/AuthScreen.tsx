@@ -81,7 +81,7 @@ export function AuthScreen({
   return (
     <main className="auth-shell">
       <section className="auth-hero">
-        <p className="eyebrow">Tutorstr</p>
+        <p className="eyebrow">{t("auth.heroEyebrow")}</p>
         <h1>{t("auth.heroTitle")}</h1>
         <p className="muted">{t("auth.heroBody")}</p>
       </section>

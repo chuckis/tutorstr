@@ -26,7 +26,7 @@ export class AcceptBooking {
       studentId,
       scheduledAt,
       durationMin: 60,
-      subject: "Tutoring lesson",
+      subject: "",
       status: "scheduled"
     })
   ) {}

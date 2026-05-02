@@ -1,12 +1,15 @@
 import { ProgressEntryEvent } from "../types/nostr";
+import { useI18n } from "../i18n/I18nProvider";
 
 type ProgressEntryListProps = {
   entries: ProgressEntryEvent[];
 };
 
 export function ProgressEntryList({ entries }: ProgressEntryListProps) {
+  const { t } = useI18n();
+
   if (entries.length === 0) {
-    return <p className="muted">No progress entries yet.</p>;
+    return <p className="muted">{t("progress.empty")}</p>;
   }
 
   return (
@@ -15,11 +18,15 @@ export function ProgressEntryList({ entries }: ProgressEntryListProps) {
         <li key={entry.id}>
           <div>
             <strong>{entry.entry.topic}</strong>
-            {entry.entry.score !== undefined ? ` · Score: ${entry.entry.score}` : ""}
+            {entry.entry.score !== undefined
+              ? ` · ${t("progress.scoreLabel", { value: entry.entry.score })}`
+              : ""}
           </div>
           <div>{entry.entry.notes || "—"}</div>
           {entry.entry.bookingId ? (
-            <div className="muted">Booking: {entry.entry.bookingId}</div>
+            <div className="muted">
+              {t("progress.bookingLabel", { value: entry.entry.bookingId })}
+            </div>
           ) : null}
         </li>
       ))}

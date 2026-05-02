@@ -47,6 +47,7 @@ type AuthenticatedAppProps = {
 };
 
 function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
+  const { t } = useI18n();
   const {
     navigation,
     relayInput,

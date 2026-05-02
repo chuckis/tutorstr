@@ -6,6 +6,7 @@
   "searchLabel": "Пошук тьюторів за предметом",
   "searchPlaceholder": "матаналіз",
   "noTutors": "Поки не знайдено жодного тьютора.",
+  "backToDirectory": "Назад до каталогу",
   "noSubjects": "Предмети не вказані",
   "rate": "Ставка",
   "hourlyRate": "${{count}}/год",

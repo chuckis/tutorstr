@@ -211,7 +211,7 @@ export function useBookings(userId: string, lessonDefaults?: {
           studentId,
           scheduledAt,
           durationMin,
-          subject: lessonDefaults?.subject || "Tutoring lesson",
+          subject: lessonDefaults?.subject || "",
           status: "scheduled"
         };
       }),

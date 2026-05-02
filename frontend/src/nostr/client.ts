@@ -59,7 +59,7 @@ export class NostrClient {
 
   async publish(event: NostrEvent) {
     if (this.relays.length === 0) {
-      throw new Error("No relays configured");
+      throw new Error("common.runtime.noRelaysConfigured");
     }
 
     await Promise.any(this.pool.publish(this.relays, event));
@@ -75,7 +75,7 @@ export class NostrClient {
 
   private requireSigner() {
     if (!this.signer) {
-      throw new Error("Authentication required.");
+      throw new Error("common.runtime.authenticationRequired");
     }
 
     return this.signer;
@@ -124,7 +124,7 @@ export class NostrClient {
   async publishTestEvent() {
     const session = this.getSignerSession();
     if (!session) {
-      throw new Error("Authentication required.");
+      throw new Error("common.runtime.authenticationRequired");
     }
 
     const event = await this.requireSigner().signEvent({

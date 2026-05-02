@@ -3,7 +3,8 @@
     "title": "Tutorstr",
     "subtitle": "Nostr tutor hub",
     "loadingVault": "Loading vault",
-    "checkingVault": "Checking this device for a saved Tutorstr profile."
+    "checkingVault": "Checking this device for a saved Tutorstr profile.",
+    "authSessionNotReady": "Authentication session is not ready."
   },
   "nav": {
     "primary": "Primary",
@@ -32,10 +33,17 @@
     "en": "English",
     "uk": "Українська"
   },
+  "identity": {
+    "npub": "npub"
+  },
   "messages": {
     "empty": "No messages yet.",
     "placeholder": "Write a private message...",
     "title": "Encrypted messages"
+  },
+  "runtime": {
+    "noRelaysConfigured": "No relays configured.",
+    "authenticationRequired": "Authentication required."
   },
   "status": {
     "pending": "Pending",
