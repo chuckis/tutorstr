@@ -170,14 +170,6 @@ export function DiscoverTab({
   return (
     <section className="tab-panel discover-tab">
       <div className="stack">
-        <article className="panel">
-          <h2>{t("discover.profilePreview")}</h2>
-          <p>
-            <strong>{profile.name || t("common.states.unnamedTutor")}</strong>
-          </p>
-          <p className="muted">{profile.bio || t("common.states.noBio")}</p>
-        </article>
-
         <label className="filter">
           {t("discover.searchLabel")}
           <input

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { BookingRequest, TutorScheduleEvent } from "../types/nostr";
+import { addMinutesToDateTimeLocal } from "../utils/dateTimeLocal";
 
 const emptySlot = { start: "", end: "" };
 
@@ -96,7 +97,10 @@ export function BookingRequestForm({
               type="datetime-local"
               value={customSlot.start}
               onChange={(event) =>
-                setCustomSlot({ ...customSlot, start: event.target.value })
+                setCustomSlot({
+                  start: event.target.value,
+                  end: addMinutesToDateTimeLocal(event.target.value, 60)
+                })
               }
             />
           </label>

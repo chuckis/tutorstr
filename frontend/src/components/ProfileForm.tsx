@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { TutorProfile } from "../types/nostr";
 import { useI18n } from "../i18n/I18nProvider";
 import { parseList } from "../utils/normalize";
@@ -5,18 +6,41 @@ import { parseList } from "../utils/normalize";
 type ProfileFormProps = {
   profile: TutorProfile;
   onChange: (next: TutorProfile) => void;
-  onSubmit: () => void;
+  onSubmit: (next: TutorProfile) => void;
 };
 
 export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
   const { t } = useI18n();
+  const [subjectsInput, setSubjectsInput] = useState(profile.subjects.join(", "));
+  const [languagesInput, setLanguagesInput] = useState(profile.languages.join(", "));
+
+  useEffect(() => {
+    setSubjectsInput(profile.subjects.join(", "));
+  }, [profile.subjects]);
+
+  useEffect(() => {
+    setLanguagesInput(profile.languages.join(", "));
+  }, [profile.languages]);
+
+  function commitListField(field: "subjects" | "languages", value: string) {
+    onChange({
+      ...profile,
+      [field]: parseList(value)
+    });
+  }
 
   return (
     <form
       className="profile-form"
       onSubmit={(event) => {
         event.preventDefault();
-        onSubmit();
+        const nextProfile = {
+          ...profile,
+          subjects: parseList(subjectsInput),
+          languages: parseList(languagesInput)
+        };
+        onChange(nextProfile);
+        onSubmit(nextProfile);
       }}
     >
       <label>
@@ -45,13 +69,11 @@ export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
       <label>
         {t("profile.form.subjects")}
         <input
-          value={profile.subjects.join(", ")}
-          onChange={(event) =>
-            onChange({
-              ...profile,
-              subjects: parseList(event.target.value)
-            })
-          }
+          value={subjectsInput}
+          onChange={(event) => {
+            setSubjectsInput(event.target.value);
+          }}
+          onBlur={(event) => commitListField("subjects", event.target.value)}
           placeholder={t("profile.form.subjectsPlaceholder")}
         />
       </label>
@@ -59,13 +81,11 @@ export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
       <label>
         {t("profile.form.languages")}
         <input
-          value={profile.languages.join(", ")}
-          onChange={(event) =>
-            onChange({
-              ...profile,
-              languages: parseList(event.target.value)
-            })
-          }
+          value={languagesInput}
+          onChange={(event) => {
+            setLanguagesInput(event.target.value);
+          }}
+          onBlur={(event) => commitListField("languages", event.target.value)}
           placeholder={t("profile.form.languagesPlaceholder")}
         />
       </label>

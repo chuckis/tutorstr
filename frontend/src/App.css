@@ -106,6 +106,39 @@
   padding: var(--space-4);
 }
 
+.advanced-panel,
+.advanced-content {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.advanced-panel {
+  background: linear-gradient(180deg, #f8fbf8, #eef6f1);
+}
+
+.advanced-toggle {
+  width: 100%;
+  background: transparent;
+  color: var(--color-text);
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  text-align: left;
+}
+
+.advanced-toggle .muted {
+  text-align: right;
+}
+
+.advanced-chevron {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .identity {
   padding: var(--space-3);
   font-size: 0.88rem;

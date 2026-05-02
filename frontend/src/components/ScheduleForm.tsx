@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { ScheduleSlot, TutorSchedule } from "../types/nostr";
+import { addMinutesToDateTimeLocal } from "../utils/dateTimeLocal";
 
 const emptySlot: ScheduleSlot = { start: "", end: "" };
 
@@ -63,7 +64,10 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
             type="datetime-local"
             value={newSlot.start}
             onChange={(event) =>
-              setNewSlot({ ...newSlot, start: event.target.value })
+              setNewSlot({
+                start: event.target.value,
+                end: addMinutesToDateTimeLocal(event.target.value, 60)
+              })
             }
           />
         </label>

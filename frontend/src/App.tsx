@@ -156,7 +156,7 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
             pubkey={keypair.pubkey}
             profile={profileState.profile}
             onProfileChange={profileState.setProfile}
-            onPublishProfile={() => profileState.publishProfile(profileState.profile)}
+            onPublishProfile={profileState.publishProfile}
             schedule={scheduleState.schedule}
             onScheduleChange={scheduleState.setSchedule}
             onPublishSchedule={() => scheduleState.publishSchedule(scheduleState.schedule)}
