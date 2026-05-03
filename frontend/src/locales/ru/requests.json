@@ -1,0 +1,21 @@
+{
+  "backToRequests": "К заявкам",
+  "detailsTitle": "Детали заявки на урок",
+  "scheduled": "Запланировано",
+  "ends": "Заканчивается",
+  "counterparty": "Контрагент",
+  "status": "Статус",
+  "resolution": "Итог",
+  "accept": "Принять",
+  "decline": "Отклонить",
+  "cancelRequest": "Отменить заявку",
+  "incoming": "Входящие",
+  "outgoing": "Исходящие",
+  "empty": "В этом разделе нет заявок.",
+  "candidates": "Кандидаты: {{count}}",
+  "allocated": "Распределено",
+  "pendingCount": "Ожидает: {{count}}",
+  "student": "Студент",
+  "subject": "Предмет",
+  "defaultSubject": "Репетиторский урок"
+}

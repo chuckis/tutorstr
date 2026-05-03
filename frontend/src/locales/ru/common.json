@@ -1,0 +1,70 @@
+{
+  "app": {
+    "title": "Tutorstr",
+    "subtitle": "Платформа репетиторов на Nostr",
+    "loadingVault": "Загрузка хранилища",
+    "checkingVault": "Проверка наличия сохранённого профиля Tutorstr на этом устройстве.",
+    "authSessionNotReady": "Сеанс аутентификации не готов."
+  },
+  "nav": {
+    "primary": "Главная",
+    "discover": "Обзор",
+    "requests": "Заявки",
+    "lessons": "Уроки",
+    "profile": "Профиль"
+  },
+  "buttons": {
+    "back": "Назад",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "details": "Подробнее",
+    "logout": "Выйти",
+    "sendMessage": "Отправить сообщение"
+  },
+  "indicators": {
+    "new": "Новое",
+    "newCount": "{{count}} новых"
+  },
+  "states": {
+    "unnamedTutor": "Репетитор без имени",
+    "noBioYet": "Описание ещё не добавлено.",
+    "noBio": "Описание отсутствует.",
+    "notSet": "Не задано",
+    "unknown": "Неизвестно"
+  },
+  "language": {
+    "label": "Язык",
+    "en": "English",
+    "uk": "Українська"
+  },
+  "identity": {
+    "npub": "npub"
+  },
+  "messages": {
+    "empty": "Сообщений пока нет.",
+    "placeholder": "Написать личное сообщение...",
+    "title": "Зашифрованные сообщения"
+  },
+  "runtime": {
+    "noRelaysConfigured": "Ретрансляторы не настроены.",
+    "authenticationRequired": "Требуется аутентификация."
+  },
+  "status": {
+    "pending": "Ожидает",
+    "accepted": "Принята",
+    "declined": "Отклонена",
+    "cancelled": "Отменена",
+    "completed": "Завершена",
+    "scheduled": "Запланирована"
+  },
+  "requestResolution": {
+    "slot_filled": "Слот занят другим студентом",
+    "tutor_rejected": "Отклонено репетитором",
+    "duplicate_bid": "Повторная заявка",
+    "student_cancelled": "Отменено студентом",
+    "accepted": "Слот получен"
+  },
+  "validation": {
+    "requiredRelay": "Добавьте хотя бы один URL ретранслятора."
+  }
+}

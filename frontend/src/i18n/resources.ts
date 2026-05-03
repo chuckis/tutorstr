@@ -14,6 +14,14 @@ import progressUk from "../locales/uk/progress.json";
 import profileUk from "../locales/uk/profile.json";
 import requestsUk from "../locales/uk/requests.json";
 import scheduleUk from "../locales/uk/schedule.json";
+import authRu from "../locales/ru/auth.json";
+import commonRu from "../locales/ru/common.json";
+import discoverRu from "../locales/ru/discover.json";
+import lessonsRu from "../locales/ru/lessons.json";
+import progressRu from "../locales/ru/progress.json";
+import profileRu from "../locales/ru/profile.json";
+import requestsRu from "../locales/ru/requests.json";
+import scheduleRu from "../locales/ru/schedule.json";
 import { AppLocale } from "../domain/locale";
 
 export const resources: Record<AppLocale, Record<string, unknown>> = {
@@ -36,5 +44,15 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     requests: requestsUk,
     lessons: lessonsUk,
     progress: progressUk
+  },
+  ru: {
+    auth: authRu,
+    common: commonRu,
+    discover: discoverRu,
+    profile: profileRu,
+    schedule: scheduleRu,
+    requests: requestsRu,
+    lessons: lessonsRu,
+    progress: progressRu
   }
 };
