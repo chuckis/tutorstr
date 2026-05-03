@@ -26,6 +26,25 @@ export type SubscribeOptions = {
   onEose?: () => void;
 };
 
+const DEBUG_NOSTR =
+  import.meta.env.DEV || import.meta.env.VITE_DEBUG_NOSTR === "true";
+
+function logIncomingEvent(event: NostrEvent) {
+  if (!DEBUG_NOSTR) {
+    return;
+  }
+
+  console.groupCollapsed(`[NOSTR EVENT kind=${event.kind}]`);
+  console.log("[NOSTR EVENT]", event);
+  console.log("[EVENT META]", {
+    id: event.id,
+    kind: event.kind,
+    pubkey: event.pubkey,
+    created_at: event.created_at
+  });
+  console.groupEnd();
+}
+
 export class NostrClient {
   private pool: SimplePool;
   private relays: string[];
@@ -144,7 +163,10 @@ export class NostrClient {
     options: SubscribeOptions = {}
   ) {
     const subscription = this.pool.subscribe(this.relays, filters, {
-      onevent: onEvent,
+      onevent: (event) => {
+        logIncomingEvent(event);
+        onEvent(event);
+      },
       oneose: options.onEose
     });
 
