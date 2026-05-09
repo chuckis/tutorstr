@@ -24,7 +24,7 @@ export function useBookings(userId: string, lessonDefaults?: {
   const { requests: incomingRequests } = useBookingRequestsForTutor(userId);
   const { requests: outgoingRequests } = useMyBookingRequests(userId);
   const { statuses } = useBookingStatusesForUser(userId);
-  const { publishBookingStatus } = useBookingActions();
+  const { publishBookingStatus } = useBookingActions(userId);
   const lessonRepository = useLessonRepository(userId, lessonDefaults);
 
   const incoming = useMemo(

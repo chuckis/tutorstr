@@ -335,16 +335,10 @@ export function RequestsTab({
             const statusRaw = request.status;
             const statusText = requestStatusLabel(statusRaw);
             const isPending = statusRaw === "pending";
-            const unreadCount =
-              requestSegment === "incoming"
-                ? getUnreadCount(request.studentId)
-                : getUnreadCount(request.tutorId);
+            const unreadCount = getUnreadCount(request.tutorId);
             const counterparty =
-              requestSegment === "incoming"
-                ? tutors[request.studentId]?.profile.name ||
-                  toDisplayId(request.studentId, t("common.states.unknown"))
-                : tutors[request.tutorId]?.profile.name ||
-                  toDisplayId(request.tutorId, t("common.states.unknown"));
+              tutors[request.tutorId]?.profile.name ||
+              toDisplayId(request.tutorId, t("common.states.unknown"));
 
             return (
               <li key={request.id} className={unreadCount > 0 ? "has-unread" : ""}>
@@ -369,23 +363,6 @@ export function RequestsTab({
                         : t("common.indicators.newCount", { count: unreadCount })}
                     </span>
                   ) : null}
-                  {requestSegment === "incoming" && isPending ? (
-                    <div className="action-buttons">
-                      <button
-                        type="button"
-                        onClick={() => onRespondToBooking(request, "accepted")}
-                      >
-                        {t("requests.accept")}
-                      </button>
-                      <button
-                        type="button"
-                        className="ghost-action"
-                        onClick={() => onRespondToBooking(request, "rejected")}
-                      >
-                        {t("requests.decline")}
-                      </button>
-                    </div>
-                  ) : null}
                   <button
                     type="button"
                     onClick={() =>
@@ -397,7 +374,7 @@ export function RequestsTab({
                   >
                     {t("common.buttons.details")}
                   </button>
-                  {requestSegment === "outgoing" && isPending ? (
+                  {isPending ? (
                     <button
                       type="button"
                       className="ghost-action"

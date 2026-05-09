@@ -10,7 +10,7 @@ export function useBookingRequestsForTutor(pubkey: string) {
 
   useEffect(() => {
     const unsubscribe = nostrClient.subscribe(
-      { kinds: [30002], "#p": [pubkey], limit: 200 },
+      { kinds: [30002], "#p": [pubkey], limit: 5 },
       (event) => {
         try {
           const parsed = JSON.parse(event.content) as BookingRequest;
