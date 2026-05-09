@@ -16,7 +16,7 @@ Observed target shape:
 - `hooks/` still own most inbound and outbound Nostr traffic through `nostrClient`, `JSON.parse`, tag extraction, and encrypted event publishing.
 
 Generated diagram:
-- [architecture-audit-dependency-map.mmd](/home/ruslan/Projects/tutorstr/docs/diagrams/architecture-audit-dependency-map.mmd)
+- [architecture-audit-dependency-map.mmd](docs/diagrams/architecture-audit-dependency-map.mmd)
 
 Current dependency shape in plain English:
 - `useBookings` builds a `BookingRepository` inside a hook, maps raw Nostr events with `bookingFromNostr`, computes slot winners and active bids, and then constructs `AcceptBooking`.
@@ -41,7 +41,7 @@ Current dependency shape in plain English:
 | `frontend/src/hooks/useBookingStatusesForUser.ts:11-60` | Hook directly subscribes to kind `30003`, parses JSON, extracts tags, and maintains last-write-wins status state. | Hook Boundaries; Nostr Isolation | Same fix path as booking requests: isolate event parsing and merge semantics in a repository adapter. | S |
 | `frontend/src/hooks/useEncryptedMessages.ts:22-64` | Hook performs direct encrypted relay subscriptions and decryption via `nostrClient.decryptContent`. | Hook Boundaries; Nostr Isolation | Introduce a messaging adapter/repository that owns encrypted event IO and returns plaintext message DTOs or domain objects. | M |
 | `frontend/src/hooks/usePrivateMessagingActions.ts:6-19` | Hook directly publishes encrypted kind `4` and `30004` events. | Hook Boundaries; Nostr Isolation | Route message sending through a messaging port implemented in `adapters/nostr/`. | S |
-| `frontend/src/domain/slotAllocation.ts:1,3-15` | Domain imports `ScheduleSlot` from `types/nostr`, coupling domain helpers to a transport schema file. | Dependency Rule | Replace `ScheduleSlot` with a domain-local `TimeSlot` value object or a minimal internal type declared in `domain/`. | S |
+| `frontend/src/domain/slotAllocation.ts:1,3-15` | Closed on 2026-05-09: `slotAllocation.ts` now depends on domain `TimeSlot` instead of `types/nostr`. | Dependency Rule | Completed via `frontend/src/domain/TimeSlot.ts` and inward reuse from `types/nostr.ts`. | S |
 | `frontend/src/application/usecases/acceptBooking.ts:17-31` | The default `LessonFactory` uses `crypto.randomUUID()`, which makes the use case less deterministic and slightly less pure-by-default. | Testability | Inject ID creation from the composition layer or require a factory dependency explicitly. Current state is workable but should be tightened before more use cases follow the same pattern. | S |
 
 ### Notes Requiring Team Discussion

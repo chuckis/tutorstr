@@ -1,8 +1,8 @@
-import { ScheduleSlot } from "../types/nostr";
+import { TimeSlot } from "./TimeSlot";
 
 export function makeSlotAllocationKey(
   tutorPubkey: string,
-  slot: ScheduleSlot
+  slot: TimeSlot
 ) {
   return [tutorPubkey, slot.start, slot.end].join("|");
 }
@@ -10,7 +10,7 @@ export function makeSlotAllocationKey(
 export function makeSlotBidKey(
   tutorPubkey: string,
   studentPubkey: string,
-  slot: ScheduleSlot
+  slot: TimeSlot
 ) {
   return [makeSlotAllocationKey(tutorPubkey, slot), studentPubkey].join("|");
 }

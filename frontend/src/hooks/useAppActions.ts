@@ -1,12 +1,12 @@
 import { Booking } from "../domain/booking";
 import { SlotOccupancy } from "../domain/slotOccupancy";
+import { TimeSlot } from "../domain/TimeSlot";
 import { makeSlotAllocationKey, makeSlotBidKey } from "../domain/slotAllocation";
 import { Lesson, LessonStatus } from "../domain/lesson";
 import { BookingRepository } from "../ports/bookingRepository";
 import { LessonRepository } from "../ports/lessonRepository";
 import { useI18n } from "../i18n/I18nProvider";
 import { nostrClient } from "../nostr/client";
-import { ScheduleSlot } from "../types/nostr";
 
 type AcceptBookingUseCase = {
   execute: (bookingId: string) => Promise<void>;
@@ -19,7 +19,7 @@ type UseAppActionsProps = {
   publishBookingRequest: (
     tutorPubkey: string,
     payload: {
-      requestedSlot: ScheduleSlot;
+      requestedSlot: TimeSlot;
       message: string;
       studentNpub: string;
       slotAllocationKey?: string;
@@ -95,7 +95,7 @@ export function useAppActions({
   async function requestBooking(
     tutorPubkey: string,
     payload: {
-      requestedSlot: ScheduleSlot;
+      requestedSlot: TimeSlot;
       message: string;
       studentNpub: string;
     }
@@ -137,7 +137,7 @@ export function useAppActions({
     }
   }
 
-  async function requestPublishedSlot(tutorPubkey: string, slot: ScheduleSlot) {
+  async function requestPublishedSlot(tutorPubkey: string, slot: TimeSlot) {
     await requestBooking(tutorPubkey, {
       requestedSlot: slot,
       message: "",

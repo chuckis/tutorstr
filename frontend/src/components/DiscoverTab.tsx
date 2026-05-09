@@ -1,10 +1,10 @@
 import { Booking } from "../domain/booking";
 import { SlotOccupancy } from "../domain/slotOccupancy";
+import { TimeSlot } from "../domain/TimeSlot";
 import { makeSlotAllocationKey, makeSlotBidKey } from "../domain/slotAllocation";
 import {
   BookingRequest,
   EncryptedMessage,
-  ScheduleSlot,
   TutorProfile,
   TutorProfileEvent,
   TutorScheduleEvent
@@ -24,7 +24,7 @@ type DiscoverTabProps = {
   filteredTutors: TutorProfileEvent[];
   schedules: Record<string, TutorScheduleEvent>;
   discoverStatus: string;
-  onRequestPublishedSlot: (tutorPubkey: string, slot: ScheduleSlot) => void;
+  onRequestPublishedSlot: (tutorPubkey: string, slot: TimeSlot) => void;
   messagesByCounterparty: Record<string, EncryptedMessage[]>;
   onSendMessage: (recipientPubkey: string, text: string) => void;
   messageStatus: string;
@@ -59,7 +59,7 @@ export function DiscoverTab({
 }: DiscoverTabProps) {
   const { t, formatDateTime, formatNumber } = useI18n();
 
-  function getSlotState(tutorPubkey: string, slot: ScheduleSlot) {
+  function getSlotState(tutorPubkey: string, slot: TimeSlot) {
     const slotBidKey = makeSlotBidKey(tutorPubkey, studentPubkey, slot);
     if (activeBidBySlotAndStudent[slotBidKey]) {
       return "requested";

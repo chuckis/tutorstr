@@ -1,3 +1,5 @@
+import { TimeSlot } from "../domain/TimeSlot";
+
 export type TutorProfile = {
   name: string;
   bio: string;
@@ -13,10 +15,7 @@ export type TutorProfileEvent = {
   profile: TutorProfile;
 };
 
-export type ScheduleSlot = {
-  start: string;
-  end: string;
-};
+export type ScheduleSlot = TimeSlot;
 
 export type TutorSchedule = {
   timezone: string;
