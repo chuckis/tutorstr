@@ -56,7 +56,7 @@ This refactor is incremental: legacy Nostr hooks still exist, but new UI paths a
 ## Repository Structure
 
 - `frontend/` main app (implemented)
-- `relay/` relay workspace placeholder (not yet implemented)
+- `relay/` submodule pointing to [THR](https://github.com/tutor-hub-2030/thr) - custom Nostr relay for Tutor Hub
 - `docs/` specifications and event kind docs
 
 ## Run Locally
