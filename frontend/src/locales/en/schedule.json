@@ -1,0 +1,11 @@
+{
+  "availability": "Availability",
+  "timezone": "Timezone",
+  "timezonePlaceholder": "UTC",
+  "start": "Start",
+  "end": "End",
+  "addSlot": "Add slot",
+  "remove": "Remove",
+  "noSlots": "No slots added yet.",
+  "publish": "Publish schedule"
+}

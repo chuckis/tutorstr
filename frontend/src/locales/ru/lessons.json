@@ -1,0 +1,17 @@
+{
+  "backToLessons": "К урокам",
+  "defaultTitle": "Урок",
+  "dateTime": "Дата и время",
+  "duration": "Продолжительность",
+  "minutes": "{{count}} мин",
+  "counterparty": "Контрагент",
+  "status": "Статус",
+  "markCompleted": "Отметить как завершённый",
+  "cancel": "Отмена",
+  "cancelLesson": "Отменить урок",
+  "personalNote": "Личная заметка (только локально)",
+  "saveNote": "Сохранить заметку",
+  "upcoming": "Предстоящие",
+  "past": "Прошедшие",
+  "empty": "В этом разделе уроков нет."
+}

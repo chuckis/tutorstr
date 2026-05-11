@@ -1,0 +1,11 @@
+{
+  "availability": "Доступность",
+  "timezone": "Часовой пояс",
+  "timezonePlaceholder": "UTC",
+  "start": "Начало",
+  "end": "Конец",
+  "addSlot": "Добавить слот",
+  "remove": "Удалить",
+  "noSlots": "Слоты ещё не добавлены.",
+  "publish": "Опубликовать расписание"
+}

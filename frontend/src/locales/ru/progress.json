@@ -1,0 +1,14 @@
+{
+  "title": "Журнал успеваемости",
+  "topic": "Тема",
+  "topicPlaceholder": "Тема урока",
+  "notes": "Заметки",
+  "notesPlaceholder": "Над чем вы работали?",
+  "scoreOptional": "Оценка (необязательно)",
+  "bookingIdOptional": "ID бронирования (необязательно)",
+  "bookingIdPlaceholder": "id бронирования",
+  "send": "Отправить отчёт",
+  "empty": "Записей об успеваемости пока нет.",
+  "scoreLabel": "Оценка: {{value}}",
+  "bookingLabel": "Бронирование: {{value}}"
+}

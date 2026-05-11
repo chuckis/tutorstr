@@ -1,0 +1,14 @@
+{
+  "title": "Progress log",
+  "topic": "Topic",
+  "topicPlaceholder": "Lesson focus",
+  "notes": "Notes",
+  "notesPlaceholder": "What did you work on?",
+  "scoreOptional": "Score (optional)",
+  "bookingIdOptional": "Booking ID (optional)",
+  "bookingIdPlaceholder": "booking id",
+  "send": "Send progress",
+  "empty": "No progress entries yet.",
+  "scoreLabel": "Score: {{value}}",
+  "bookingLabel": "Booking: {{value}}"
+}

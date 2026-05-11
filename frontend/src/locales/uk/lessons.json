@@ -1,0 +1,17 @@
+{
+  "backToLessons": "Назад до уроків",
+  "defaultTitle": "Урок",
+  "dateTime": "Дата й час",
+  "duration": "Тривалість",
+  "minutes": "{{count}} хв",
+  "counterparty": "Співрозмовник",
+  "status": "Статус",
+  "markCompleted": "Позначити завершеним",
+  "cancel": "Скасувати",
+  "cancelLesson": "Скасувати урок",
+  "personalNote": "Особиста нотатка (лише локально)",
+  "saveNote": "Зберегти нотатку",
+  "upcoming": "Майбутні",
+  "past": "Минулі",
+  "empty": "У цьому сегменті немає уроків."
+}
