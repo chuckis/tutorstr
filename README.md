@@ -5,7 +5,7 @@ Tutor Hub over Nostr: decentralized tutoring app where domain data lives in Nost
 ## Current State (April 2026)
 
 - Frontend MVP is active (`React + TypeScript + Vite`, PWA shell)
-- Relay workspace exists but backend relay server is not implemented yet (`relay/` is placeholder scripts)
+- Relay workspace exists with custom Nostr relay server implementation in [THR](https://github.com/tutor-hub-2030/thr) submodule
 - Single keypair can act as both tutor and student depending on event context
 - `App.tsx` has been reduced to a thin shell/controller composition layer
 - Frontend refactor is in progress to decouple business logic from raw Nostr event structures
@@ -103,3 +103,4 @@ If not set, frontend uses defaults from `frontend/src/nostr/config.ts`.
 - `docs/plans/feature-lesson-agreement-dashboard.md`
 - `docs/plans/design-spec.md`
 - `docs/plans/decoupling-BL.md`
+>>>>>>> qwen-code-62f21a01-b823-4834-8efc-5ae9624877c1
