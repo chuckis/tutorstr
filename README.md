@@ -94,13 +94,3 @@ Optional env for default relays:
 - `VITE_NOSTR_RELAYS=wss://relay1.example,wss://relay2.example`
 
 If not set, frontend uses defaults from `frontend/src/nostr/config.ts`.
-
-## Specs
-
-- `docs/spec.md`
-- `docs/nostr-kinds.md`
-- `docs/plans/pwa-layout-spec.md`
-- `docs/plans/feature-lesson-agreement-dashboard.md`
-- `docs/plans/design-spec.md`
-- `docs/plans/decoupling-BL.md`
->>>>>>> qwen-code-62f21a01-b823-4834-8efc-5ae9624877c1
