@@ -1,7 +1,8 @@
-import { Inbox, Send } from "lucide-react";
+import { ArrowLeft, Inbox, Send } from "lucide-react";
 import { Booking } from "../domain/booking";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
+import { RequestCard } from "./RequestCard";
 import { requestStatusLabel, toDisplayId } from "../utils/display";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -107,10 +108,11 @@ export function RequestsTab({
         <article className="panel details-screen">
           <button
             type="button"
-            className="ghost"
+            className="ghost icon-only-button"
+            aria-label={t("requests.backToRequests")}
             onClick={() => onSelectRequest(null)}
           >
-            {t("requests.backToRequests")}
+            <ArrowLeft size={18} aria-hidden="true" />
           </button>
           <h2>{t("requests.detailsTitle")}</h2>
           <p>
@@ -271,9 +273,48 @@ export function RequestsTab({
                     const requestUnreadCount = getUnreadCount(request.studentId);
 
                     return (
-                      <li
+                      <RequestCard
                         key={request.id}
                         className={requestUnreadCount > 0 ? "has-unread" : ""}
+                        onOpen={() =>
+                          onSelectRequest({
+                            request,
+                            segment: requestSegment
+                          })
+                        }
+                        footer={
+                          <>
+                            <span className={`status-pill status-${statusText}`}>
+                              {t(`common.status.${statusText}`)}
+                            </span>
+                            {requestUnreadCount > 0 ? (
+                              <span className="inline-indicator">
+                                {requestUnreadCount === 1
+                                  ? t("common.indicators.new")
+                                  : t("common.indicators.newCount", {
+                                      count: requestUnreadCount
+                                    })}
+                              </span>
+                            ) : null}
+                            {isPending ? (
+                              <div className="action-buttons">
+                                <button
+                                  type="button"
+                                  onClick={() => onRespondToBooking(request, "accepted")}
+                                >
+                                  {t("requests.accept")}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="ghost-action"
+                                  onClick={() => onRespondToBooking(request, "rejected")}
+                                >
+                                  {t("requests.decline")}
+                                </button>
+                              </div>
+                            ) : null}
+                          </>
+                        }
                       >
                         <div>
                           <strong>{t("requests.student")}:</strong> {counterparty}
@@ -284,49 +325,7 @@ export function RequestsTab({
                             {t(`common.requestResolution.${reasonText}`)}
                           </div>
                         ) : null}
-                        <div className="request-actions">
-                          <span className={`status-pill status-${statusText}`}>
-                            {t(`common.status.${statusText}`)}
-                          </span>
-                          {requestUnreadCount > 0 ? (
-                            <span className="inline-indicator">
-                              {requestUnreadCount === 1
-                                ? t("common.indicators.new")
-                                : t("common.indicators.newCount", {
-                                    count: requestUnreadCount
-                                  })}
-                            </span>
-                          ) : null}
-                          {isPending ? (
-                            <div className="action-buttons">
-                              <button
-                                type="button"
-                                onClick={() => onRespondToBooking(request, "accepted")}
-                              >
-                                {t("requests.accept")}
-                              </button>
-                              <button
-                                type="button"
-                                className="ghost-action"
-                                onClick={() => onRespondToBooking(request, "rejected")}
-                              >
-                                {t("requests.decline")}
-                              </button>
-                            </div>
-                          ) : null}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onSelectRequest({
-                                request,
-                                segment: requestSegment
-                              })
-                            }
-                          >
-                            {t("common.buttons.details")}
-                          </button>
-                        </div>
-                      </li>
+                      </RequestCard>
                     );
                   })}
                 </ul>
@@ -346,7 +345,39 @@ export function RequestsTab({
               toDisplayId(request.tutorId, t("common.states.unknown"));
 
             return (
-              <li key={request.id} className={unreadCount > 0 ? "has-unread" : ""}>
+              <RequestCard
+                key={request.id}
+                className={unreadCount > 0 ? "has-unread" : ""}
+                onOpen={() =>
+                  onSelectRequest({
+                    request,
+                    segment: requestSegment
+                  })
+                }
+                footer={
+                  <>
+                    <span className={`status-pill status-${statusText}`}>
+                      {t(`common.status.${statusText}`)}
+                    </span>
+                    {unreadCount > 0 ? (
+                      <span className="inline-indicator">
+                        {unreadCount === 1
+                          ? t("common.indicators.new")
+                          : t("common.indicators.newCount", { count: unreadCount })}
+                      </span>
+                    ) : null}
+                    {isPending ? (
+                      <button
+                        type="button"
+                        className="ghost-action"
+                        onClick={() => onCancelRequest(request)}
+                      >
+                        {t("common.buttons.cancel")}
+                      </button>
+                    ) : null}
+                  </>
+                }
+              >
                 <div>
                   <strong>{t("requests.subject")}:</strong> {t("requests.defaultSubject")}
                 </div>
@@ -357,39 +388,7 @@ export function RequestsTab({
                 <div>
                   <strong>{t("requests.counterparty")}:</strong> {counterparty}
                 </div>
-                <div className="request-actions">
-                  <span className={`status-pill status-${statusText}`}>
-                    {t(`common.status.${statusText}`)}
-                  </span>
-                  {unreadCount > 0 ? (
-                    <span className="inline-indicator">
-                      {unreadCount === 1
-                        ? t("common.indicators.new")
-                        : t("common.indicators.newCount", { count: unreadCount })}
-                    </span>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSelectRequest({
-                        request,
-                        segment: requestSegment
-                      })
-                    }
-                  >
-                    {t("common.buttons.details")}
-                  </button>
-                  {isPending ? (
-                    <button
-                      type="button"
-                      className="ghost-action"
-                      onClick={() => onCancelRequest(request)}
-                    >
-                      {t("common.buttons.cancel")}
-                    </button>
-                  ) : null}
-                </div>
-              </li>
+              </RequestCard>
             );
           })}
         </ul>

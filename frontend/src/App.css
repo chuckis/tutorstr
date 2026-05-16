@@ -517,6 +517,16 @@ p {
   font-size: 0.92rem;
 }
 
+.request-card {
+  cursor: pointer;
+  transition: transform var(--motion), box-shadow var(--motion), background-color var(--motion);
+}
+
+.request-card-body {
+  display: grid;
+  gap: var(--space-1);
+}
+
 .has-unread {
   box-shadow:
     var(--color-shadow),
