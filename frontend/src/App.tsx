@@ -1,9 +1,11 @@
 import "./App.css";
+import { useMemo, useState } from "react";
 import { AuthScreen } from "./components/AuthScreen";
 import { BottomNav } from "./components/BottomNav";
+import { DashboardSettingsDrawer } from "./components/DashboardSettingsDrawer";
+import { DashboardTab } from "./components/DashboardTab";
 import { DiscoverTab } from "./components/DiscoverTab";
 import { LessonsTab } from "./components/LessonsTab";
-import { ProfileTab } from "./components/ProfileTab";
 import { RequestsTab } from "./components/RequestsTab";
 import { useAuthController } from "./hooks/useAuthController";
 import { useAppController } from "./hooks/useAppController";
@@ -48,6 +50,7 @@ type AuthenticatedAppProps = {
 
 function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
   const { t } = useI18n();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const {
     navigation,
     relay,
@@ -68,13 +71,47 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
     viewModel
   } = useAppController(onLogout);
 
+  const profileBadgeLabel = profileState.profile.name || viewModel.viewerLabel;
+  const profileInitials = useMemo(() => {
+    const source = profileBadgeLabel.trim() || keypair.npub.slice(0, 2);
+
+    return source
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("");
+  }, [keypair.npub, profileBadgeLabel]);
+
   return (
     <main className="app-shell">
       <header className="topbar">
         <h1>{t("common.app.title")}</h1>
         <div className="topbar-meta">
           <p className="muted">{t("common.app.subtitle")}</p>
-          <span className="topbar-identity">{viewModel.viewerLabel}</span>
+          <button
+            type="button"
+            className="topbar-identity profile-badge-button topbar-profile-badge"
+            onClick={() => setIsSettingsOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={isSettingsOpen}
+            aria-controls="dashboard-settings-drawer"
+          >
+            {profileState.profile.avatarUrl ? (
+              <img
+                className="profile-badge-avatar"
+                src={profileState.profile.avatarUrl}
+                alt={profileBadgeLabel}
+              />
+            ) : (
+              <span className="profile-badge-fallback" aria-hidden="true">
+                {profileInitials}
+              </span>
+            )}
+            <span className="profile-badge-copy">
+              <strong>{profileBadgeLabel}</strong>
+              <span>{t("profile.openSettings")}</span>
+            </span>
+          </button>
         </div>
       </header>
 
@@ -149,23 +186,32 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
         ) : null}
 
         {navigation.activeTab === "profile" ? (
-          <ProfileTab
+          <DashboardTab
             npub={keypair.npub}
             pubkey={keypair.pubkey}
-            profile={profileState.profile}
-            onProfileChange={profileState.setProfile}
-            onPublishProfile={profileState.publishProfile}
+            profileBio={profileState.profile.bio}
+            profileSubjects={profileState.profile.subjects}
+            hourlyRate={profileState.profile.hourlyRate}
             schedule={scheduleState.schedule}
             onScheduleChange={scheduleState.setSchedule}
             onPublishSchedule={() => scheduleState.publishSchedule(scheduleState.schedule)}
-            relay = {relay}
-            onLogout={actions.logout}
-            onRevealSecret={onRevealSecret}
             scheduleStatus={scheduleState.status}
             profileStatus={profileState.status}
           />
         ) : null}
       </section>
+
+      <DashboardSettingsDrawer
+        isOpen={isSettingsOpen}
+        npub={keypair.npub}
+        profile={profileState.profile}
+        onClose={() => setIsSettingsOpen(false)}
+        onProfileChange={profileState.setProfile}
+        onPublishProfile={profileState.publishProfile}
+        relay={relay}
+        onLogout={actions.logout}
+        onRevealSecret={onRevealSecret}
+      />
 
       <BottomNav
         activeTab={navigation.activeTab}
