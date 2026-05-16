@@ -11,6 +11,7 @@ import {
   TutorScheduleEvent
 } from "../types/nostr";
 import { useI18n } from "../i18n/I18nProvider";
+import { isProfileEmpty } from "../utils/normalize";
 import { BookingRequestForm } from "./BookingRequestForm";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -59,6 +60,7 @@ export function DiscoverTab({
   onBookingRequest
 }: DiscoverTabProps) {
   const { t, formatDateTime, formatNumber } = useI18n();
+  const isNewcomerProfile = isProfileEmpty(profile);
 
   function getSlotState(tutorPubkey: string, slot: TimeSlot) {
     const slotBidKey = makeSlotBidKey(tutorPubkey, studentPubkey, slot);
@@ -173,6 +175,13 @@ export function DiscoverTab({
   return (
     <section className="tab-panel discover-tab">
       <div className="stack">
+        {isNewcomerProfile ? (
+          <article className="panel discover-empty-profile-callout">
+            <h3>{t("discover.emptyProfileTitle")}</h3>
+            <p className="muted">{t("discover.emptyProfileBody")}</p>
+          </article>
+        ) : null}
+
         <label className="filter">
           {t("discover.searchLabel")}
           <input

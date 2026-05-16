@@ -23,6 +23,17 @@ export function normalizeProfile(input: Partial<TutorProfile> | null | undefined
   };
 }
 
+export function isProfileEmpty(profile: TutorProfile) {
+  return (
+    !profile.name.trim() &&
+    !profile.bio.trim() &&
+    profile.subjects.length === 0 &&
+    profile.languages.length === 0 &&
+    !profile.hourlyRate &&
+    !profile.avatarUrl.trim()
+  );
+}
+
 export function normalizeSchedule(
   input: Partial<TutorSchedule> | null | undefined
 ) {

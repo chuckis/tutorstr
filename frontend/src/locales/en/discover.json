@@ -6,6 +6,8 @@
   "searchLabel": "Search tutors by subject",
   "searchPlaceholder": "calculus",
   "noTutors": "No tutors found yet.",
+  "emptyProfileTitle": "Complete your profile first",
+  "emptyProfileBody": "New here? Fill out your dashboard profile so other learners and tutors can understand who you are.",
   "backToDirectory": "Back to directory",
   "noSubjects": "No subjects set",
   "rate": "Rate",

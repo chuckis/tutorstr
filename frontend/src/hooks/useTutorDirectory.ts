@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { nostrClient } from "../nostr/client";
 import { TutorProfileEvent } from "../types/nostr";
-import { normalizeProfile } from "../utils/normalize";
+import { isProfileEmpty, normalizeProfile } from "../utils/normalize";
 
 export function useTutorDirectory() {
   const [tutors, setTutors] = useState<Record<string, TutorProfileEvent>>({});
@@ -37,11 +37,15 @@ export function useTutorDirectory() {
   }, []);
 
   const filteredTutors = useMemo(() => {
+    const visibleTutors = Object.values(tutors).filter(
+      (entry) => !isProfileEmpty(entry.profile)
+    );
+
     if (!subjectFilter.trim()) {
-      return Object.values(tutors);
+      return visibleTutors;
     }
     const term = subjectFilter.trim().toLowerCase();
-    return Object.values(tutors).filter((entry) =>
+    return visibleTutors.filter((entry) =>
       entry.profile.subjects.some((subject) =>
         subject.toLowerCase().includes(term)
       )
