@@ -1,6 +1,8 @@
 import { useMemo } from "react";
-import { bookingFromNostr } from "../adapters/nostr/bookingAdapter";
-import { createNostrBookingRepository } from "../adapters/nostr/bookingRepository";
+import {
+  createNostrBookingRepository,
+  mapNostrBookings
+} from "../adapters/nostr/bookingRepository";
 import { AcceptBooking } from "../application/usecases/acceptBooking";
 import { createAcceptedLessonFactory } from "../application/usecases/createAcceptedLessonFactory";
 import {
@@ -29,11 +31,11 @@ export function useBookings(userId: string, lessonDefaults?: {
   const lessonRepository = useLessonRepository(userId, lessonDefaults);
 
   const incoming = useMemo(
-    () => incomingRequests.map((request) => bookingFromNostr(request, statuses[request.request.bookingId])),
+    () => mapNostrBookings(incomingRequests, statuses),
     [incomingRequests, statuses]
   );
   const outgoing = useMemo(
-    () => outgoingRequests.map((request) => bookingFromNostr(request, statuses[request.request.bookingId])),
+    () => mapNostrBookings(outgoingRequests, statuses),
     [outgoingRequests, statuses]
   );
 

@@ -36,7 +36,7 @@ Responsibilities:
 
 Current consumers:
 
-- [`useBookings.ts`](../../hooks/useBookings.ts)
+- [`bookingRepository.ts`](./bookingRepository.ts)
 
 ### `lessonAdapter.ts`
 

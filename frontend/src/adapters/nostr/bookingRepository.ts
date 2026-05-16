@@ -1,8 +1,8 @@
 import { Booking } from "../../domain/booking";
 import { makeSlotAllocationKey } from "../../domain/slotAllocation";
 import { BookingRepository } from "../../ports/bookingRepository";
-import { BookingRequestEvent } from "../../types/nostr";
-import { bookingStatusToNostr } from "./bookingAdapter";
+import { BookingRequestEvent, BookingStatusEvent } from "../../types/nostr";
+import { bookingFromNostr, bookingStatusToNostr } from "./bookingAdapter";
 
 type PublishBookingStatus = (
   studentPubkey: string,
@@ -23,6 +23,15 @@ type CreateNostrBookingRepositoryParams = {
   requestsByAllocationKey: Record<string, Booking[]>;
   publishBookingStatus: PublishBookingStatus;
 };
+
+export function mapNostrBookings(
+  requests: BookingRequestEvent[],
+  statuses: Record<string, BookingStatusEvent>
+): Booking[] {
+  return requests.map((request) =>
+    bookingFromNostr(request, statuses[request.request.bookingId])
+  );
+}
 
 export function createNostrBookingRepository({
   userId,
