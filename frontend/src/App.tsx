@@ -127,7 +127,7 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
             schedules={schedulesState.schedules}
             discoverStatus={discoverStatus}
             onRequestPublishedSlot={actions.requestPublishedSlot}
-            messagesByCounterparty={messagesState.byCounterparty}
+            messagesByThread={messagesState.byThread}
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}
             studentNpub={keypair.npub}
@@ -151,12 +151,12 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
             tutors={directoryState.tutors}
             onRespondToBooking={actions.respondToBooking}
             onCancelRequest={actions.cancelRequestFromStudent}
-            messagesByCounterparty={messagesState.byCounterparty}
-            getUnreadCount={(counterparty) =>
-              messageIndicators.getUnreadCount("requests", counterparty)
+            messagesByThread={messagesState.byThread}
+            getUnreadCount={(threadKey) =>
+              messageIndicators.getUnreadCount("requests", threadKey)
             }
-            getUnreadTotal={(counterparties) =>
-              messageIndicators.getUnreadTotal("requests", counterparties)
+            getUnreadTotal={(threadKeys) =>
+              messageIndicators.getUnreadTotal("requests", threadKeys)
             }
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}
@@ -176,9 +176,9 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
             onLessonNoteChange={lessonNoteState.setLessonNote}
             onSubmitLessonNote={lessonNoteState.submitLessonNote}
             onChangeLessonStatus={actions.changeLessonStatus}
-            messagesByCounterparty={messagesState.byCounterparty}
-            getUnreadCount={(counterparty) =>
-              messageIndicators.getUnreadCount("lessons", counterparty)
+            messagesByThread={messagesState.byThread}
+            getUnreadCount={(threadKey) =>
+              messageIndicators.getUnreadCount("lessons", threadKey)
             }
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}

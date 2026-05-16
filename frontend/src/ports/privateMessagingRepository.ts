@@ -9,6 +9,6 @@ export interface PrivateMessagingRepository {
     pubkey: string,
     onEntry: (entry: ProgressEntryEvent) => void
   ): () => void;
-  sendMessage(recipientPubkey: string, text: string): Promise<void>;
+  sendMessage(recipientPubkey: string, text: string, threadKey?: string): Promise<void>;
   sendProgressEntry(recipientPubkey: string, entry: ProgressEntry): Promise<void>;
 }

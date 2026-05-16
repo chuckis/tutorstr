@@ -1,5 +1,6 @@
 import { CalendarClock, History } from "lucide-react";
 import { Lesson, LessonStatus } from "../domain/lesson";
+import { lessonMessageThreadKey } from "../domain/messageThread";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
 import { toDisplayId } from "../utils/display";
@@ -26,9 +27,9 @@ type LessonsTabProps = {
     lesson: Lesson,
     nextStatus: LessonStatus
   ) => Promise<void>;
-  messagesByCounterparty: Record<string, EncryptedMessage[]>;
-  getUnreadCount: (counterparty: string) => number;
-  onSendMessage: (recipientPubkey: string, text: string) => void;
+  messagesByThread: Record<string, EncryptedMessage[]>;
+  getUnreadCount: (threadKey: string) => number;
+  onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
   messageStatus: string;
 };
 
@@ -44,13 +45,14 @@ export function LessonsTab({
   onLessonNoteChange,
   onSubmitLessonNote,
   onChangeLessonStatus,
-  messagesByCounterparty,
+  messagesByThread,
   getUnreadCount,
   onSendMessage,
   messageStatus
 }: LessonsTabProps) {
   const { t, formatDateTime } = useI18n();
   if (selectedLesson) {
+    const threadKey = lessonMessageThreadKey(selectedLesson);
     const counterpartyPubkey =
       selectedLesson.tutorId === currentPubkey
         ? selectedLesson.studentId
@@ -144,9 +146,9 @@ export function LessonsTab({
           ) : null}
           <div className="stack">
             <h3>{t("common.messages.title")}</h3>
-            <MessageThread messages={messagesByCounterparty[counterpartyPubkey] || []} />
+            <MessageThread messages={messagesByThread[threadKey] || []} />
             <MessageComposer
-              onSend={(text) => onSendMessage(counterpartyPubkey, text)}
+              onSend={(text) => onSendMessage(counterpartyPubkey, text, threadKey)}
             />
             {messageStatus ? <p className="muted">{messageStatus}</p> : null}
           </div>
@@ -186,7 +188,7 @@ export function LessonsTab({
             const counterparty =
               lesson.tutorId === currentPubkey ? lesson.studentId : lesson.tutorId;
             const name = tutors[counterparty]?.profile.name || toDisplayId(counterparty);
-            const unreadCount = getUnreadCount(counterparty);
+            const unreadCount = getUnreadCount(lessonMessageThreadKey(lesson));
 
             return (
               <li

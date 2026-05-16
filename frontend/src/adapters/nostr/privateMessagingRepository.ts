@@ -1,3 +1,4 @@
+import { fallbackDirectMessageThreadKey } from "../../domain/messageThread";
 import { PrivateMessagingRepository } from "../../ports/privateMessagingRepository";
 import { nostrClient } from "../../nostr/client";
 import { EncryptedMessage, ProgressEntry, ProgressEntryEvent } from "../../types/nostr";
@@ -22,6 +23,9 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
             created_at: event.created_at,
             pubkey: event.pubkey,
             counterparty: event.pubkey,
+            threadKey:
+              getTagValue(event.tags, "thread") ||
+              fallbackDirectMessageThreadKey(event.pubkey),
             content: plaintext
           });
         }
@@ -48,6 +52,9 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
             created_at: event.created_at,
             pubkey: event.pubkey,
             counterparty: recipient,
+            threadKey:
+              getTagValue(event.tags, "thread") ||
+              fallbackDirectMessageThreadKey(recipient),
             content: plaintext
           });
         }
@@ -123,12 +130,14 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
       };
     },
 
-    async sendMessage(recipientPubkey, text) {
+    async sendMessage(recipientPubkey, text, threadKey) {
       if (!text.trim()) {
         return;
       }
 
-      await nostrClient.publishEncryptedEvent(4, recipientPubkey, text);
+      await nostrClient.publishEncryptedEvent(4, recipientPubkey, text, [
+        ["thread", threadKey || fallbackDirectMessageThreadKey(recipientPubkey)]
+      ]);
     },
 
     async sendProgressEntry(recipientPubkey, entry) {

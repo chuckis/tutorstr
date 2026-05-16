@@ -1,5 +1,6 @@
 import { ArrowLeft, Inbox, Send } from "lucide-react";
 import { Booking } from "../domain/booking";
+import { requestMessageThreadKey } from "../domain/messageThread";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
 import { RequestCard } from "./RequestCard";
@@ -29,10 +30,10 @@ type RequestsTabProps = {
     nextStatus: "accepted" | "rejected"
   ) => void | Promise<void>;
   onCancelRequest: (request: Booking) => void | Promise<void>;
-  messagesByCounterparty: Record<string, EncryptedMessage[]>;
-  getUnreadCount: (counterparty: string) => number;
-  getUnreadTotal: (counterparties: string[]) => number;
-  onSendMessage: (recipientPubkey: string, text: string) => void;
+  messagesByThread: Record<string, EncryptedMessage[]>;
+  getUnreadCount: (threadKey: string) => number;
+  getUnreadTotal: (threadKeys: string[]) => number;
+  onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
   messageStatus: string;
 };
 
@@ -64,7 +65,7 @@ export function RequestsTab({
   tutors,
   onRespondToBooking,
   onCancelRequest,
-  messagesByCounterparty,
+  messagesByThread,
   getUnreadCount,
   getUnreadTotal,
   onSendMessage,
@@ -97,6 +98,7 @@ export function RequestsTab({
       : [];
 
   if (selectedRequest) {
+    const threadKey = requestMessageThreadKey(selectedRequest.request);
     const recipientPubkey =
       selectedRequest.segment === "incoming"
         ? selectedRequest.request.studentId
@@ -186,10 +188,10 @@ export function RequestsTab({
           <div className="stack">
             <h3>{t("common.messages.title")}</h3>
             <MessageThread
-              messages={messagesByCounterparty[recipientPubkey] || []}
+              messages={messagesByThread[threadKey] || []}
             />
             <MessageComposer
-              onSend={(text) => onSendMessage(recipientPubkey, text)}
+              onSend={(text) => onSendMessage(recipientPubkey, text, threadKey)}
             />
             {messageStatus ? <p className="muted">{messageStatus}</p> : null}
           </div>
@@ -235,7 +237,9 @@ export function RequestsTab({
             const slot = group[0];
             const winner = group.find((request) => request.status === "accepted") || null;
             const pendingCount = group.filter((request) => request.status === "pending").length;
-            const unreadCount = getUnreadTotal(group.map((request) => request.studentId));
+            const unreadCount = getUnreadTotal(
+              group.map((request) => requestMessageThreadKey(request))
+            );
 
             return (
               <article
@@ -270,7 +274,9 @@ export function RequestsTab({
                       tutors[request.studentId]?.profile.name ||
                       toDisplayId(request.studentId, t("common.states.unknown"));
                     const reasonText = requestReasonLabel(request);
-                    const requestUnreadCount = getUnreadCount(request.studentId);
+                    const requestUnreadCount = getUnreadCount(
+                      requestMessageThreadKey(request)
+                    );
 
                     return (
                       <RequestCard
@@ -339,7 +345,7 @@ export function RequestsTab({
             const statusRaw = request.status;
             const statusText = requestStatusLabel(statusRaw);
             const isPending = statusRaw === "pending";
-            const unreadCount = getUnreadCount(request.tutorId);
+            const unreadCount = getUnreadCount(requestMessageThreadKey(request));
             const counterparty =
               tutors[request.tutorId]?.profile.name ||
               toDisplayId(request.tutorId, t("common.states.unknown"));

@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Booking } from "../domain/booking";
 import { Lesson } from "../domain/lesson";
+import { lessonMessageThreadKey, requestMessageThreadKey } from "../domain/messageThread";
 import { EncryptedMessage } from "../types/nostr";
 
 type Surface = "requests" | "lessons";
@@ -40,14 +41,6 @@ function unique(values: string[]) {
   return Array.from(new Set(values.filter(Boolean)));
 }
 
-function requestCounterparty(userId: string, request: Booking) {
-  return request.studentId === userId ? request.tutorId : request.studentId;
-}
-
-function lessonCounterparty(userId: string, lesson: Lesson) {
-  return lesson.studentId === userId ? lesson.tutorId : lesson.studentId;
-}
-
 export function useMessageIndicators(
   currentUserId: string,
   messages: EncryptedMessage[],
@@ -66,41 +59,41 @@ export function useMessageIndicators(
     [messages, currentUserId]
   );
 
-  const incomingByCounterparty = useMemo(() => {
+  const incomingByThread = useMemo(() => {
     return incomingMessages.reduce<Record<string, EncryptedMessage[]>>((acc, message) => {
-      acc[message.counterparty] = acc[message.counterparty] || [];
-      acc[message.counterparty].push(message);
+      acc[message.threadKey] = acc[message.threadKey] || [];
+      acc[message.threadKey].push(message);
       return acc;
     }, {});
   }, [incomingMessages]);
 
   const getUnreadCount = useCallback(
-    (surface: Surface, counterparty: string) => {
+    (surface: Surface, threadKey: string) => {
       const readState = surface === "requests" ? requestReadState : lessonReadState;
-      const lastReadAt = readState[counterparty] || 0;
-      const relevantMessages = incomingByCounterparty[counterparty] || [];
+      const lastReadAt = readState[threadKey] || 0;
+      const relevantMessages = incomingByThread[threadKey] || [];
 
       return relevantMessages.filter((message) => message.created_at > lastReadAt).length;
     },
-    [incomingByCounterparty, lessonReadState, requestReadState]
+    [incomingByThread, lessonReadState, requestReadState]
   );
 
   const getUnreadTotal = useCallback(
-    (surface: Surface, counterparties: string[]) => {
-      return unique(counterparties).reduce((sum, counterparty) => {
-        return sum + getUnreadCount(surface, counterparty);
+    (surface: Surface, threadKeys: string[]) => {
+      return unique(threadKeys).reduce((sum, threadKey) => {
+        return sum + getUnreadCount(surface, threadKey);
       }, 0);
     },
     [getUnreadCount]
   );
 
   const markRead = useCallback(
-    (surface: Surface, counterparty: string) => {
-      if (!counterparty) {
+    (surface: Surface, threadKey: string) => {
+      if (!threadKey) {
         return;
       }
 
-      const latestTs = (incomingByCounterparty[counterparty] || []).reduce(
+      const latestTs = (incomingByThread[threadKey] || []).reduce(
         (max, message) => Math.max(max, message.created_at),
         0
       );
@@ -111,11 +104,11 @@ export function useMessageIndicators(
 
       if (surface === "requests") {
         setRequestReadState((prev) => {
-          if ((prev[counterparty] || 0) >= latestTs) {
+          if ((prev[threadKey] || 0) >= latestTs) {
             return prev;
           }
 
-          const next = { ...prev, [counterparty]: latestTs };
+          const next = { ...prev, [threadKey]: latestTs };
           persistReadState(surface, currentUserId, next);
           return next;
         });
@@ -123,34 +116,34 @@ export function useMessageIndicators(
       }
 
       setLessonReadState((prev) => {
-        if ((prev[counterparty] || 0) >= latestTs) {
+        if ((prev[threadKey] || 0) >= latestTs) {
           return prev;
         }
 
-        const next = { ...prev, [counterparty]: latestTs };
+        const next = { ...prev, [threadKey]: latestTs };
         persistReadState(surface, currentUserId, next);
         return next;
       });
     },
-    [currentUserId, incomingByCounterparty]
+    [currentUserId, incomingByThread]
   );
 
   const requestUnreadCount = useMemo(
     () =>
       getUnreadTotal(
         "requests",
-        requests.map((request) => requestCounterparty(currentUserId, request))
+        requests.map((request) => requestMessageThreadKey(request))
       ),
-    [currentUserId, getUnreadTotal, requests]
+    [getUnreadTotal, requests]
   );
 
   const lessonUnreadCount = useMemo(
     () =>
       getUnreadTotal(
         "lessons",
-        lessons.map((lesson) => lessonCounterparty(currentUserId, lesson))
+        lessons.map((lesson) => lessonMessageThreadKey(lesson))
       ),
-    [currentUserId, getUnreadTotal, lessons]
+    [getUnreadTotal, lessons]
   );
 
   return {

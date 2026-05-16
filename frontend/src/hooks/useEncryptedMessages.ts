@@ -30,5 +30,13 @@ export function useEncryptedMessages(pubkey: string) {
     }, {});
   }, [messages]);
 
-  return { messages, byCounterparty };
+  const byThread = useMemo(() => {
+    return messages.reduce<Record<string, EncryptedMessage[]>>((acc, msg) => {
+      acc[msg.threadKey] = acc[msg.threadKey] || [];
+      acc[msg.threadKey].push(msg);
+      return acc;
+    }, {});
+  }, [messages]);
+
+  return { messages, byCounterparty, byThread };
 }

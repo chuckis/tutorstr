@@ -72,6 +72,7 @@ export type EncryptedMessage = {
   created_at: number;
   pubkey: string;
   counterparty: string;
+  threadKey: string;
   content: string;
 };
 

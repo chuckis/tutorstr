@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { lessonMessageThreadKey, requestMessageThreadKey } from "../domain/messageThread";
 import { useAppActions } from "./useAppActions";
 import { useAppNavigation } from "./useAppNavigation";
 import { useAppViewModel } from "./useAppViewModel";
@@ -56,12 +57,10 @@ export function useAppController(onLogout: () => void) {
       return;
     }
 
-    const counterparty =
-      navigation.selectedRequest.segment === "incoming"
-        ? navigation.selectedRequest.request.studentId
-        : navigation.selectedRequest.request.tutorId;
-
-    messageIndicators.markRead("requests", counterparty);
+    messageIndicators.markRead(
+      "requests",
+      requestMessageThreadKey(navigation.selectedRequest.request)
+    );
   }, [messageIndicators, navigation.selectedRequest]);
 
   useEffect(() => {
@@ -69,13 +68,11 @@ export function useAppController(onLogout: () => void) {
       return;
     }
 
-    const counterparty =
-      navigation.selectedLesson.tutorId === keypair.pubkey
-        ? navigation.selectedLesson.studentId
-        : navigation.selectedLesson.tutorId;
-
-    messageIndicators.markRead("lessons", counterparty);
-  }, [keypair.pubkey, messageIndicators, navigation.selectedLesson]);
+    messageIndicators.markRead(
+      "lessons",
+      lessonMessageThreadKey(navigation.selectedLesson)
+    );
+  }, [messageIndicators, navigation.selectedLesson]);
 
   const actions = useAppActions({
     studentPubkey: keypair.pubkey,

@@ -1,4 +1,5 @@
 import { Booking } from "../domain/booking";
+import { fallbackDirectMessageThreadKey } from "../domain/messageThread";
 import { SlotOccupancy } from "../domain/slotOccupancy";
 import { TimeSlot } from "../domain/TimeSlot";
 import { makeSlotAllocationKey, makeSlotBidKey } from "../domain/slotAllocation";
@@ -25,8 +26,8 @@ type DiscoverTabProps = {
   schedules: Record<string, TutorScheduleEvent>;
   discoverStatus: string;
   onRequestPublishedSlot: (tutorPubkey: string, slot: TimeSlot) => void;
-  messagesByCounterparty: Record<string, EncryptedMessage[]>;
-  onSendMessage: (recipientPubkey: string, text: string) => void;
+  messagesByThread: Record<string, EncryptedMessage[]>;
+  onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
   messageStatus: string;
   studentNpub: string;
   studentPubkey: string;
@@ -48,7 +49,7 @@ export function DiscoverTab({
   schedules,
   discoverStatus,
   onRequestPublishedSlot,
-  messagesByCounterparty,
+  messagesByThread,
   onSendMessage,
   messageStatus,
   studentNpub,
@@ -84,6 +85,8 @@ export function DiscoverTab({
   }
 
   if (selectedTutor) {
+    const threadKey = fallbackDirectMessageThreadKey(selectedTutor.pubkey);
+
     return (
       <section className="tab-panel discover-tab">
         <div className="stack">
@@ -148,10 +151,10 @@ export function DiscoverTab({
           <article className="panel">
             <h3>{t("common.messages.title")}</h3>
             <MessageThread
-              messages={messagesByCounterparty[selectedTutor.pubkey] || []}
+              messages={messagesByThread[threadKey] || []}
             />
             <MessageComposer
-              onSend={(text) => onSendMessage(selectedTutor.pubkey, text)}
+              onSend={(text) => onSendMessage(selectedTutor.pubkey, text, threadKey)}
             />
             {messageStatus ? <p className="muted">{messageStatus}</p> : null}
           </article>

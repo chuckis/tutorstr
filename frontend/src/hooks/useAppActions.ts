@@ -29,7 +29,7 @@ type UseAppActionsProps = {
   bookingRepository: BookingRepository;
   lessonRepository: LessonRepository;
   acceptBooking: AcceptBookingUseCase;
-  sendMessage: (recipientPubkey: string, text: string) => Promise<void>;
+  sendMessage: (recipientPubkey: string, text: string, threadKey?: string) => Promise<void>;
   setDiscoverStatus: (value: string) => void;
   setMessageStatus: (value: string) => void;
   onLogout: () => void;
@@ -135,11 +135,15 @@ export function useAppActions({
     });
   }
 
-  async function sendEncryptedMessage(recipientPubkey: string, text: string) {
+  async function sendEncryptedMessage(
+    recipientPubkey: string,
+    text: string,
+    threadKey?: string
+  ) {
     setMessageStatus("");
 
     try {
-      await sendMessage(recipientPubkey, text);
+      await sendMessage(recipientPubkey, text, threadKey);
     } catch (error) {
       setMessageStatus(
         toLocalizedErrorMessage(error, t) || t("common.buttons.sendMessage")
