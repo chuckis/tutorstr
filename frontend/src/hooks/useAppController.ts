@@ -15,22 +15,20 @@ import { useTutorDirectory } from "./useTutorDirectory";
 import { useTutorProfile } from "./useTutorProfile";
 import { useTutorSchedule } from "./useTutorSchedule";
 import { useTutorSchedules } from "./useTutorSchedules";
+import { useRelays } from "./useRelays";
 import { useI18n } from "../i18n/I18nProvider";
-import { nostrClient } from "../nostr/client";
 
 export function useAppController(onLogout: () => void) {
   const { t } = useI18n();
   const navigation = useAppNavigation();
-  const [relayInput, setRelayInput] = useState(nostrClient.getRelays().join(", "));
-  const [relayStatus, setRelayStatus] = useState("");
   const [discoverStatus, setDiscoverStatus] = useState("");
   const [messageStatus, setMessageStatus] = useState("");
-
   const keypair = useNostrKeypair();
   const profileState = useTutorProfile(keypair.pubkey);
   const scheduleState = useTutorSchedule(keypair.pubkey);
   const directoryState = useTutorDirectory();
   const schedulesState = useTutorSchedules();
+  const relay = useRelays();
   const { publishBookingRequest } = useBookingActions(keypair.pubkey);
   const bookingsState = useBookings(keypair.pubkey, {
     durationMin: 60,
@@ -82,7 +80,7 @@ export function useAppController(onLogout: () => void) {
   const actions = useAppActions({
     studentPubkey: keypair.pubkey,
     studentNpub: keypair.npub,
-    relayInput,
+    relayInput: relay.relayInput,
     publishBookingRequest,
     activeBidBySlotAndStudent: bookingsState.activeBidBySlotAndStudent,
     winnerByAllocationKey: {
@@ -95,7 +93,6 @@ export function useAppController(onLogout: () => void) {
     sendMessage,
     setDiscoverStatus,
     setMessageStatus,
-    setRelayStatus,
     onLogout
   });
 
@@ -109,9 +106,7 @@ export function useAppController(onLogout: () => void) {
 
   return {
     navigation,
-    relayInput,
-    setRelayInput,
-    relayStatus,
+    relay,
     discoverStatus,
     messageStatus,
     keypair,

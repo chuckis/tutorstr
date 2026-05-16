@@ -6,7 +6,6 @@ import { Lesson, LessonStatus } from "../domain/lesson";
 import { BookingRepository } from "../ports/bookingRepository";
 import { LessonRepository } from "../ports/lessonRepository";
 import { useI18n } from "../i18n/I18nProvider";
-import { nostrClient } from "../nostr/client";
 
 type AcceptBookingUseCase = {
   execute: (bookingId: string) => Promise<void>;
@@ -33,7 +32,6 @@ type UseAppActionsProps = {
   sendMessage: (recipientPubkey: string, text: string) => Promise<void>;
   setDiscoverStatus: (value: string) => void;
   setMessageStatus: (value: string) => void;
-  setRelayStatus: (value: string) => void;
   onLogout: () => void;
 };
 
@@ -46,17 +44,9 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   return translated === error.message ? error.message : translated;
 }
 
-function parseRelayList(value: string) {
-  return value
-    .split(",")
-    .map((relay) => relay.trim())
-    .filter(Boolean);
-}
-
 export function useAppActions({
   studentPubkey,
   studentNpub,
-  relayInput,
   publishBookingRequest,
   activeBidBySlotAndStudent,
   winnerByAllocationKey,
@@ -66,7 +56,7 @@ export function useAppActions({
   sendMessage,
   setDiscoverStatus,
   setMessageStatus,
-  setRelayStatus,
+  // setRelayStatus,
   onLogout
 }: UseAppActionsProps) {
   const { t } = useI18n();
@@ -157,16 +147,7 @@ export function useAppActions({
     }
   }
 
-  function updateRelays() {
-    const parsed = parseRelayList(relayInput);
-    if (parsed.length === 0) {
-      setRelayStatus(t("common.validation.requiredRelay"));
-      return;
-    }
-
-    nostrClient.setRelays(parsed);
-    setRelayStatus(t("profile.saveRelays"));
-  }
+  
 
   function logout() {
     onLogout();
@@ -179,7 +160,6 @@ export function useAppActions({
     requestBooking,
     requestPublishedSlot,
     sendEncryptedMessage,
-    updateRelays,
     logout
   };
 }

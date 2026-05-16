@@ -3,7 +3,9 @@ import { AppLocale, SUPPORTED_LOCALES } from "../domain/locale";
 import { useI18n } from "../i18n/I18nProvider";
 import { ProfileForm } from "./ProfileForm";
 import { ScheduleForm } from "./ScheduleForm";
+import { RelayConfig } from "./RelayConfig";
 import { TutorProfile, TutorSchedule } from "../types/nostr";
+import { useRelays } from "../hooks/useRelays";
 
 type ProfileTabProps = {
   npub: string;
@@ -14,15 +16,12 @@ type ProfileTabProps = {
   schedule: TutorSchedule;
   onScheduleChange: (schedule: TutorSchedule) => void;
   onPublishSchedule: () => void;
-  relayInput: string;
-  onRelayInputChange: (value: string) => void;
-  relayStatus: string;
-  onUpdateRelays: () => void;
+  relay: ReturnType<typeof useRelays>;
   onLogout: () => void;
   onRevealSecret: (passphrase: string) => Promise<string>;
   scheduleStatus: string;
   profileStatus: string;
-  lastEventId?: string;
+  // lastEventId?: string;
 };
 
 export function ProfileTab({
@@ -34,15 +33,12 @@ export function ProfileTab({
   schedule,
   onScheduleChange,
   onPublishSchedule,
-  relayInput,
-  onRelayInputChange,
-  relayStatus,
-  onUpdateRelays,
+  relay,
   onLogout,
   onRevealSecret,
   scheduleStatus,
   profileStatus,
-  lastEventId
+  // lastEventId
 }: ProfileTabProps) {
   const { t, locale, setLocale } = useI18n();
   const [revealPassphrase, setRevealPassphrase] = useState("");
@@ -99,34 +95,12 @@ export function ProfileTab({
               <p className="identity-value">{pubkey}</p>
             </article>
 
-            <article className="panel">
-              <h3>{t("profile.relayConfig")}</h3>
-              <label className="filter">
-                {t("common.language.label")}
-                <select
-                  value={locale}
-                  onChange={(event) => setLocale(event.target.value as AppLocale)}
-                >
-                  {SUPPORTED_LOCALES.map((entry) => (
-                    <option key={entry} value={entry}>
-                      {t(`common.language.${entry}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="filter">
-                {t("profile.relaysLabel")}
-                <textarea
-                  rows={3}
-                  value={relayInput}
-                  onChange={(event) => onRelayInputChange(event.target.value)}
-                />
-              </label>
-              <button type="button" onClick={onUpdateRelays}>
-                {t("profile.saveRelays")}
-              </button>
-              {relayStatus ? <p className="muted">{relayStatus}</p> : null}
-            </article>
+            <RelayConfig
+              relayInput={relay.relayInput}
+              onRelayInputChange={relay.setRelayInput}
+              relayStatus={relay.relayStatus}
+              onUpdateRelays={relay.updateRelays}
+            />
 
             <article className="panel">
               <h3>{t("profile.session")}</h3>
@@ -147,9 +121,9 @@ export function ProfileTab({
               <button type="button" className="ghost-action" onClick={onLogout}>
                 {t("common.buttons.logout")}
               </button>
-              {lastEventId ? (
+              {/* {lastEventId ? (
                 <p className="muted">{t("profile.lastEvent", { id: lastEventId })}</p>
-              ) : null}
+              ) : null} */}
             </article>
           </div>
         ) : null}

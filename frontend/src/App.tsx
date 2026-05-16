@@ -50,9 +50,7 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
   const { t } = useI18n();
   const {
     navigation,
-    relayInput,
-    setRelayInput,
-    relayStatus,
+    relay,
     discoverStatus,
     messageStatus,
     keypair,
@@ -160,15 +158,11 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
             schedule={scheduleState.schedule}
             onScheduleChange={scheduleState.setSchedule}
             onPublishSchedule={() => scheduleState.publishSchedule(scheduleState.schedule)}
-            relayInput={relayInput}
-            onRelayInputChange={setRelayInput}
-            relayStatus={relayStatus}
-            onUpdateRelays={actions.updateRelays}
+            relay = {relay}
             onLogout={actions.logout}
             onRevealSecret={onRevealSecret}
             scheduleStatus={scheduleState.status}
             profileStatus={profileState.status}
-            lastEventId={profileState.lastEventId}
           />
         ) : null}
       </section>
