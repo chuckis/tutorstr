@@ -1,3 +1,4 @@
+import { CalendarClock, History } from "lucide-react";
 import { Lesson, LessonStatus } from "../domain/lesson";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
@@ -163,17 +164,21 @@ export function LessonsTab({
         <div className="segmented">
           <button
             type="button"
+            aria-label={t("lessons.upcoming")}
             className={lessonSegment === "upcoming" ? "active" : ""}
             onClick={() => onLessonSegmentChange("upcoming")}
           >
-            {t("lessons.upcoming")}
+            <CalendarClock size={18} aria-hidden="true" />
+            <span className="sr-only">{t("lessons.upcoming")}</span>
           </button>
           <button
             type="button"
+            aria-label={t("lessons.past")}
             className={lessonSegment === "past" ? "active" : ""}
             onClick={() => onLessonSegmentChange("past")}
           >
-            {t("lessons.past")}
+            <History size={18} aria-hidden="true" />
+            <span className="sr-only">{t("lessons.past")}</span>
           </button>
         </div>
         <ul className="lesson-list">

@@ -1,3 +1,4 @@
+import { Inbox, Send } from "lucide-react";
 import { Booking } from "../domain/booking";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
@@ -200,23 +201,27 @@ export function RequestsTab({
       <div className="segmented">
         <button
           type="button"
+          aria-label={t("requests.incoming")}
           className={requestSegment === "incoming" ? "active" : ""}
           onClick={() => {
             onRequestSegmentChange("incoming");
             onSelectRequest(null);
           }}
         >
-          {t("requests.incoming")}
+          <Inbox size={18} aria-hidden="true" />
+          <span className="sr-only">{t("requests.incoming")}</span>
         </button>
         <button
           type="button"
+          aria-label={t("requests.outgoing")}
           className={requestSegment === "outgoing" ? "active" : ""}
           onClick={() => {
             onRequestSegmentChange("outgoing");
             onSelectRequest(null);
           }}
         >
-          {t("requests.outgoing")}
+          <Send size={18} aria-hidden="true" />
+          <span className="sr-only">{t("requests.outgoing")}</span>
         </button>
       </div>
 

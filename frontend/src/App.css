@@ -489,6 +489,9 @@ p {
   color: var(--color-text);
   font-size: 0.92rem;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .segmented button.active {
@@ -557,6 +560,14 @@ button:active {
 .ghost-action {
   background: var(--color-terracotta-soft);
   color: var(--color-terracotta);
+}
+
+.icon-only-button {
+  padding: 10px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .status-pill {
@@ -836,6 +847,14 @@ button:active {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  position: relative;
+}
+
+.nav-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .bottom-nav button.active {
@@ -865,6 +884,12 @@ button:active {
   color: var(--color-terracotta);
 }
 
+.nav-icon-wrap .tab-badge {
+  position: absolute;
+  top: -10px;
+  right: -14px;
+}
+
 .bottom-nav button.active .tab-badge {
   background: rgba(255, 255, 255, 0.22);
   color: #ffffff;
@@ -887,6 +912,39 @@ button:active {
   font-size: 0.82rem;
   line-height: 1.35;
   word-break: break-all;
+}
+
+.tabs {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(44px, auto));
+  gap: var(--space-2);
+}
+
+.tabs button {
+  min-width: 44px;
+  padding: 10px;
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tabs button.active {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (min-width: 700px) {

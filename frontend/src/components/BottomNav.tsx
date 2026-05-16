@@ -1,3 +1,4 @@
+import { BookOpen, Compass, Inbox, LayoutDashboard } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
 
 type MainTab = "discover" | "requests" | "lessons" | "profile";
@@ -16,47 +17,54 @@ export function BottomNav({
   onSelectTab
 }: BottomNavProps) {
   const { t } = useI18n();
+  const navItems = [
+    {
+      tab: "discover" as const,
+      label: t("common.nav.discover"),
+      icon: Compass,
+      badge: 0
+    },
+    {
+      tab: "requests" as const,
+      label: t("common.nav.requests"),
+      icon: Inbox,
+      badge: requestsUnreadCount
+    },
+    {
+      tab: "lessons" as const,
+      label: t("common.nav.lessons"),
+      icon: BookOpen,
+      badge: lessonsUnreadCount
+    },
+    {
+      tab: "profile" as const,
+      label: t("common.nav.profile"),
+      icon: LayoutDashboard,
+      badge: 0
+    }
+  ];
 
   return (
     <nav className="bottom-nav" aria-label={t("common.nav.primary")}>
-      <button
-        type="button"
-        className={activeTab === "discover" ? "active" : ""}
-        onClick={() => onSelectTab("discover")}
-      >
-        {t("common.nav.discover")}
-      </button>
-      <button
-        type="button"
-        className={`${activeTab === "requests" ? "active" : ""} ${
-          requestsUnreadCount > 0 ? "has-alert" : ""
-        }`.trim()}
-        onClick={() => onSelectTab("requests")}
-      >
-        <span>{t("common.nav.requests")}</span>
-        {requestsUnreadCount > 0 ? (
-          <span className="tab-badge">{requestsUnreadCount}</span>
-        ) : null}
-      </button>
-      <button
-        type="button"
-        className={`${activeTab === "lessons" ? "active" : ""} ${
-          lessonsUnreadCount > 0 ? "has-alert" : ""
-        }`.trim()}
-        onClick={() => onSelectTab("lessons")}
-      >
-        <span>{t("common.nav.lessons")}</span>
-        {lessonsUnreadCount > 0 ? (
-          <span className="tab-badge">{lessonsUnreadCount}</span>
-        ) : null}
-      </button>
-      <button
-        type="button"
-        className={activeTab === "profile" ? "active" : ""}
-        onClick={() => onSelectTab("profile")}
-      >
-        {t("common.nav.profile")}
-      </button>
+      {navItems.map(({ tab, label, icon: Icon, badge }) => (
+        <button
+          key={tab}
+          type="button"
+          aria-label={label}
+          className={`${activeTab === tab ? "active" : ""} ${
+            badge > 0 ? "has-alert" : ""
+          }`.trim()}
+          onClick={() => onSelectTab(tab)}
+        >
+          <span className="nav-icon-wrap">
+            <Icon size={18} aria-hidden="true" />
+            {badge > 0 ? (
+              <span className="tab-badge">{badge}</span>
+            ) : null}
+          </span>
+          <span className="sr-only">{label}</span>
+        </button>
+      ))}
     </nav>
   );
 }

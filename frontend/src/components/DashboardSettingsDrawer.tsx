@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
@@ -83,10 +84,11 @@ export function DashboardSettingsDrawer({
           </div>
           <button
             type="button"
-            className="ghost-action"
+            className="ghost-action icon-only-button"
+            aria-label={t("profile.closeSettings")}
             onClick={onClose}
           >
-            {t("profile.closeSettings")}
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 

@@ -10,5 +10,8 @@
     "build": "npm --workspace frontend run build",
     "preview": "npm --workspace frontend run preview",
     "test": "node -e \"console.log('no tests yet')\""
+  },
+  "dependencies": {
+    "lucide-react": "^1.3.0"
   }
 }
