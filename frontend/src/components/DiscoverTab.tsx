@@ -87,7 +87,7 @@ export function DiscoverTab({
   }
 
   if (selectedTutor) {
-    const threadKey = fallbackDirectMessageThreadKey(selectedTutor.pubkey);
+    // const threadKey = fallbackDirectMessageThreadKey(selectedTutor.pubkey);
 
     return (
       <section className="tab-panel discover-tab">
@@ -130,7 +130,7 @@ export function DiscoverTab({
                             {" -> "}
                             {formatDateTime(slot.end)}
                           </span>
-                          <button
+                          <button //Здесь кнопку нужно пригасить если слот не доступен
                             type="button"
                             disabled={slotState !== "available"}
                             onClick={() =>
@@ -150,7 +150,8 @@ export function DiscoverTab({
               {discoverStatus ? <p className="muted">{discoverStatus}</p> : null}
             </div>
           </article>
-          <article className="panel">
+          {/* Здесь не должно быть левых сообщений, может только от Тутора (специальные анонсы и т.п.)  */}
+          {/* <article className="panel">
             <h3>{t("common.messages.title")}</h3>
             <MessageThread
               messages={messagesByThread[threadKey] || []}
@@ -159,7 +160,7 @@ export function DiscoverTab({
               onSend={(text) => onSendMessage(selectedTutor.pubkey, text, threadKey)}
             />
             {messageStatus ? <p className="muted">{messageStatus}</p> : null}
-          </article>
+          </article> */}
           <BookingRequestForm
             tutorPubkey={selectedTutor.pubkey}
             schedule={schedules[selectedTutor.pubkey]}

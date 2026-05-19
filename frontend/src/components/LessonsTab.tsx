@@ -106,7 +106,7 @@ export function LessonsTab({
                 type="button"
                 className="ghost-action"
                 onClick={() =>
-                  onChangeLessonStatus(selectedLesson, "cancelled").then(() =>
+                  onChangeLessonStatus(selectedLesson, "canceled").then(() =>
                     onSelectLesson(null)
                   )
                 }
@@ -123,7 +123,7 @@ export function LessonsTab({
                   type="button"
                   className="ghost-action"
                   onClick={() =>
-                    onChangeLessonStatus(selectedLesson, "cancelled").then(() =>
+                    onChangeLessonStatus(selectedLesson, "canceled").then(() =>
                       onSelectLesson(null)
                     )
                   }
@@ -217,7 +217,7 @@ export function LessonsTab({
                   </span>
                 ) : null}
                 <span className={`status-pill status-${lesson.status}`}>
-                  {t(`common.status.${lesson.status}`)}
+                  {t(`common.status.${lesson.status}`)} 
                 </span>
               </li>
             );
