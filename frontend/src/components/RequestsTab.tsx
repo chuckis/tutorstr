@@ -1,202 +1,377 @@
 import { ArrowLeft, Inbox, Send } from "lucide-react";
-import { Booking } from "../domain/booking";
-import { requestMessageThreadKey } from "../domain/messageThread";
+import {
+  IncomingRequestGroupViewModel,
+  RequestListItemViewModel,
+  RequestSegment,
+  RequestsTabViewModel,
+  SelectedRequest,
+  SelectedRequestViewModel
+} from "../application/usecases/buildRequestsTabViewModel";
 import { useI18n } from "../i18n/I18nProvider";
-import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
-import { RequestCard } from "./RequestCard";
-import { requestStatusLabel, toDisplayId } from "../utils/display";
+import { EncryptedMessage } from "../types/nostr";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
-
-type RequestSegment = "incoming" | "outgoing";
+import { RequestCard } from "./RequestCard";
 
 type RequestsTabProps = {
-  selectedRequest: {
-    request: Booking;
-    segment: RequestSegment;
-  } | null;
-  onSelectRequest: (
-    next: {
-      request: Booking;
-      segment: RequestSegment;
-    } | null
-  ) => void;
+  viewModel: RequestsTabViewModel;
+  onSelectRequest: (next: SelectedRequest | null) => void;
   requestSegment: RequestSegment;
   onRequestSegmentChange: (segment: RequestSegment) => void;
-  requestItems: Booking[];
-  tutors: Record<string, TutorProfileEvent>;
-  onRespondToBooking: (
-    request: Booking,
+  onRespondToRequest: (
+    requestId: string,
     nextStatus: "accepted" | "rejected"
   ) => void | Promise<void>;
-  onCancelRequest: (request: Booking) => void | Promise<void>;
+  onCancelRequest: (requestId: string) => void | Promise<void>;
   messagesByThread: Record<string, EncryptedMessage[]>;
-  getUnreadCount: (threadKey: string) => number;
-  getUnreadTotal: (threadKeys: string[]) => number;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
   messageStatus: string;
 };
 
-function requestReasonLabel(request: Booking) {
-  if (request.resolutionReason === "slot_filled") {
-    return "slot_filled";
+type RequestItemActions = {
+  onSelectRequest: (next: SelectedRequest) => void;
+  onRespondToRequest: (
+    requestId: string,
+    nextStatus: "accepted" | "rejected"
+  ) => void | Promise<void>;
+  onCancelRequest: (requestId: string) => void | Promise<void>;
+};
+
+function UnreadIndicator({ count }: { count: number }) {
+  const { t } = useI18n();
+
+  if (count <= 0) {
+    return null;
   }
-  if (request.resolutionReason === "tutor_rejected") {
-    return "tutor_rejected";
-  }
-  if (request.resolutionReason === "duplicate_bid") {
-    return "duplicate_bid";
-  }
-  if (request.resolutionReason === "student_cancelled") {
-    return "student_cancelled";
-  }
-  if (request.status === "accepted") {
-    return "accepted";
-  }
-  return null;
+
+  return (
+    <span className="inline-indicator">
+      {count === 1
+        ? t("common.indicators.new")
+        : t("common.indicators.newCount", { count })}
+    </span>
+  );
 }
 
-export function RequestsTab({
-  selectedRequest,
+function StatusPill({ label }: { label: string }) {
+  const { t } = useI18n();
+
+  return (
+    <span className={`status-pill status-${label}`}>
+      {t(`common.status.${label}`)}
+    </span>
+  );
+}
+
+function RequestItemCard({
+  item,
+  variant,
   onSelectRequest,
-  requestSegment,
-  onRequestSegmentChange,
-  requestItems,
-  tutors,
-  onRespondToBooking,
-  onCancelRequest,
+  onRespondToRequest,
+  onCancelRequest
+}: RequestItemActions & {
+  item: RequestListItemViewModel;
+  variant: "incoming" | "outgoing";
+}) {
+  const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
+
+  return (
+    <RequestCard
+      key={item.id}
+      className={item.unreadCount > 0 ? "has-unread" : ""}
+      onOpen={() =>
+        onSelectRequest({
+          request: item.request,
+          segment: item.segment
+        })
+      }
+      footer={
+        <>
+          <StatusPill label={item.statusLabel} />
+          <UnreadIndicator count={item.unreadCount} />
+          {item.canAccept || item.canDecline ? (
+            <div className="action-buttons">
+              {item.canAccept ? (
+                <button
+                  type="button"
+                  onClick={() => onRespondToRequest(item.id, "accepted")}
+                >
+                  {t("requests.accept")}
+                </button>
+              ) : null}
+              {item.canDecline ? (
+                <button
+                  type="button"
+                  className="ghost-action"
+                  onClick={() => onRespondToRequest(item.id, "rejected")}
+                >
+                  {t("requests.decline")}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {item.canCancel ? (
+            <button
+              type="button"
+              className="ghost-action"
+              onClick={() => onCancelRequest(item.id)}
+            >
+              {variant === "outgoing"
+                ? t("common.buttons.cancel")
+                : t("requests.cancelRequest")}
+            </button>
+          ) : null}
+        </>
+      }
+    >
+      {variant === "incoming" ? (
+        <>
+          <div>
+            <strong>{t("requests.student")}:</strong> {item.counterpartyLabel}
+          </div>
+          {item.reasonLabel ? (
+            <div>
+              <strong>{t("requests.resolution")}:</strong>{" "}
+              {t(`common.requestResolution.${item.reasonLabel}`)}
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <div>
+            <strong>{t("requests.subject")}:</strong> {t("requests.defaultSubject")}
+          </div>
+          <div>
+            <strong>{t("requests.scheduled")}:</strong>{" "}
+            {formatLocalizedDateTime(item.request.scheduledAt)}
+          </div>
+          <div>
+            <strong>{t("requests.counterparty")}:</strong> {item.counterpartyLabel}
+          </div>
+        </>
+      )}
+    </RequestCard>
+  );
+}
+
+function RequestDetailsView({
+  selectedRequest,
   messagesByThread,
-  getUnreadCount,
-  getUnreadTotal,
+  onBack,
+  onRespondToRequest,
+  onCancelRequest,
   onSendMessage,
   messageStatus
-}: RequestsTabProps) {
+}: {
+  selectedRequest: SelectedRequestViewModel;
+  messagesByThread: Record<string, EncryptedMessage[]>;
+  onBack: () => void;
+  onRespondToRequest: RequestsTabProps["onRespondToRequest"];
+  onCancelRequest: RequestsTabProps["onCancelRequest"];
+  onSendMessage: RequestsTabProps["onSendMessage"];
+  messageStatus: string;
+}) {
   const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
-  const groupedIncomingRequests =
-    requestSegment === "incoming"
-      ? Object.values(
-          requestItems.reduce<Record<string, Booking[]>>((acc, request) => {
-            const existing = acc[request.slotAllocationKey] || [];
-            existing.push(request);
-            acc[request.slotAllocationKey] = existing;
-            return acc;
-          }, {})
-        ).map((group) =>
-          [...group].sort((left, right) => {
-            const leftScore =
-              left.status === "accepted" ? 0 : left.status === "pending" ? 1 : 2;
-            const rightScore =
-              right.status === "accepted" ? 0 : right.status === "pending" ? 1 : 2;
 
-            if (leftScore !== rightScore) {
-              return leftScore - rightScore;
-            }
-
-            return Date.parse(left.scheduledAt) - Date.parse(right.scheduledAt);
-          })
-        )
-      : [];
-
-  if (selectedRequest) {
-    const threadKey = requestMessageThreadKey(selectedRequest.request);
-    const recipientPubkey =
-      selectedRequest.segment === "incoming"
-        ? selectedRequest.request.studentId
-        : selectedRequest.request.tutorId;
-    const isPending = selectedRequest.request.status === "pending";
-
-    return (
-      <section className="tab-panel requests-tab">
-        <article className="panel details-screen">
-          <button
-            type="button"
-            className="ghost icon-only-button"
-            aria-label={t("requests.backToRequests")}
-            onClick={() => onSelectRequest(null)}
-          >
-            <ArrowLeft size={18} aria-hidden="true" />
-          </button>
-          <h2>{t("requests.detailsTitle")}</h2>
+  return (
+    <section className="tab-panel requests-tab">
+      <article className="panel details-screen">
+        <button
+          type="button"
+          className="ghost icon-only-button"
+          aria-label={t("requests.backToRequests")}
+          onClick={onBack}
+        >
+          <ArrowLeft size={18} aria-hidden="true" />
+        </button>
+        <h2>{t("requests.detailsTitle")}</h2>
+        <p>
+          <strong>{t("requests.scheduled")}:</strong>{" "}
+          {formatLocalizedDateTime(selectedRequest.request.scheduledAt)}
+        </p>
+        {selectedRequest.request.scheduledEnd ? (
           <p>
-            <strong>{t("requests.scheduled")}:</strong>{" "}
-            {formatLocalizedDateTime(selectedRequest.request.scheduledAt)}
+            <strong>{t("requests.ends")}:</strong>{" "}
+            {formatLocalizedDateTime(selectedRequest.request.scheduledEnd)}
           </p>
-          {selectedRequest.request.scheduledEnd ? (
-            <p>
-              <strong>{t("requests.ends")}:</strong>{" "}
-              {formatLocalizedDateTime(selectedRequest.request.scheduledEnd)}
-            </p>
-          ) : null}
+        ) : null}
+        <p>
+          <strong>{t("requests.counterparty")}:</strong>{" "}
+          {selectedRequest.counterpartyLabel}
+        </p>
+        <p>
+          <strong>{t("requests.status")}:</strong>{" "}
+          {t(`common.status.${selectedRequest.statusLabel}`)}
+        </p>
+        {selectedRequest.reasonLabel ? (
           <p>
-            <strong>{t("requests.counterparty")}:</strong>{" "}
-            {selectedRequest.segment === "incoming"
-              ? tutors[selectedRequest.request.studentId]?.profile.name ||
-                toDisplayId(selectedRequest.request.studentId, t("common.states.unknown"))
-              : tutors[selectedRequest.request.tutorId]?.profile.name ||
-                toDisplayId(selectedRequest.request.tutorId, t("common.states.unknown"))}
+            <strong>{t("requests.resolution")}:</strong>{" "}
+            {t(`common.requestResolution.${selectedRequest.reasonLabel}`)}
           </p>
-          <p>
-            <strong>{t("requests.status")}:</strong>{" "}
-            {t(`common.status.${requestStatusLabel(selectedRequest.request.status)}`)}
-          </p>
-          {requestReasonLabel(selectedRequest.request) ? (
-            <p>
-              <strong>{t("requests.resolution")}:</strong>{" "}
-              {t(`common.requestResolution.${requestReasonLabel(selectedRequest.request)}`)}
-            </p>
-          ) : null}
-          {selectedRequest.segment === "incoming" && isPending ? (
-            <div className="action-buttons">
+        ) : null}
+        {selectedRequest.canAccept || selectedRequest.canDecline ? (
+          <div className="action-buttons">
+            {selectedRequest.canAccept ? (
               <button
                 type="button"
                 onClick={() =>
                   Promise.resolve(
-                    onRespondToBooking(selectedRequest.request, "accepted")
-                  ).then(() => onSelectRequest(null))
+                    onRespondToRequest(selectedRequest.id, "accepted")
+                  ).then(onBack)
                 }
               >
                 {t("requests.accept")}
               </button>
+            ) : null}
+            {selectedRequest.canDecline ? (
               <button
                 type="button"
                 className="ghost-action"
                 onClick={() =>
                   Promise.resolve(
-                    onRespondToBooking(selectedRequest.request, "rejected")
-                  ).then(() => onSelectRequest(null))
+                    onRespondToRequest(selectedRequest.id, "rejected")
+                  ).then(onBack)
                 }
               >
                 {t("requests.decline")}
               </button>
-            </div>
-          ) : null}
-          {selectedRequest.segment === "outgoing" && isPending ? (
-            <div className="action-buttons">
-              <button
-                type="button"
-                className="ghost-action"
-                onClick={() =>
-                  Promise.resolve(onCancelRequest(selectedRequest.request)).then(() =>
-                    onSelectRequest(null)
-                  )
-                }
-              >
-                {t("requests.cancelRequest")}
-              </button>
-            </div>
-          ) : null}
-          <div className="stack">
-            <h3>{t("common.messages.title")}</h3>
-            <MessageThread
-              messages={messagesByThread[threadKey] || []}
-            />
-            <MessageComposer
-              onSend={(text) => onSendMessage(recipientPubkey, text, threadKey)}
-            />
-            {messageStatus ? <p className="muted">{messageStatus}</p> : null}
+            ) : null}
           </div>
+        ) : null}
+        {selectedRequest.canCancel ? (
+          <div className="action-buttons">
+            <button
+              type="button"
+              className="ghost-action"
+              onClick={() =>
+                Promise.resolve(onCancelRequest(selectedRequest.id)).then(onBack)
+              }
+            >
+              {t("requests.cancelRequest")}
+            </button>
+          </div>
+        ) : null}
+        <div className="stack">
+          <h3>{t("common.messages.title")}</h3>
+          <MessageThread messages={messagesByThread[selectedRequest.threadKey] || []} />
+          <MessageComposer
+            onSend={(text) =>
+              onSendMessage(
+                selectedRequest.recipientPubkey,
+                text,
+                selectedRequest.threadKey
+              )
+            }
+          />
+          {messageStatus ? <p className="muted">{messageStatus}</p> : null}
+        </div>
+      </article>
+    </section>
+  );
+}
+
+function IncomingRequestGroups({
+  groups,
+  onSelectRequest,
+  onRespondToRequest,
+  onCancelRequest
+}: RequestItemActions & {
+  groups: IncomingRequestGroupViewModel[];
+}) {
+  const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
+
+  return (
+    <div className="stack">
+      {groups.map((group) => (
+        <article
+          className={`panel ${group.unreadCount > 0 ? "has-unread" : ""}`.trim()}
+          key={group.slotAllocationKey}
+        >
+          <h3>
+            {formatLocalizedDateTime(group.scheduledAt)}
+            {group.scheduledEnd ? ` -> ${formatLocalizedDateTime(group.scheduledEnd)}` : ""}
+          </h3>
+          <p className="muted">
+            {t("requests.candidates", { count: group.candidateCount })}
+            {group.isAllocated
+              ? ` • ${t("requests.allocated")}`
+              : group.pendingCount
+                ? ` • ${t("requests.pendingCount", { count: group.pendingCount })}`
+                : ""}
+          </p>
+          {group.unreadCount > 0 ? (
+            <p className="inline-indicator">
+              {group.unreadCount === 1
+                ? t("common.indicators.new")
+                : t("common.indicators.newCount", { count: group.unreadCount })}
+            </p>
+          ) : null}
+          <ul className="requests-list">
+            {group.requests.map((item) => (
+              <RequestItemCard
+                key={item.id}
+                item={item}
+                variant="incoming"
+                onSelectRequest={onSelectRequest}
+                onRespondToRequest={onRespondToRequest}
+                onCancelRequest={onCancelRequest}
+              />
+            ))}
+          </ul>
         </article>
-      </section>
+      ))}
+    </div>
+  );
+}
+
+function OutgoingRequestList({
+  requests,
+  onSelectRequest,
+  onRespondToRequest,
+  onCancelRequest
+}: RequestItemActions & {
+  requests: RequestListItemViewModel[];
+}) {
+  return (
+    <ul className="requests-list">
+      {requests.map((item) => (
+        <RequestItemCard
+          key={item.id}
+          item={item}
+          variant="outgoing"
+          onSelectRequest={onSelectRequest}
+          onRespondToRequest={onRespondToRequest}
+          onCancelRequest={onCancelRequest}
+        />
+      ))}
+    </ul>
+  );
+}
+
+export function RequestsTab({
+  viewModel,
+  onSelectRequest,
+  requestSegment,
+  onRequestSegmentChange,
+  onRespondToRequest,
+  onCancelRequest,
+  messagesByThread,
+  onSendMessage,
+  messageStatus
+}: RequestsTabProps) {
+  const { t } = useI18n();
+
+  if (viewModel.selectedRequest) {
+    return (
+      <RequestDetailsView
+        selectedRequest={viewModel.selectedRequest}
+        messagesByThread={messagesByThread}
+        onBack={() => onSelectRequest(null)}
+        onRespondToRequest={onRespondToRequest}
+        onCancelRequest={onCancelRequest}
+        onSendMessage={onSendMessage}
+        messageStatus={messageStatus}
+      />
     );
   }
 
@@ -229,175 +404,22 @@ export function RequestsTab({
         </button>
       </div>
 
-      {requestItems.length === 0 ? (
+      {viewModel.isEmpty ? (
         <p className="muted">{t("requests.empty")}</p>
       ) : requestSegment === "incoming" ? (
-        <div className="stack">
-          {groupedIncomingRequests.map((group) => {
-            const slot = group[0];
-            const winner = group.find((request) => request.status === "accepted") || null;
-            const pendingCount = group.filter((request) => request.status === "pending").length;
-            const unreadCount = getUnreadTotal(
-              group.map((request) => requestMessageThreadKey(request))
-            );
-
-            return (
-              <article
-                className={`panel ${unreadCount > 0 ? "has-unread" : ""}`.trim()}
-                key={slot.slotAllocationKey}
-              >
-                <h3>
-                  {formatLocalizedDateTime(slot.scheduledAt)}
-                  {slot.scheduledEnd ? ` -> ${formatLocalizedDateTime(slot.scheduledEnd)}` : ""}
-                </h3>
-                <p className="muted">
-                  {t("requests.candidates", { count: group.length })}
-                  {winner
-                    ? ` • ${t("requests.allocated")}`
-                    : pendingCount
-                      ? ` • ${t("requests.pendingCount", { count: pendingCount })}`
-                      : ""}
-                </p>
-                {unreadCount > 0 ? (
-                  <p className="inline-indicator">
-                    {unreadCount === 1
-                      ? t("common.indicators.new")
-                      : t("common.indicators.newCount", { count: unreadCount })}
-                  </p>
-                ) : null}
-                <ul className="requests-list">
-                  {group.map((request) => {
-                    const statusRaw = request.status;
-                    const statusText = requestStatusLabel(statusRaw);
-                    const isPending = statusRaw === "pending";
-                    const counterparty =
-                      tutors[request.studentId]?.profile.name ||
-                      toDisplayId(request.studentId, t("common.states.unknown"));
-                    const reasonText = requestReasonLabel(request);
-                    const requestUnreadCount = getUnreadCount(
-                      requestMessageThreadKey(request)
-                    );
-
-                    return (
-                      <RequestCard
-                        key={request.id}
-                        className={requestUnreadCount > 0 ? "has-unread" : ""}
-                        onOpen={() =>
-                          onSelectRequest({
-                            request,
-                            segment: requestSegment
-                          })
-                        }
-                        footer={
-                          <>
-                            <span className={`status-pill status-${statusText}`}>
-                              {t(`common.status.${statusText}`)}
-                            </span>
-                            {requestUnreadCount > 0 ? (
-                              <span className="inline-indicator">
-                                {requestUnreadCount === 1
-                                  ? t("common.indicators.new")
-                                  : t("common.indicators.newCount", {
-                                      count: requestUnreadCount
-                                    })}
-                              </span>
-                            ) : null}
-                            {isPending ? (
-                              <div className="action-buttons">
-                                <button
-                                  type="button"
-                                  onClick={() => onRespondToBooking(request, "accepted")}
-                                >
-                                  {t("requests.accept")}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="ghost-action"
-                                  onClick={() => onRespondToBooking(request, "rejected")}
-                                >
-                                  {t("requests.decline")}
-                                </button>
-                              </div>
-                            ) : null}
-                          </>
-                        }
-                      >
-                        <div>
-                          <strong>{t("requests.student")}:</strong> {counterparty}
-                        </div>
-                        {reasonText ? (
-                          <div>
-                            <strong>{t("requests.resolution")}:</strong>{" "}
-                            {t(`common.requestResolution.${reasonText}`)}
-                          </div>
-                        ) : null}
-                      </RequestCard>
-                    );
-                  })}
-                </ul>
-              </article>
-            );
-          })}
-        </div>
+        <IncomingRequestGroups
+          groups={viewModel.incomingGroups}
+          onSelectRequest={onSelectRequest}
+          onRespondToRequest={onRespondToRequest}
+          onCancelRequest={onCancelRequest}
+        />
       ) : (
-        <ul className="requests-list">
-          {requestItems.map((request) => {
-            const statusRaw = request.status;
-            const statusText = requestStatusLabel(statusRaw);
-            const isPending = statusRaw === "pending";
-            const unreadCount = getUnreadCount(requestMessageThreadKey(request));
-            const counterparty =
-              tutors[request.tutorId]?.profile.name ||
-              toDisplayId(request.tutorId, t("common.states.unknown"));
-
-            return (
-              <RequestCard
-                key={request.id}
-                className={unreadCount > 0 ? "has-unread" : ""}
-                onOpen={() =>
-                  onSelectRequest({
-                    request,
-                    segment: requestSegment
-                  })
-                }
-                footer={
-                  <>
-                    <span className={`status-pill status-${statusText}`}>
-                      {t(`common.status.${statusText}`)}
-                    </span>
-                    {unreadCount > 0 ? (
-                      <span className="inline-indicator">
-                        {unreadCount === 1
-                          ? t("common.indicators.new")
-                          : t("common.indicators.newCount", { count: unreadCount })}
-                      </span>
-                    ) : null}
-                    {isPending ? (
-                      <button
-                        type="button"
-                        className="ghost-action"
-                        onClick={() => onCancelRequest(request)}
-                      >
-                        {t("common.buttons.cancel")}
-                      </button>
-                    ) : null}
-                  </>
-                }
-              >
-                <div>
-                  <strong>{t("requests.subject")}:</strong> {t("requests.defaultSubject")}
-                </div>
-                <div>
-                  <strong>{t("requests.scheduled")}:</strong>{" "}
-                  {formatLocalizedDateTime(request.scheduledAt)}
-                </div>
-                <div>
-                  <strong>{t("requests.counterparty")}:</strong> {counterparty}
-                </div>
-              </RequestCard>
-            );
-          })}
-        </ul>
+        <OutgoingRequestList
+          requests={viewModel.outgoingRequests}
+          onSelectRequest={onSelectRequest}
+          onRespondToRequest={onRespondToRequest}
+          onCancelRequest={onCancelRequest}
+        />
       )}
     </section>
   );

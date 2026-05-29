@@ -68,7 +68,9 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
     lessonNoteState,
     messageIndicators,
     actions,
-    viewModel
+    requestActions,
+    viewModel,
+    requestsTabViewModel
   } = useAppController(onLogout);
 
   const profileBadgeLabel = profileState.profile.name || viewModel.viewerLabel;
@@ -143,21 +145,13 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
 
         {navigation.activeTab === "requests" ? (
           <RequestsTab
-            selectedRequest={navigation.selectedRequest}
+            viewModel={requestsTabViewModel}
             onSelectRequest={navigation.setSelectedRequest}
             requestSegment={navigation.requestSegment}
             onRequestSegmentChange={navigation.setRequestSegment}
-            requestItems={viewModel.requestItems}
-            tutors={directoryState.tutors}
-            onRespondToBooking={actions.respondToBooking}
-            onCancelRequest={actions.cancelRequestFromStudent}
             messagesByThread={messagesState.byThread}
-            getUnreadCount={(threadKey) =>
-              messageIndicators.getUnreadCount("requests", threadKey)
-            }
-            getUnreadTotal={(threadKeys) =>
-              messageIndicators.getUnreadTotal("requests", threadKeys)
-            }
+            onRespondToRequest={requestActions.respondToRequestById}
+            onCancelRequest={requestActions.cancelRequestById}
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}
           />

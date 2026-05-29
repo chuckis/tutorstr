@@ -12,6 +12,7 @@ import { useNostrKeypair } from "./useNostrKeypair";
 import { usePrivateMessagingActions } from "./usePrivateMessagingActions";
 import { usePublicAllocatedSlots } from "./usePublicAllocatedSlots";
 import { useMessageIndicators } from "./useMessageIndicators";
+import { useRequestsTabViewModel } from "./useRequestsTabViewModel";
 import { useTutorDirectory } from "./useTutorDirectory";
 import { useTutorProfile } from "./useTutorProfile";
 import { useTutorSchedule } from "./useTutorSchedule";
@@ -101,6 +102,40 @@ export function useAppController(onLogout: () => void) {
     outgoingRequests: bookingsState.outgoing
   });
 
+  const requestsTabViewModel = useRequestsTabViewModel({
+    selectedRequest: navigation.selectedRequest,
+    requestSegment: navigation.requestSegment,
+    requestItems: viewModel.requestItems,
+    tutors: directoryState.tutors,
+    getUnreadCount: (threadKey) =>
+      messageIndicators.getUnreadCount("requests", threadKey),
+    getUnreadTotal: (threadKeys) =>
+      messageIndicators.getUnreadTotal("requests", threadKeys)
+  });
+
+  async function respondToRequestById(
+    requestId: string,
+    nextStatus: "accepted" | "rejected"
+  ) {
+    const request = await bookingsState.getById(requestId);
+
+    if (!request) {
+      return;
+    }
+
+    await actions.respondToBooking(request, nextStatus);
+  }
+
+  async function cancelRequestById(requestId: string) {
+    const request = await bookingsState.getById(requestId);
+
+    if (!request) {
+      return;
+    }
+
+    await actions.cancelRequestFromStudent(request);
+  }
+
   return {
     navigation,
     relay,
@@ -118,7 +153,12 @@ export function useAppController(onLogout: () => void) {
     lessonNoteState,
     messageIndicators,
     actions,
+    requestActions: {
+      respondToRequestById,
+      cancelRequestById
+    },
     viewModel,
+    requestsTabViewModel,
     publishBookingRequest
   };
 }
