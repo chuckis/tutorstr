@@ -142,6 +142,67 @@ describe("AcceptBooking", () => {
     expect(createLesson).not.toHaveBeenCalled();
   });
 
+  it("accepts a new booking when the previous winner's lesson was canceled", async () => {
+    const targetBooking = makeBooking({
+      id: "booking-2",
+      studentId: "student-2"
+    });
+    const previousWinner = makeBooking({
+      id: "booking-1",
+      studentId: "student-1",
+      status: "accepted"
+    });
+
+    const bookingRepo: BookingRepository = {
+      getIncoming: vi.fn(),
+      getOutgoing: vi.fn(),
+      getById: vi.fn().mockResolvedValue(targetBooking),
+      getByAllocationKey: vi.fn().mockResolvedValue([targetBooking, previousWinner]),
+      updateStatus: vi.fn().mockResolvedValue(undefined)
+    };
+
+    const lessonRepo: LessonRepository = {
+      getForUser: vi.fn(),
+      getById: vi.fn().mockResolvedValue(
+        makeLesson({
+          id: previousWinner.id,
+          bookingId: previousWinner.id,
+          studentId: previousWinner.studentId,
+          status: "canceled"
+        })
+      ),
+      save: vi.fn().mockResolvedValue(undefined),
+      updateStatus: vi.fn()
+    };
+
+    const createLesson = vi.fn().mockReturnValue(
+      makeLesson({
+        id: targetBooking.id,
+        bookingId: targetBooking.id,
+        studentId: targetBooking.studentId
+      })
+    );
+
+    await new AcceptBooking(bookingRepo, lessonRepo, createLesson).execute(
+      targetBooking.id
+    );
+
+    expect(lessonRepo.getById).toHaveBeenCalledWith(previousWinner.id);
+    expect(bookingRepo.updateStatus).toHaveBeenNthCalledWith(
+      1,
+      targetBooking.id,
+      "accepted"
+    );
+    expect(lessonRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: targetBooking.id,
+        bookingId: targetBooking.id,
+        studentId: targetBooking.studentId
+      })
+    );
+    expect(bookingRepo.updateStatus).toHaveBeenCalledTimes(1);
+  });
+
   it("returns early when the booking does not exist", async () => {
     const bookingRepo: BookingRepository = {
       getIncoming: vi.fn(),

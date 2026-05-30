@@ -19,9 +19,7 @@ export function usePublicAllocatedSlots() {
           const parsed = JSON.parse(event.content) as LessonAgreement;
           const lessonId = parsed.lessonId || getTagValue(event.tags, "d") || event.id;
           const participants = getTagValues(event.tags, "p");
-          const tutorPubkey =
-            participants.find((participant) => participant === event.pubkey) ||
-            event.pubkey;
+          const tutorPubkey = participants[0] || event.pubkey;
           const studentPubkey =
             participants.find((participant) => participant !== tutorPubkey) || "";
 

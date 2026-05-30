@@ -4,6 +4,7 @@ import { LessonAgreementEvent } from "../../types/nostr";
 import { lessonFromNostr, lessonToNostrStatus } from "./lessonAdapter";
 
 type PublishLessonAgreement = (
+  tutorPubkey: string,
   studentPubkey: string,
   payload: {
     bookingEventId: string;
@@ -19,6 +20,7 @@ type PublishLessonAgreement = (
 ) => Promise<void>;
 
 type UpdateLessonAgreementStatus = (
+  tutorPubkey: string,
   studentPubkey: string,
   payload: LessonAgreementEvent["agreement"] & {
     bookingEventId: string;
@@ -60,7 +62,7 @@ export function createNostrLessonRepository({
     },
     async save(lesson: Lesson) {
       const event = agreements[lesson.id];
-      await publishLessonAgreement(lesson.studentId, {
+      await publishLessonAgreement(lesson.tutorId, lesson.studentId, {
         bookingEventId: event?.bookingEventId || "",
         lessonId: lesson.id,
         bookingId: lesson.bookingId,
@@ -78,7 +80,7 @@ export function createNostrLessonRepository({
         return;
       }
 
-      await updateLessonAgreementStatus(event.studentPubkey, {
+      await updateLessonAgreementStatus(event.tutorPubkey, event.studentPubkey, {
         bookingEventId: event.bookingEventId || "",
         ...event.agreement,
         status: lessonToNostrStatus(status)

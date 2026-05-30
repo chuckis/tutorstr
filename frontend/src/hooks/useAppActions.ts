@@ -76,6 +76,12 @@ export function useAppActions({
     }
 
     await lessonRepository.updateStatus(lesson.id, nextStatus);
+
+    if (nextStatus === "canceled" && lesson.studentId === studentPubkey) {
+      await bookingRepository.updateStatus(lesson.bookingId, "cancelled", {
+        reason: "student_cancelled"
+      });
+    }
   }
 
   async function cancelRequestFromStudent(request: Booking) {

@@ -7,11 +7,13 @@ export interface LessonAgreementEventsRepository {
   ): () => void;
   publishLessonAgreement(
     currentPubkey: string,
+    tutorPubkey: string,
     studentPubkey: string,
     payload: LessonAgreement & { bookingEventId: string }
   ): Promise<void>;
   updateLessonAgreementStatus(
     currentPubkey: string,
+    tutorPubkey: string,
     studentPubkey: string,
     payload: LessonAgreement & {
       bookingEventId: string;

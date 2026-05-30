@@ -35,11 +35,13 @@ export function useBookingActions(currentPubkey: string) {
 
   const publishLessonAgreement = useCallback(
     async (
+      tutorPubkey: string,
       studentPubkey: string,
       payload: LessonAgreement & { bookingEventId: string }
     ) => {
       await lessonAgreementEventsRepository.publishLessonAgreement(
         currentPubkey,
+        tutorPubkey,
         studentPubkey,
         payload
       );
@@ -49,6 +51,7 @@ export function useBookingActions(currentPubkey: string) {
 
   const updateLessonAgreementStatus = useCallback(
     async (
+      tutorPubkey: string,
       studentPubkey: string,
       payload: LessonAgreement & {
         bookingEventId: string;
@@ -57,6 +60,7 @@ export function useBookingActions(currentPubkey: string) {
     ) => {
       await lessonAgreementEventsRepository.updateLessonAgreementStatus(
         currentPubkey,
+        tutorPubkey,
         studentPubkey,
         payload
       );

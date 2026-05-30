@@ -26,13 +26,28 @@ export class AcceptBooking {
     const group = await this.bookingRepo.getByAllocationKey(
       booking.slotAllocationKey
     );
-    const existingWinner = group.find(
+    const acceptedCompetitors = group.filter(
       (entry) => entry.id !== booking.id && entry.status === "accepted"
     );
+    const acceptedCompetitorStates = await Promise.all(
+      acceptedCompetitors.map(async (entry) => {
+        const lesson = await this.lessonRepo.getById(entry.id);
+        return {
+          bookingId: entry.id,
+          isCanceled: lesson?.status === "canceled"
+        };
+      })
+    );
 
-    if (existingWinner) {
+    if (acceptedCompetitorStates.some((entry) => !entry.isCanceled)) {
       return;
     }
+
+    const canceledAcceptedBookingIds = new Set(
+      acceptedCompetitorStates
+        .filter((entry) => entry.isCanceled)
+        .map((entry) => entry.bookingId)
+    );
 
     await this.bookingRepo.updateStatus(bookingId, "accepted");
 
@@ -48,6 +63,7 @@ export class AcceptBooking {
     await Promise.all(
       group
         .filter((entry) => entry.id !== booking.id)
+        .filter((entry) => !canceledAcceptedBookingIds.has(entry.id))
         .filter((entry) => isActiveBookingStatus(entry.status))
         .map((entry) =>
           this.bookingRepo.updateStatus(entry.id, "rejected", {

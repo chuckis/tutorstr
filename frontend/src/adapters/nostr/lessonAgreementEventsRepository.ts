@@ -4,7 +4,7 @@ import { nostrClient } from "../../nostr/client";
 import { LessonAgreement, LessonAgreementEvent, LessonAgreementStatus } from "../../types/nostr";
 import { getTagValue, getTagValues } from "../../utils/nostrTags";
 
-function toLessonAgreementEvent(
+export function toLessonAgreementEvent(
   eventPubkey: string,
   eventId: string,
   createdAt: number,
@@ -13,9 +13,7 @@ function toLessonAgreementEvent(
 ): LessonAgreementEvent {
   const lessonId = parsed.lessonId || getTagValue(tags, "d") || eventId;
   const participants = getTagValues(tags, "p");
-  const tutorPubkey =
-    participants.find((participant) => participant === eventPubkey) ||
-    eventPubkey;
+  const tutorPubkey = participants[0] || eventPubkey;
   const studentPubkey =
     participants.find((participant) => participant !== tutorPubkey) || "";
 
@@ -37,12 +35,13 @@ function toLessonAgreementEvent(
 export function createNostrLessonAgreementEventsRepository(): LessonAgreementEventsRepository {
   async function publishLessonAgreement(
     currentPubkey: string,
+    tutorPubkey: string,
     studentPubkey: string,
     payload: LessonAgreement & { bookingEventId: string }
   ) {
     const tags: string[][] = [
       ["d", payload.lessonId],
-      ["p", currentPubkey],
+      ["p", tutorPubkey],
       ["p", studentPubkey],
       ["t", "lesson:agreement"]
     ];
@@ -142,8 +141,8 @@ export function createNostrLessonAgreementEventsRepository(): LessonAgreementEve
 
     publishLessonAgreement,
 
-    async updateLessonAgreementStatus(currentPubkey, studentPubkey, payload) {
-      await publishLessonAgreement(currentPubkey, studentPubkey, {
+    async updateLessonAgreementStatus(currentPubkey, tutorPubkey, studentPubkey, payload) {
+      await publishLessonAgreement(currentPubkey, tutorPubkey, studentPubkey, {
         ...payload,
         status: payload.status as LessonAgreementStatus
       });

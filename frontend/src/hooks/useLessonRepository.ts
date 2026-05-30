@@ -20,15 +20,17 @@ export function useLessonRepository(
       list,
       agreements,
       defaults,
-      publishLessonAgreement: (studentPubkey, payload) =>
+      publishLessonAgreement: (tutorPubkey, studentPubkey, payload) =>
         lessonAgreementEventsRepository.publishLessonAgreement(
           userId,
+          tutorPubkey,
           studentPubkey,
           payload
         ),
-      updateLessonAgreementStatus: (studentPubkey, payload) =>
+      updateLessonAgreementStatus: (tutorPubkey, studentPubkey, payload) =>
         lessonAgreementEventsRepository.updateLessonAgreementStatus(
           userId,
+          tutorPubkey,
           studentPubkey,
           payload
         )
