@@ -18,6 +18,7 @@ type I18nContextValue = {
   setLocale: (locale: AppLocale) => void;
   t: (key: string, values?: TranslateValues) => string;
   formatDateTime: (value: string) => string;
+  formatTime: (value: string) => string;
   formatNumber: (value: number) => string;
 };
 
@@ -98,6 +99,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         return new Intl.DateTimeFormat(locale, {
           dateStyle: "medium",
           timeStyle: "short"
+        }).format(timestamp);
+      },
+      formatTime(value) {
+        const timestamp = Date.parse(value);
+        if (Number.isNaN(timestamp)) {
+          return value;
+        }
+
+        return new Intl.DateTimeFormat(locale, {
+          hour: "2-digit",
+          minute: "2-digit"
         }).format(timestamp);
       },
       formatNumber(value) {

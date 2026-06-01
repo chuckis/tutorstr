@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "date-fns": "^3.6.0",
     "lucide-react": "^1.16.0",
     "nostr-tools": "^2.19.4",
     "react": "^19.2.4",

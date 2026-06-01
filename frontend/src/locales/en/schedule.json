@@ -7,5 +7,13 @@
   "addSlot": "Add slot",
   "remove": "Remove",
   "noSlots": "No slots added yet.",
-  "publish": "Publish schedule"
+  "publish": "Publish schedule",
+  "calendar": {
+    "title": "Availability calendar",
+    "hint": "Visual overview of your published slots for the selected week.",
+    "weekPrev": "Previous week",
+    "weekNext": "Next week",
+    "weekToday": "Today",
+    "emptyDay": "—"
+  }
 }
