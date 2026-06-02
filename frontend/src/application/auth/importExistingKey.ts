@@ -1,3 +1,4 @@
+import { AccountRole, LEGACY_ACCOUNT_ROLE } from "../../domain/account";
 import { AUTH_VAULT_VERSION, AuthSession } from "../../domain/auth";
 import { NostrKeyMaterial } from "../../ports/nostrKeyMaterial";
 import { AuthVaultRepository } from "../../ports/authVaultRepository";
@@ -11,7 +12,7 @@ type ImportExistingKeyDependencies = {
 
 export async function importExistingKey(
   dependencies: ImportExistingKeyDependencies,
-  input: { secret: string; passphrase: string }
+  input: { secret: string; passphrase: string; role?: AccountRole }
 ): Promise<AuthSession> {
   const parsed = await dependencies.keyMaterial.parseSecretInput(input.secret);
   const pubkey = dependencies.keyMaterial.derivePublicKey(parsed.secretKeyHex);
@@ -20,9 +21,11 @@ export async function importExistingKey(
     parsed.secretKeyHex,
     input.passphrase
   );
+  const role: AccountRole = input.role ?? LEGACY_ACCOUNT_ROLE;
 
   dependencies.vaultRepository.save({
     version: AUTH_VAULT_VERSION,
+    role,
     encryptedPrivateKey: encrypted.ciphertext,
     iv: encrypted.iv,
     salt: encrypted.salt,
@@ -31,5 +34,5 @@ export async function importExistingKey(
     npub
   });
 
-  return { pubkey, npub };
+  return { pubkey, npub, role };
 }

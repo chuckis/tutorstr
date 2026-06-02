@@ -29,10 +29,18 @@ export default function App() {
   if (auth.generatedNsec || !auth.isAuthenticated || !auth.session) {
     return (
       <AuthScreen
-        mode={auth.mode === "unlock" ? "unlock" : "welcome"}
+        mode={
+          auth.mode === "unlock"
+            ? "unlock"
+            : auth.mode === "role-pick"
+              ? "role-pick"
+              : "welcome"
+        }
         status={auth.status}
         generatedNsec={auth.generatedNsec}
         onCreateProfile={auth.actions.createProfile}
+        onChooseRole={auth.actions.chooseRole}
+        onCancelRolePick={auth.actions.cancelRolePick}
         onImportProfile={auth.actions.importProfile}
         onUnlock={auth.actions.unlock}
         onDismissGeneratedSecret={auth.actions.dismissGeneratedSecret}

@@ -1,3 +1,4 @@
+import { AccountRole } from "../../domain/account";
 import { AUTH_VAULT_VERSION } from "../../domain/auth";
 import { AuthVaultRepository } from "../../ports/authVaultRepository";
 import { VaultCipher } from "../../ports/vaultCipher";
@@ -14,6 +15,7 @@ export async function saveGeneratedProfile(
     passphrase: string;
     pubkey: string;
     npub: string;
+    role: AccountRole;
   }
 ) {
   const encrypted = await dependencies.vaultCipher.encrypt(
@@ -23,6 +25,7 @@ export async function saveGeneratedProfile(
 
   dependencies.vaultRepository.save({
     version: AUTH_VAULT_VERSION,
+    role: input.role,
     encryptedPrivateKey: encrypted.ciphertext,
     iv: encrypted.iv,
     salt: encrypted.salt,

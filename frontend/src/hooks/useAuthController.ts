@@ -10,16 +10,21 @@ import { authVaultRepository } from "../adapters/auth/localStorageVaultRepositor
 import { nostrKeyMaterial } from "../adapters/auth/nostrKeyMaterial";
 import { webCryptoVaultCipher } from "../adapters/auth/webCryptoVaultCipher";
 import { createVaultNostrSigner } from "../adapters/nostr/vaultNostrSigner";
+import { AccountRole } from "../domain/account";
 import { AuthError, AuthSession } from "../domain/auth";
 import { useI18n } from "../i18n/I18nProvider";
 import { nostrClient } from "../nostr/client";
 
-type AuthMode = "loading" | "welcome" | "unlock" | "authenticated";
+type AuthMode = "loading" | "welcome" | "unlock" | "role-pick" | "authenticated";
 
 type PendingGeneratedProfile = {
   secretKeyHex: string;
   passphrase: string;
   session: AuthSession;
+};
+
+type PendingRolePick = {
+  passphrase: string;
 };
 
 const authDependencies = {
@@ -48,6 +53,7 @@ export function useAuthController() {
   const [generatedNsec, setGeneratedNsec] = useState("");
   const [pendingGeneratedProfile, setPendingGeneratedProfile] =
     useState<PendingGeneratedProfile | null>(null);
+  const [pendingRolePick, setPendingRolePick] = useState<PendingRolePick | null>(null);
 
   useEffect(() => {
     const restored = restoreStoredSession(authVaultRepository);
@@ -67,20 +73,39 @@ export function useAuthController() {
   const actions = useMemo(
     () => ({
       async createProfile(passphrase: string) {
+        setStatus("");
+        setPendingRolePick({ passphrase });
+        setMode("role-pick");
+      },
+      async chooseRole(role: AccountRole) {
+        if (!pendingRolePick) {
+          return;
+        }
+
         setStatus(t("auth.createTitle"));
 
         try {
-          const result = await createNewProfile(authDependencies, { passphrase });
+          const result = await createNewProfile(authDependencies, {
+            passphrase: pendingRolePick.passphrase,
+            role
+          });
           setGeneratedNsec(result.nsec);
           setPendingGeneratedProfile({
             secretKeyHex: result.secretKeyHex,
-            passphrase,
+            passphrase: pendingRolePick.passphrase,
             session: result.session
           });
+          setPendingRolePick(null);
+          setMode("welcome");
           setStatus("");
         } catch (error) {
           setStatus(toLocalizedErrorMessage(error, t) || t("auth.createTitle"));
         }
+      },
+      cancelRolePick() {
+        setPendingRolePick(null);
+        setStatus("");
+        setMode("welcome");
       },
       async importProfile(secret: string, passphrase: string) {
         setStatus(t("auth.importPanelTitle"));
@@ -147,7 +172,8 @@ export function useAuthController() {
             secretKeyHex: pendingGeneratedProfile.secretKeyHex,
             passphrase: pendingGeneratedProfile.passphrase,
             pubkey: pendingGeneratedProfile.session.pubkey,
-            npub: pendingGeneratedProfile.session.npub
+            npub: pendingGeneratedProfile.session.npub,
+            role: pendingGeneratedProfile.session.role
           });
           const signer = createVaultNostrSigner(
             pendingGeneratedProfile.session,
@@ -166,12 +192,13 @@ export function useAuthController() {
         }
       },
     }),
-    [pendingGeneratedProfile, t]
+    [pendingGeneratedProfile, pendingRolePick, t]
   );
 
   return {
     mode,
     session,
+    role: session?.role ?? null,
     status,
     generatedNsec,
     isAuthenticated,

@@ -1,0 +1,19 @@
+{
+  "rolePick": {
+    "title": "What brings you here?",
+    "body": "Pick the role that matches how you will use Tutorstr. You cannot change this later for the same identity.",
+    "tutorTitle": "I am a tutor",
+    "tutorBody": "Publish your profile and schedule, accept student requests, run lessons.",
+    "studentTitle": "I am a student",
+    "studentBody": "Discover tutors, request lessons, track your progress.",
+    "continue": "Continue"
+  },
+  "roles": {
+    "tutor": "Tutor",
+    "student": "Student"
+  },
+  "roleDescription": {
+    "tutor": "Publish profile, schedule, and lessons. Accept or decline booking requests.",
+    "student": "Discover tutors, request lessons, and track your learning progress."
+  }
+}

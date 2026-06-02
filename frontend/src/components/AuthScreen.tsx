@@ -1,11 +1,14 @@
 import { FormEvent, useState } from "react";
+import { AccountRole } from "../domain/account";
 import { useI18n } from "../i18n/I18nProvider";
 
 type AuthScreenProps = {
-  mode: "welcome" | "unlock";
+  mode: "welcome" | "unlock" | "role-pick";
   status: string;
   generatedNsec: string;
   onCreateProfile: (passphrase: string) => Promise<void>;
+  onChooseRole: (role: AccountRole) => Promise<void>;
+  onCancelRolePick: () => void;
   onImportProfile: (secret: string, passphrase: string) => Promise<void>;
   onUnlock: (passphrase: string) => Promise<void>;
   onDismissGeneratedSecret: () => Promise<void>;
@@ -18,6 +21,8 @@ export function AuthScreen({
   status,
   generatedNsec,
   onCreateProfile,
+  onChooseRole,
+  onCancelRolePick,
   onImportProfile,
   onUnlock,
   onDismissGeneratedSecret
@@ -30,6 +35,7 @@ export function AuthScreen({
   const [secretInput, setSecretInput] = useState("");
   const [localError, setLocalError] = useState("");
   const [showSecretInput, setShowSecretInput] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<AccountRole | null>(null);
 
   async function handleCreateProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,6 +49,8 @@ export function AuthScreen({
     }
 
     setLocalError("");
+    setPassphrase("");
+    setPassphraseConfirm("");
     await onCreateProfile(passphrase);
   }
 
@@ -64,6 +72,8 @@ export function AuthScreen({
     const submittedSecret = secretInput;
     setLocalError("");
     setSecretInput("");
+    setPassphrase("");
+    setPassphraseConfirm("");
     await onImportProfile(submittedSecret, passphrase);
   }
 
@@ -76,6 +86,20 @@ export function AuthScreen({
 
     setLocalError("");
     await onUnlock(passphrase);
+  }
+
+  async function handleContinueRolePick() {
+    if (!selectedRole) {
+      return;
+    }
+    setLocalError("");
+    await onChooseRole(selectedRole);
+  }
+
+  function handleCancelRolePick() {
+    setSelectedRole(null);
+    setLocalError("");
+    onCancelRolePick();
   }
 
   return (
@@ -247,6 +271,49 @@ export function AuthScreen({
               </div>
             </form>
           ) : null}
+        </section>
+      ) : null}
+
+      {!generatedNsec && mode === "role-pick" ? (
+        <section className="auth-panel stack">
+          <h2>{t("account.rolePick.title")}</h2>
+          <p className="muted">{t("account.rolePick.body")}</p>
+          <div className="auth-card-grid">
+            <button
+              type="button"
+              className="auth-card"
+              aria-pressed={selectedRole === "tutor"}
+              onClick={() => setSelectedRole("tutor")}
+            >
+              <span className="auth-card-title">{t("account.rolePick.tutorTitle")}</span>
+              <span className="muted">{t("account.rolePick.tutorBody")}</span>
+            </button>
+            <button
+              type="button"
+              className="auth-card"
+              aria-pressed={selectedRole === "student"}
+              onClick={() => setSelectedRole("student")}
+            >
+              <span className="auth-card-title">{t("account.rolePick.studentTitle")}</span>
+              <span className="muted">{t("account.rolePick.studentBody")}</span>
+            </button>
+          </div>
+          <div className="auth-actions">
+            <button
+              type="button"
+              onClick={handleContinueRolePick}
+              disabled={!selectedRole}
+            >
+              {t("account.rolePick.continue")}
+            </button>
+            <button
+              type="button"
+              className="ghost-action"
+              onClick={handleCancelRolePick}
+            >
+              {t("auth.back")}
+            </button>
+          </div>
         </section>
       ) : null}
 
