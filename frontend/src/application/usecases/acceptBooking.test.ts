@@ -4,6 +4,7 @@ import { Lesson } from "../../domain/lesson";
 import { BookingRepository } from "../../ports/bookingRepository";
 import { LessonRepository } from "../../ports/lessonRepository";
 import { AcceptBooking } from "./acceptBooking";
+import { RoleMismatchError } from "../account/assertRole";
 
 function makeBooking(overrides: Partial<Booking> = {}): Booking {
   return {
@@ -32,6 +33,27 @@ function makeLesson(overrides: Partial<Lesson> = {}): Lesson {
   };
 }
 
+function makeBookingRepo(overrides: Partial<BookingRepository> = {}): BookingRepository {
+  return {
+    getIncoming: vi.fn(),
+    getOutgoing: vi.fn(),
+    getById: vi.fn(),
+    getByAllocationKey: vi.fn(),
+    updateStatus: vi.fn().mockResolvedValue(undefined),
+    ...overrides
+  };
+}
+
+function makeLessonRepo(overrides: Partial<LessonRepository> = {}): LessonRepository {
+  return {
+    getForUser: vi.fn(),
+    getById: vi.fn(),
+    save: vi.fn().mockResolvedValue(undefined),
+    updateStatus: vi.fn(),
+    ...overrides
+  };
+}
+
 describe("AcceptBooking", () => {
   it("accepts the booking, saves a lesson, and rejects competing active entries", async () => {
     const targetBooking = makeBooking();
@@ -51,22 +73,14 @@ describe("AcceptBooking", () => {
       status: "rejected"
     });
 
-    const bookingRepo: BookingRepository = {
-      getIncoming: vi.fn(),
-      getOutgoing: vi.fn(),
+    const bookingRepo = makeBookingRepo({
       getById: vi.fn().mockResolvedValue(targetBooking),
       getByAllocationKey: vi
         .fn()
-        .mockResolvedValue([targetBooking, competingPending, inactiveRejected]),
-      updateStatus: vi.fn().mockResolvedValue(undefined)
-    };
+        .mockResolvedValue([targetBooking, competingPending, inactiveRejected])
+    });
 
-    const lessonRepo: LessonRepository = {
-      getForUser: vi.fn(),
-      getById: vi.fn(),
-      save: vi.fn().mockResolvedValue(undefined),
-      updateStatus: vi.fn()
-    };
+    const lessonRepo = makeLessonRepo();
 
     const createLesson = vi.fn().mockReturnValue(
       makeLesson({
@@ -76,7 +90,8 @@ describe("AcceptBooking", () => {
     );
 
     await new AcceptBooking(bookingRepo, lessonRepo, createLesson).execute(
-      targetBooking.id
+      targetBooking.id,
+      "tutor"
     );
 
     expect(bookingRepo.getById).toHaveBeenCalledWith(targetBooking.id);
@@ -116,25 +131,16 @@ describe("AcceptBooking", () => {
       status: "accepted"
     });
 
-    const bookingRepo: BookingRepository = {
-      getIncoming: vi.fn(),
-      getOutgoing: vi.fn(),
+    const bookingRepo = makeBookingRepo({
       getById: vi.fn().mockResolvedValue(targetBooking),
-      getByAllocationKey: vi.fn().mockResolvedValue([targetBooking, existingWinner]),
-      updateStatus: vi.fn().mockResolvedValue(undefined)
-    };
-
-    const lessonRepo: LessonRepository = {
-      getForUser: vi.fn(),
-      getById: vi.fn(),
-      save: vi.fn().mockResolvedValue(undefined),
-      updateStatus: vi.fn()
-    };
-
+      getByAllocationKey: vi.fn().mockResolvedValue([targetBooking, existingWinner])
+    });
+    const lessonRepo = makeLessonRepo();
     const createLesson = vi.fn();
 
     await new AcceptBooking(bookingRepo, lessonRepo, createLesson).execute(
-      targetBooking.id
+      targetBooking.id,
+      "tutor"
     );
 
     expect(bookingRepo.updateStatus).not.toHaveBeenCalled();
@@ -153,16 +159,12 @@ describe("AcceptBooking", () => {
       status: "accepted"
     });
 
-    const bookingRepo: BookingRepository = {
-      getIncoming: vi.fn(),
-      getOutgoing: vi.fn(),
+    const bookingRepo = makeBookingRepo({
       getById: vi.fn().mockResolvedValue(targetBooking),
-      getByAllocationKey: vi.fn().mockResolvedValue([targetBooking, previousWinner]),
-      updateStatus: vi.fn().mockResolvedValue(undefined)
-    };
+      getByAllocationKey: vi.fn().mockResolvedValue([targetBooking, previousWinner])
+    });
 
-    const lessonRepo: LessonRepository = {
-      getForUser: vi.fn(),
+    const lessonRepo = makeLessonRepo({
       getById: vi.fn().mockResolvedValue(
         makeLesson({
           id: previousWinner.id,
@@ -170,10 +172,8 @@ describe("AcceptBooking", () => {
           studentId: previousWinner.studentId,
           status: "canceled"
         })
-      ),
-      save: vi.fn().mockResolvedValue(undefined),
-      updateStatus: vi.fn()
-    };
+      )
+    });
 
     const createLesson = vi.fn().mockReturnValue(
       makeLesson({
@@ -184,7 +184,8 @@ describe("AcceptBooking", () => {
     );
 
     await new AcceptBooking(bookingRepo, lessonRepo, createLesson).execute(
-      targetBooking.id
+      targetBooking.id,
+      "tutor"
     );
 
     expect(lessonRepo.getById).toHaveBeenCalledWith(previousWinner.id);
@@ -204,26 +205,36 @@ describe("AcceptBooking", () => {
   });
 
   it("returns early when the booking does not exist", async () => {
-    const bookingRepo: BookingRepository = {
-      getIncoming: vi.fn(),
-      getOutgoing: vi.fn(),
-      getById: vi.fn().mockResolvedValue(null),
-      getByAllocationKey: vi.fn(),
-      updateStatus: vi.fn()
-    };
-
-    const lessonRepo: LessonRepository = {
-      getForUser: vi.fn(),
-      getById: vi.fn(),
-      save: vi.fn(),
-      updateStatus: vi.fn()
-    };
-
+    const bookingRepo = makeBookingRepo({
+      getById: vi.fn().mockResolvedValue(null)
+    });
+    const lessonRepo = makeLessonRepo();
     const createLesson = vi.fn();
 
-    await new AcceptBooking(bookingRepo, lessonRepo, createLesson).execute("missing-booking");
+    await new AcceptBooking(bookingRepo, lessonRepo, createLesson).execute(
+      "missing-booking",
+      "tutor"
+    );
 
     expect(bookingRepo.getByAllocationKey).not.toHaveBeenCalled();
+    expect(bookingRepo.updateStatus).not.toHaveBeenCalled();
+    expect(lessonRepo.save).not.toHaveBeenCalled();
+    expect(createLesson).not.toHaveBeenCalled();
+  });
+
+  it("refuses to run when the viewer is a student", async () => {
+    const bookingRepo = makeBookingRepo();
+    const lessonRepo = makeLessonRepo();
+    const createLesson = vi.fn();
+
+    await expect(
+      new AcceptBooking(bookingRepo, lessonRepo, createLesson).execute(
+        "booking-1",
+        "student"
+      )
+    ).rejects.toBeInstanceOf(RoleMismatchError);
+
+    expect(bookingRepo.getById).not.toHaveBeenCalled();
     expect(bookingRepo.updateStatus).not.toHaveBeenCalled();
     expect(lessonRepo.save).not.toHaveBeenCalled();
     expect(createLesson).not.toHaveBeenCalled();

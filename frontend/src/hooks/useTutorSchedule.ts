@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { AccountRole } from "../domain/account";
 import { useI18n } from "../i18n/I18nProvider";
 import { nostrClient } from "../nostr/client";
 import { TutorSchedule } from "../types/nostr";
 import { emptySchedule, normalizeSchedule } from "../utils/normalize";
+import { PublishTutorSchedule } from "../application/usecases/publishTutorSchedule";
 
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   if (!(error instanceof Error)) {
@@ -13,7 +15,7 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   return translated === error.message ? error.message : translated;
 }
 
-export function useTutorSchedule(pubkey: string) {
+export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
   const { t } = useI18n();
   const [schedule, setSchedule] = useState<TutorSchedule>(emptySchedule);
   const [status, setStatus] = useState<string>("");
@@ -48,19 +50,29 @@ export function useTutorSchedule(pubkey: string) {
     return () => unsubscribe();
   }, [pubkey]);
 
+  const publishUseCase = useMemo(
+    () =>
+      new PublishTutorSchedule(async (nextSchedule) => {
+        const tags: string[][] = [["t", "role:tutor"]];
+        const payload = normalizeSchedule(nextSchedule);
+        await nostrClient.publishReplaceableEvent(
+          30001,
+          JSON.stringify(payload),
+          tags
+        );
+        localStorage.setItem(
+          `tutorhub:schedule:${pubkey}`,
+          JSON.stringify(payload)
+        );
+      }),
+    [pubkey]
+  );
+
   async function publishSchedule(nextSchedule: TutorSchedule) {
     setStatus(t("schedule.publish"));
 
-    const tags: string[][] = [["t", "role:tutor"]];
-
     try {
-      const payload = normalizeSchedule(nextSchedule);
-      await nostrClient.publishReplaceableEvent(
-        30001,
-        JSON.stringify(payload),
-        tags
-      );
-      localStorage.setItem(`tutorhub:schedule:${pubkey}`, JSON.stringify(payload));
+      await publishUseCase.execute(nextSchedule, viewerRole);
       setStatus(t("schedule.publish"));
     } catch (error) {
       setStatus(

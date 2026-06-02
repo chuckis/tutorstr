@@ -10,6 +10,7 @@ import { RequestsTab } from "./components/RequestsTab";
 import { useAuthController } from "./hooks/useAuthController";
 import { useAppController } from "./hooks/useAppController";
 import { useI18n } from "./i18n/I18nProvider";
+import { AccountRole } from "./domain/account";
 
 export default function App() {
   const auth = useAuthController();
@@ -48,15 +49,22 @@ export default function App() {
     );
   }
 
-  return <AuthenticatedApp onLogout={auth.actions.logout} onRevealSecret={auth.actions.revealSecret} />;
+  return (
+    <AuthenticatedApp
+      viewerRole={auth.role ?? "tutor"}
+      onLogout={auth.actions.logout}
+      onRevealSecret={auth.actions.revealSecret}
+    />
+  );
 }
 
 type AuthenticatedAppProps = {
+  viewerRole: AccountRole;
   onLogout: () => void;
   onRevealSecret: (passphrase: string) => Promise<string>;
 };
 
-function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
+function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: AuthenticatedAppProps) {
   const { t } = useI18n();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const {
@@ -79,7 +87,7 @@ function AuthenticatedApp({ onLogout, onRevealSecret }: AuthenticatedAppProps) {
     requestActions,
     viewModel,
     requestsTabViewModel
-  } = useAppController(onLogout);
+  } = useAppController(onLogout, viewerRole);
 
   const profileBadgeLabel = profileState.profile.name || viewModel.viewerLabel;
   const profileInitials = useMemo(() => {

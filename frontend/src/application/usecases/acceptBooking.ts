@@ -1,4 +1,6 @@
 import { isActiveBookingStatus } from "../../domain/slotAllocation";
+import { AccountRole } from "../../domain/account";
+import { assertRole } from "../account/assertRole";
 import { Lesson } from "../../domain/lesson";
 import { BookingRepository } from "../../ports/bookingRepository";
 import { LessonRepository } from "../../ports/lessonRepository";
@@ -17,7 +19,9 @@ export class AcceptBooking {
     private createLesson: LessonFactory
   ) {}
 
-  async execute(bookingId: string) {
+  async execute(bookingId: string, viewerRole: AccountRole) {
+    assertRole(viewerRole, "tutor");
+
     const booking = await this.bookingRepo.getById(bookingId);
     if (!booking) {
       return;

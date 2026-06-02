@@ -1,3 +1,4 @@
+import { AccountRole } from "../domain/account";
 import { Booking } from "../domain/booking";
 import { SlotOccupancy } from "../domain/slotOccupancy";
 import { TimeSlot } from "../domain/TimeSlot";
@@ -6,12 +7,20 @@ import { Lesson, LessonStatus } from "../domain/lesson";
 import { BookingRepository } from "../ports/bookingRepository";
 import { LessonRepository } from "../ports/lessonRepository";
 import { useI18n } from "../i18n/I18nProvider";
+import { AcceptBooking } from "../application/usecases/acceptBooking";
+import { ChangeLessonStatus } from "../application/usecases/changeLessonStatus";
+import { CancelBooking } from "../application/usecases/cancelBooking";
+import {
+  CreateBookingRequest,
+  BookingRequestPayload
+} from "../application/usecases/createBookingRequest";
 
 type AcceptBookingUseCase = {
-  execute: (bookingId: string) => Promise<void>;
+  execute: (bookingId: string, viewerRole: AccountRole) => Promise<void>;
 };
 
 type UseAppActionsProps = {
+  viewerRole: AccountRole;
   studentPubkey: string;
   studentNpub: string;
   relayInput: string;
@@ -45,6 +54,7 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
 }
 
 export function useAppActions({
+  viewerRole,
   studentPubkey,
   studentNpub,
   publishBookingRequest,
@@ -56,10 +66,18 @@ export function useAppActions({
   sendMessage,
   setDiscoverStatus,
   setMessageStatus,
-  // setRelayStatus,
   onLogout
 }: UseAppActionsProps) {
   const { t } = useI18n();
+
+  const changeLessonStatusUseCase = new ChangeLessonStatus(
+    lessonRepository,
+    bookingRepository
+  );
+  const cancelBookingUseCase = new CancelBooking(bookingRepository);
+  const createBookingRequestUseCase = new CreateBookingRequest(
+    publishBookingRequest
+  );
 
   async function respondToBooking(request: Booking, nextStatus: "accepted" | "rejected") {
     if (nextStatus !== "accepted") {
@@ -67,7 +85,7 @@ export function useAppActions({
       return;
     }
 
-    await acceptBooking.execute(request.id);
+    await acceptBooking.execute(request.id, viewerRole);
   }
 
   async function changeLessonStatus(lesson: Lesson, nextStatus: LessonStatus) {
@@ -75,17 +93,16 @@ export function useAppActions({
       return;
     }
 
-    await lessonRepository.updateStatus(lesson.id, nextStatus);
-
-    if (nextStatus === "canceled" && lesson.studentId === studentPubkey) {
-      await bookingRepository.updateStatus(lesson.bookingId, "cancelled", {
-        reason: "student_cancelled"
-      });
-    }
+    await changeLessonStatusUseCase.execute(
+      lesson,
+      nextStatus,
+      viewerRole,
+      studentPubkey
+    );
   }
 
   async function cancelRequestFromStudent(request: Booking) {
-    await bookingRepository.updateStatus(request.id, "cancelled");
+    await cancelBookingUseCase.execute(request, viewerRole);
   }
 
   async function requestBooking(
@@ -121,10 +138,15 @@ export function useAppActions({
     }
 
     try {
-      await publishBookingRequest(tutorPubkey, {
+      const bookingRequestPayload: BookingRequestPayload = {
+        tutorPubkey,
         ...payload,
         slotAllocationKey
-      });
+      };
+      await createBookingRequestUseCase.execute(
+        bookingRequestPayload,
+        viewerRole
+      );
       setDiscoverStatus(t("discover.sendRequest"));
     } catch (error) {
       setDiscoverStatus(
@@ -156,8 +178,6 @@ export function useAppActions({
       );
     }
   }
-
-  
 
   function logout() {
     onLogout();

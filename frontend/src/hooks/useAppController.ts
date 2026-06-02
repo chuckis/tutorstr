@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AccountRole } from "../domain/account";
 import { lessonMessageThreadKey, requestMessageThreadKey } from "../domain/messageThread";
 import { useAppActions } from "./useAppActions";
 import { useAppNavigation } from "./useAppNavigation";
@@ -20,14 +21,14 @@ import { useTutorSchedules } from "./useTutorSchedules";
 import { useRelays } from "./useRelays";
 import { useI18n } from "../i18n/I18nProvider";
 
-export function useAppController(onLogout: () => void) {
+export function useAppController(onLogout: () => void, viewerRole: AccountRole) {
   const { t } = useI18n();
   const navigation = useAppNavigation();
   const [discoverStatus, setDiscoverStatus] = useState("");
   const [messageStatus, setMessageStatus] = useState("");
   const keypair = useNostrKeypair();
   const profileState = useTutorProfile(keypair.pubkey);
-  const scheduleState = useTutorSchedule(keypair.pubkey);
+  const scheduleState = useTutorSchedule(keypair.pubkey, viewerRole);
   const directoryState = useTutorDirectory();
   const schedulesState = useTutorSchedules();
   const relay = useRelays();
@@ -76,6 +77,7 @@ export function useAppController(onLogout: () => void) {
   }, [messageIndicators, navigation.selectedLesson]);
 
   const actions = useAppActions({
+    viewerRole,
     studentPubkey: keypair.pubkey,
     studentNpub: keypair.npub,
     relayInput: relay.relayInput,
