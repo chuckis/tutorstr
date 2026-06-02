@@ -23,7 +23,7 @@ import { useI18n } from "../i18n/I18nProvider";
 
 export function useAppController(onLogout: () => void, viewerRole: AccountRole) {
   const { t } = useI18n();
-  const navigation = useAppNavigation();
+  const navigation = useAppNavigation(viewerRole);
   const [discoverStatus, setDiscoverStatus] = useState("");
   const [messageStatus, setMessageStatus] = useState("");
   const keypair = useNostrKeypair();
@@ -50,8 +50,9 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
   const messageIndicators = useMessageIndicators(
     keypair.pubkey,
     messagesState.messages,
-    [...bookingsState.incoming, ...bookingsState.outgoing],
-    lessonsState.lessons
+    viewerRole === "student" ? bookingsState.outgoing : bookingsState.incoming,
+    lessonsState.lessons,
+    viewerRole
   );
 
   useEffect(() => {
@@ -75,6 +76,9 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
       lessonMessageThreadKey(navigation.selectedLesson)
     );
   }, [messageIndicators, navigation.selectedLesson]);
+
+  const visibleIncoming =
+    viewerRole === "student" ? [] : bookingsState.incoming;
 
   const actions = useAppActions({
     viewerRole,
@@ -100,7 +104,7 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
     viewerPubkey: keypair.pubkey,
     viewerName: profileState.profile.name,
     requestSegment: navigation.requestSegment,
-    incomingRequests: bookingsState.incoming,
+    incomingRequests: visibleIncoming,
     outgoingRequests: bookingsState.outgoing
   });
 

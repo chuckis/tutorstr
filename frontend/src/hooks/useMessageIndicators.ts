@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { AccountRole } from "../domain/account";
 import { Booking } from "../domain/booking";
 import { Lesson } from "../domain/lesson";
 import { lessonMessageThreadKey, requestMessageThreadKey } from "../domain/messageThread";
@@ -45,7 +46,8 @@ export function useMessageIndicators(
   currentUserId: string,
   messages: EncryptedMessage[],
   requests: Booking[],
-  lessons: Lesson[]
+  lessons: Lesson[],
+  role: AccountRole = "tutor"
 ) {
   const [requestReadState, setRequestReadState] = useState<ReadState>(() =>
     loadReadState("requests", currentUserId)
@@ -128,14 +130,17 @@ export function useMessageIndicators(
     [currentUserId, incomingByThread]
   );
 
-  const requestUnreadCount = useMemo(
-    () =>
-      getUnreadTotal(
-        "requests",
-        requests.map((request) => requestMessageThreadKey(request))
-      ),
-    [getUnreadTotal, requests]
-  );
+  const requestUnreadCount = useMemo(() => {
+    const trackedRequests =
+      role === "student"
+        ? requests.filter((request) => request.studentId === currentUserId)
+        : requests;
+
+    return getUnreadTotal(
+      "requests",
+      trackedRequests.map((request) => requestMessageThreadKey(request))
+    );
+  }, [getUnreadTotal, requests, role, currentUserId]);
 
   const lessonUnreadCount = useMemo(
     () =>

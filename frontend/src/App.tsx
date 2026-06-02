@@ -156,6 +156,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
               ...bookingsState.winnerByAllocationKey
             }}
             onBookingRequest={actions.requestBooking}
+            role={viewerRole}
           />
         ) : null}
 
@@ -170,6 +171,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onCancelRequest={requestActions.cancelRequestById}
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}
+            role={viewerRole}
           />
         ) : null}
 
@@ -207,6 +209,9 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onPublishSchedule={() => scheduleState.publishSchedule(scheduleState.schedule)}
             scheduleStatus={scheduleState.status}
             profileStatus={profileState.status}
+            role={viewerRole}
+            upcomingLessons={lessonsState.lessonBuckets.upcoming}
+            tutors={directoryState.tutors}
           />
         ) : null}
       </section>
@@ -221,6 +226,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
         relay={relay}
         onLogout={actions.logout}
         onRevealSecret={onRevealSecret}
+        role={viewerRole}
       />
 
       <BottomNav

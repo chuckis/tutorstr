@@ -26,5 +26,7 @@
   "requested": "Requested",
   "sentTo": "Sent to: {{value}}",
   "activeRequestHint": "You already have an active request for this slot.",
-  "slotAllocatedHint": "This slot has already been allocated."
+  "slotAllocatedHint": "This slot has already been allocated.",
+  "studentChat": "Message this tutor",
+  "tutorAnnouncements": "Tutor announcements"
 }

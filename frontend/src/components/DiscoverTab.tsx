@@ -1,4 +1,5 @@
 import { Booking } from "../domain/booking";
+import { AccountRole } from "../domain/account";
 import { fallbackDirectMessageThreadKey } from "../domain/messageThread";
 import { SlotOccupancy } from "../domain/slotOccupancy";
 import { TimeSlot } from "../domain/TimeSlot";
@@ -38,6 +39,8 @@ type DiscoverTabProps = {
     tutorPubkey: string,
     payload: Omit<BookingRequest, "bookingId">
   ) => void;
+  role: AccountRole;
+  tutorAnnouncements?: Record<string, EncryptedMessage[]>;
 };
 
 export function DiscoverTab({
@@ -57,10 +60,13 @@ export function DiscoverTab({
   studentPubkey,
   activeBidBySlotAndStudent,
   winnerByAllocationKey,
-  onBookingRequest
+  onBookingRequest,
+  role,
+  tutorAnnouncements = {}
 }: DiscoverTabProps) {
   const { t, formatDateTime, formatNumber } = useI18n();
   const isNewcomerProfile = isProfileEmpty(profile);
+  const isStudent = role === "student";
 
   function getSlotState(tutorPubkey: string, slot: TimeSlot) {
     const slotBidKey = makeSlotBidKey(tutorPubkey, studentPubkey, slot);
@@ -87,7 +93,11 @@ export function DiscoverTab({
   }
 
   if (selectedTutor) {
-    // const threadKey = fallbackDirectMessageThreadKey(selectedTutor.pubkey);
+    const threadKey = fallbackDirectMessageThreadKey(selectedTutor.pubkey);
+    const chatMessages = isStudent
+      ? messagesByThread[threadKey] || []
+      : [];
+    const announcements = tutorAnnouncements[selectedTutor.pubkey] || [];
 
     return (
       <section className="tab-panel discover-tab">
@@ -100,13 +110,17 @@ export function DiscoverTab({
             {t("discover.backToDiscover")}
           </button>
           <article className="panel">
-            <h2>{selectedTutor.profile.name || t("common.states.unnamedTutor")}</h2>
+            <h2>
+              {selectedTutor.profile.name || t("common.states.unnamedTutor")}
+            </h2>
             <p>{selectedTutor.profile.bio || t("common.states.noBioYet")}</p>
-            <div className="chips">
-              {selectedTutor.profile.subjects.map((subject) => (
-                <span key={subject}>{subject}</span>
-              ))}
-            </div>
+            {selectedTutor.profile.subjects.length > 0 ? (
+              <div className="chips">
+                {selectedTutor.profile.subjects.map((subject) => (
+                  <span key={subject}>{subject}</span>
+                ))}
+              </div>
+            ) : null}
             <p className="muted">
               {t("discover.rate")}:{" "}
               {selectedTutor.profile.hourlyRate
@@ -119,55 +133,76 @@ export function DiscoverTab({
               <h3>{t("discover.publishedSlots")}</h3>
               {schedules[selectedTutor.pubkey]?.schedule.slots.length ? (
                 <ul className="slot-list">
-                  {schedules[selectedTutor.pubkey].schedule.slots.map((slot, index) => {
-                    const slotState = getSlotState(selectedTutor.pubkey, slot);
+                  {schedules[selectedTutor.pubkey].schedule.slots.map(
+                    (slot, index) => {
+                      const slotState = getSlotState(
+                        selectedTutor.pubkey,
+                        slot
+                      );
 
-                    return (
-                      <li key={`${slot.start}-${index}`}>
-                        <div className="request-actions">
-                          <span>
-                            {formatDateTime(slot.start)}
-                            {" -> "}
-                            {formatDateTime(slot.end)}
-                          </span>
-                          <button //Здесь кнопку нужно пригасить если слот не доступен
-                            type="button"
-                            disabled={slotState !== "available"}
-                            onClick={() =>
-                              onRequestPublishedSlot(selectedTutor.pubkey, slot)
-                            }
-                          >
-                            {getSlotActionLabel(slotState)}
-                          </button>
-                        </div>
-                      </li>
-                    );
-                  })}
+                      return (
+                        <li key={`${slot.start}-${index}`}>
+                          <div className="request-actions">
+                            <span>
+                              {formatDateTime(slot.start)}
+                              {" -> "}
+                              {formatDateTime(slot.end)}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={
+                                slotState !== "available" || !isStudent
+                              }
+                              onClick={() =>
+                                onRequestPublishedSlot(selectedTutor.pubkey, slot)
+                              }
+                            >
+                              {getSlotActionLabel(slotState)}
+                            </button>
+                          </div>
+                        </li>
+                      );
+                    }
+                  )}
                 </ul>
               ) : (
                 <p className="muted">{t("discover.noSlots")}</p>
               )}
-              {discoverStatus ? <p className="muted">{discoverStatus}</p> : null}
+              {discoverStatus ? (
+                <p className="muted">{discoverStatus}</p>
+              ) : null}
             </div>
           </article>
-          {/* Здесь не должно быть левых сообщений, может только от Тутора (специальные анонсы и т.п.)  */}
-          {/* <article className="panel">
-            <h3>{t("common.messages.title")}</h3>
-            <MessageThread
-              messages={messagesByThread[threadKey] || []}
+
+          {isStudent ? (
+            <article className="panel">
+              <h3>{t("discover.studentChat")}</h3>
+              <MessageThread messages={chatMessages} />
+              <MessageComposer
+                onSend={(text) =>
+                  onSendMessage(selectedTutor.pubkey, text, threadKey)
+                }
+              />
+              {messageStatus ? (
+                <p className="muted">{messageStatus}</p>
+              ) : null}
+            </article>
+          ) : announcements.length > 0 ? (
+            <article className="panel">
+              <h3>{t("discover.tutorAnnouncements")}</h3>
+              <MessageThread messages={announcements} />
+            </article>
+          ) : null}
+
+          {isStudent ? (
+            <BookingRequestForm
+              tutorPubkey={selectedTutor.pubkey}
+              schedule={schedules[selectedTutor.pubkey]}
+              studentNpub={studentNpub}
+              getSlotState={(slot) => getSlotState(selectedTutor.pubkey, slot)}
+              onSubmit={(payload) => onBookingRequest(selectedTutor.pubkey, payload)}
             />
-            <MessageComposer
-              onSend={(text) => onSendMessage(selectedTutor.pubkey, text, threadKey)}
-            />
-            {messageStatus ? <p className="muted">{messageStatus}</p> : null}
-          </article> */}
-          <BookingRequestForm
-            tutorPubkey={selectedTutor.pubkey}
-            schedule={schedules[selectedTutor.pubkey]}
-            studentNpub={studentNpub}
-            getSlotState={(slot) => getSlotState(selectedTutor.pubkey, slot)}
-            onSubmit={(payload) => onBookingRequest(selectedTutor.pubkey, payload)}
-          />
+          ) : null}
         </div>
       </section>
     );

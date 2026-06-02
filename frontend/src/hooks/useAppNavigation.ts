@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { AccountRole } from "../domain/account";
+import { effectiveRequestSegment } from "../application/account/requestSegment";
 import { Booking } from "../domain/booking";
 import { Lesson } from "../domain/lesson";
 import { TutorProfileEvent } from "../types/nostr";
@@ -7,9 +9,10 @@ export type MainTab = "discover" | "requests" | "lessons" | "profile";
 export type RequestSegment = "incoming" | "outgoing";
 export type LessonSegment = "upcoming" | "past";
 
-export function useAppNavigation() {
+export function useAppNavigation(role: AccountRole = "tutor") {
   const [activeTab, setActiveTab] = useState<MainTab>("discover");
-  const [requestSegment, setRequestSegment] = useState<RequestSegment>("incoming");
+  const [storedRequestSegment, setStoredRequestSegment] =
+    useState<RequestSegment>("incoming");
   const [lessonSegment, setLessonSegment] = useState<LessonSegment>("upcoming");
   const [selectedTutor, setSelectedTutor] = useState<TutorProfileEvent | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<{
@@ -17,6 +20,8 @@ export function useAppNavigation() {
     segment: RequestSegment;
   } | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+
+  const requestSegment = effectiveRequestSegment(role, storedRequestSegment);
 
   function selectTab(tab: MainTab) {
     setActiveTab(tab);
@@ -31,7 +36,12 @@ export function useAppNavigation() {
     }
   }
 
+  function setRequestSegment(segment: RequestSegment) {
+    setStoredRequestSegment(effectiveRequestSegment(role, segment));
+  }
+
   return {
+    role,
     activeTab,
     setActiveTab: selectTab,
     requestSegment,

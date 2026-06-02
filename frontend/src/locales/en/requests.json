@@ -15,7 +15,13 @@
   "candidates": "Candidates: {{count}}",
   "allocated": "Allocated",
   "pendingCount": "Pending: {{count}}",
-  "student": "Student",
+  "partyRole": {
+    "student": "Student"
+  },
   "subject": "Subject",
-  "defaultSubject": "Tutoring lesson"
+  "defaultSubject": "Tutoring lesson",
+  "student": {
+    "empty": "You have not sent any requests yet.",
+    "incomingHidden": "Incoming requests are only available to tutors."
+  }
 }

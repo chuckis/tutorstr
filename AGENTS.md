@@ -9,11 +9,16 @@ This repository contains a decentralized tutoring platform built on top of Nostr
 - Frontend is a mobile-first PWA (`React + TypeScript`)
 - Relay workspace exists, but custom relay server is not implemented yet
 
-## Actual project status (March 2026)
+## Actual project status (June 2026)
 - Frontend MVP is actively implemented in `frontend/`
 - Main UI is a 4-tab shell: `Discover`, `Requests`, `Lessons`, `Profile`
 - Request -> lesson agreement flow is implemented in frontend logic
 - Encrypted direct messaging is enabled in active flows
+- **Roles are live** (`tutor` / `student`); every `npub` is bound to exactly
+  one role. Stored in the local vault only — no Nostr channel carries the
+  role. See `docs/plans/role_separation_tutor_student.md` for the design
+  notes, `docs/spec.md` §4 for the published model, and the
+  `frontend/src/application/account/` layer for the guards / helpers.
 - `relay/` currently contains placeholder scripts only
 
 ## Repository structure
@@ -37,14 +42,17 @@ This repository contains a decentralized tutoring platform built on top of Nostr
 
 ## Nostr event kinds in use
 
-- `30000` — Tutor Profile (replaceable)
-- `30001` — Tutor Schedule (replaceable)
-- `30002` — Booking Request
+- `30000` — Profile (replaceable, tutor or student — see `docs/spec.md` §7.1)
+- `30001` — Tutor Schedule (replaceable; tutor-only publish)
+- `30002` — Booking Request (student-only publish)
 - `30003` — Booking Status
-- `30004` — Student Progress Log (encrypted)
-- `30005` — Tutor Blog Post (reserved)
+- `30004` — Progress Log (encrypted)
+- `30005` — Tutor Blog Post (reserved; tutor-only publish)
 - `30006` — Lesson Agreement (replaceable/addressable via `d`)
 - `4` — Encrypted direct messages (NIP-04)
+
+The role is **not** published to Nostr in MVP. There is no `kind 30007`
+Account event.
 
 ## Product behavior implemented
 - Tutor publishes profile and schedule
@@ -56,6 +64,18 @@ This repository contains a decentralized tutoring platform built on top of Nostr
 - Role-based actions in lesson details (complete/cancel/note)
 - Encrypted chat available in tutor detail, request details, and lesson details
 - Requests tab can show alert/highlight on new incoming request/message
+- **Role-aware UI** (see "Roles" below):
+  - `Requests` for students shows outgoing only (incoming segment is not
+    rendered, no disabled buttons)
+  - `Profile` for students has no `ScheduleForm`, no tutor metrics, no
+    `subjects` / `hourlyRate` fields
+  - `Discover` chat is read+write for students against the selected tutor;
+    for tutors the chat area collapses and only tutor announcements from
+    `kind 30005` are rendered (subscription itself is a separate task
+    outside the role-split phases)
+  - `useTutorSchedule` and `bookingsState.incoming` are no-ops / empty
+    for students
+  - `useAppNavigation` forces `requestSegment = "outgoing"` for students
 
 ## Coding rules
 - TypeScript everywhere
@@ -63,6 +83,38 @@ This repository contains a decentralized tutoring platform built on top of Nostr
 - No hardcoded relay URLs in UI components
 - Keep UI logic and Nostr transport logic separated
 - Follow docs in `docs/` and `docs/plans/`
+
+## Roles (mandatory in new use-cases)
+
+Every new use-case and hook that performs a role-restricted action **must
+take an `AccountRole` argument and call `assertRole(actual, expected)`**
+from `frontend/src/application/account/assertRole.ts` before doing any
+side effect. The expected role is decided by the action, not by the caller.
+Do not branch on `viewerRole` ad hoc in components to "make it work" — push
+the guard into the use-case so the rule is testable.
+
+Concrete rules for new code:
+
+- `assertRole(viewerRole, "tutor")` for: `AcceptBooking`,
+  `PublishTutorSchedule`, `ChangeLessonStatus` (for `completed` /
+  `cancelled`), and the tutor branch of `CancelBooking`.
+- `assertRole(viewerRole, "student")` for: `CreateBookingRequest` and
+  the student branch of `CancelBooking`.
+- `AccountRole` is exported from `frontend/src/domain/account.ts`. Vault
+  reads / writes that touch `role` go through the `application/auth/`
+  layer, never through `localStorage` directly.
+- Hooks that take a role must default to `"tutor"` only for backward
+  compatibility with the tutor-only legacy path; the controller in
+  `useAppController` always passes the actual viewer role explicitly.
+- Tests for any new role-gated use-case must cover both the happy role
+  and the opposite role (must reject with `RoleMismatchError`).
+- UI components that branch on role should take a `role: AccountRole` prop
+  (and/or a derived `mode: "tutor" | "student"`), not read auth state
+  directly. The role reaches the component from `useAppController` via
+  `App.tsx`.
+
+Do not introduce a new Nostr kind for the role (e.g. `kind 30007` Account).
+The role stays in the vault by design — see `docs/spec.md` §4 and §4.6.
 
 ## Encryption
 - Use NIP-04 or NIP-44 for private events

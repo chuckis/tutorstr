@@ -21,6 +21,10 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
   const [status, setStatus] = useState<string>("");
 
   useEffect(() => {
+    if (viewerRole !== "tutor") {
+      return;
+    }
+
     const scheduleStorageKey = `tutorhub:schedule:${pubkey}`;
     const stored = localStorage.getItem(scheduleStorageKey);
     if (stored) {
@@ -48,7 +52,7 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
     );
 
     return () => unsubscribe();
-  }, [pubkey]);
+  }, [pubkey, viewerRole]);
 
   const publishUseCase = useMemo(
     () =>
@@ -69,6 +73,10 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
   );
 
   async function publishSchedule(nextSchedule: TutorSchedule) {
+    if (viewerRole !== "tutor") {
+      return;
+    }
+
     setStatus(t("schedule.publish"));
 
     try {

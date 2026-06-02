@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { AccountRole } from "../domain/account";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
 import { TutorProfile } from "../types/nostr";
@@ -16,6 +17,7 @@ type DashboardSettingsDrawerProps = {
   relay: ReturnType<typeof useRelays>;
   onLogout: () => void;
   onRevealSecret: (passphrase: string) => Promise<string>;
+  role: AccountRole;
 };
 
 export function DashboardSettingsDrawer({
@@ -27,7 +29,8 @@ export function DashboardSettingsDrawer({
   onPublishProfile,
   relay,
   onLogout,
-  onRevealSecret
+  onRevealSecret,
+  role
 }: DashboardSettingsDrawerProps) {
   const { t } = useI18n();
   const [revealPassphrase, setRevealPassphrase] = useState("");
@@ -121,6 +124,7 @@ export function DashboardSettingsDrawer({
               profile={profile}
               onChange={onProfileChange}
               onSubmit={onPublishProfile}
+              role={role}
             />
           </article>
 

@@ -15,7 +15,13 @@
   "candidates": "Кандидаты: {{count}}",
   "allocated": "Распределено",
   "pendingCount": "Ожидает: {{count}}",
-  "student": "Студент",
+  "partyRole": {
+    "student": "Студент"
+  },
   "subject": "Предмет",
-  "defaultSubject": "Репетиторский урок"
+  "defaultSubject": "Репетиторский урок",
+  "student": {
+    "empty": "Вы ещё не отправили ни одной заявки.",
+    "incomingHidden": "Входящие заявки доступны только репетиторам."
+  }
 }

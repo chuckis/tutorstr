@@ -1,16 +1,33 @@
 import { useEffect, useState } from "react";
+import { AccountRole } from "../domain/account";
 import { TutorProfile } from "../types/nostr";
 import { useI18n } from "../i18n/I18nProvider";
 import { parseList } from "../utils/normalize";
+
+type ProfileFormMode = "tutor" | "student";
 
 type ProfileFormProps = {
   profile: TutorProfile;
   onChange: (next: TutorProfile) => void;
   onSubmit: (next: TutorProfile) => void;
+  role: AccountRole;
+  mode?: ProfileFormMode;
 };
 
-export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
+function profileFormMode(role: AccountRole): ProfileFormMode {
+  return role === "student" ? "student" : "tutor";
+}
+
+export function ProfileForm({
+  profile,
+  onChange,
+  onSubmit,
+  role,
+  mode
+}: ProfileFormProps) {
   const { t } = useI18n();
+  const resolvedMode = mode ?? profileFormMode(role);
+  const showTutorFields = resolvedMode === "tutor";
   const [subjectsInput, setSubjectsInput] = useState(profile.subjects.join(", "));
   const [languagesInput, setLanguagesInput] = useState(profile.languages.join(", "));
 
@@ -66,17 +83,19 @@ export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
         />
       </label>
 
-      <label>
-        {t("profile.form.subjects")}
-        <input
-          value={subjectsInput}
-          onChange={(event) => {
-            setSubjectsInput(event.target.value);
-          }}
-          onBlur={(event) => commitListField("subjects", event.target.value)}
-          placeholder={t("profile.form.subjectsPlaceholder")}
-        />
-      </label>
+      {showTutorFields ? (
+        <label>
+          {t("profile.form.subjects")}
+          <input
+            value={subjectsInput}
+            onChange={(event) => {
+              setSubjectsInput(event.target.value);
+            }}
+            onBlur={(event) => commitListField("subjects", event.target.value)}
+            placeholder={t("profile.form.subjectsPlaceholder")}
+          />
+        </label>
+      ) : null}
 
       <label>
         {t("profile.form.languages")}
@@ -90,20 +109,22 @@ export function ProfileForm({ profile, onChange, onSubmit }: ProfileFormProps) {
         />
       </label>
 
-      <label>
-        {t("profile.form.hourlyRate")}
-        <input
-          type="number"
-          min="0"
-          value={profile.hourlyRate}
-          onChange={(event) =>
-            onChange({
-              ...profile,
-              hourlyRate: Number(event.target.value)
-            })
-          }
-        />
-      </label>
+      {showTutorFields ? (
+        <label>
+          {t("profile.form.hourlyRate")}
+          <input
+            type="number"
+            min="0"
+            value={profile.hourlyRate}
+            onChange={(event) =>
+              onChange({
+                ...profile,
+                hourlyRate: Number(event.target.value)
+              })
+            }
+          />
+        </label>
+      ) : null}
 
       <label>
         {t("profile.form.avatarUrl")}

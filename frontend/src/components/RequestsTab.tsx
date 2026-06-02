@@ -26,6 +26,7 @@ type RequestsTabProps = {
   messagesByThread: Record<string, EncryptedMessage[]>;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
   messageStatus: string;
+  role: "tutor" | "student";
 };
 
 type RequestItemActions = {
@@ -127,7 +128,7 @@ function RequestItemCard({
       {variant === "incoming" ? (
         <>
           <div>
-            <strong>{t("requests.student")}:</strong> {item.counterpartyLabel}
+            <strong>{t("requests.partyRole.student")}:</strong> {item.counterpartyLabel}
           </div>
           {item.reasonLabel ? (
             <div>
@@ -357,9 +358,11 @@ export function RequestsTab({
   onCancelRequest,
   messagesByThread,
   onSendMessage,
-  messageStatus
+  messageStatus,
+  role
 }: RequestsTabProps) {
   const { t } = useI18n();
+  const isStudent = role === "student";
 
   if (viewModel.selectedRequest) {
     return (
@@ -377,36 +380,44 @@ export function RequestsTab({
 
   return (
     <section className="tab-panel requests-tab">
-      <div className="segmented">
-        <button
-          type="button"
-          aria-label={t("requests.incoming")}
-          className={requestSegment === "incoming" ? "active" : ""}
-          onClick={() => {
-            onRequestSegmentChange("incoming");
-            onSelectRequest(null);
-          }}
-        >
-          <Inbox size={18} aria-hidden="true" />
-          <span className="sr-only">{t("requests.incoming")}</span>
-        </button>
-        <button
-          type="button"
-          aria-label={t("requests.outgoing")}
-          className={requestSegment === "outgoing" ? "active" : ""}
-          onClick={() => {
-            onRequestSegmentChange("outgoing");
-            onSelectRequest(null);
-          }}
-        >
-          <Send size={18} aria-hidden="true" />
-          <span className="sr-only">{t("requests.outgoing")}</span>
-        </button>
-      </div>
+      {isStudent ? (
+        <h2 className="sr-only">{t("requests.outgoing")}</h2>
+      ) : (
+        <div className="segmented">
+          <button
+            type="button"
+            aria-label={t("requests.incoming")}
+            className={requestSegment === "incoming" ? "active" : ""}
+            onClick={() => {
+              onRequestSegmentChange("incoming");
+              onSelectRequest(null);
+            }}
+          >
+            <Inbox size={18} aria-hidden="true" />
+            <span className="sr-only">{t("requests.incoming")}</span>
+          </button>
+          <button
+            type="button"
+            aria-label={t("requests.outgoing")}
+            className={requestSegment === "outgoing" ? "active" : ""}
+            onClick={() => {
+              onRequestSegmentChange("outgoing");
+              onSelectRequest(null);
+            }}
+          >
+            <Send size={18} aria-hidden="true" />
+            <span className="sr-only">{t("requests.outgoing")}</span>
+          </button>
+        </div>
+      )}
 
       {viewModel.isEmpty ? (
-        <p className="muted">{t("requests.empty")}</p>
-      ) : requestSegment === "incoming" ? (
+        <p className="muted">
+          {isStudent
+            ? t("requests.student.empty")
+            : t("requests.empty")}
+        </p>
+      ) : requestSegment === "incoming" && !isStudent ? (
         <IncomingRequestGroups
           groups={viewModel.incomingGroups}
           onSelectRequest={onSelectRequest}

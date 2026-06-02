@@ -49,5 +49,12 @@
     "avatarUrl": "Avatar URL",
     "avatarPlaceholder": "https://example.com/avatar.png",
     "publish": "Publish profile"
+  },
+  "student": {
+    "dashboardTitle": "Student dashboard",
+    "dashboardIntro": "Keep your public profile current so tutors can match you to the right lessons.",
+    "publicProfile": "Public profile snapshot",
+    "upcomingTitle": "My upcoming lessons",
+    "upcomingEmpty": "No upcoming lessons yet — discover a tutor to book your first session."
   }
 }

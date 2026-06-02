@@ -15,7 +15,13 @@
   "candidates": "Кандидати: {{count}}",
   "allocated": "Розподілено",
   "pendingCount": "Очікують: {{count}}",
-  "student": "Студент",
+  "partyRole": {
+    "student": "Студент"
+  },
   "subject": "Предмет",
-  "defaultSubject": "Урок із тьютором"
+  "defaultSubject": "Урок із тьютором",
+  "student": {
+    "empty": "Ви ще не надіслали жодного запиту.",
+    "incomingHidden": "Вхідні запити доступні лише тьюторам."
+  }
 }

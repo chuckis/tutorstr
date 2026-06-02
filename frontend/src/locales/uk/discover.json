@@ -26,5 +26,7 @@
   "requested": "Запрошено",
   "sentTo": "Надіслано: {{value}}",
   "activeRequestHint": "У вас уже є активний запит на цей слот.",
-  "slotAllocatedHint": "Цей слот уже розподілено."
+  "slotAllocatedHint": "Цей слот уже розподілено.",
+  "studentChat": "Повідомлення тьютору",
+  "tutorAnnouncements": "Оголошення тьютора"
 }
