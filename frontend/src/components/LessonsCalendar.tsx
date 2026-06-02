@@ -3,12 +3,12 @@ import { useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { buildWeekDays } from "../application/usecases/buildWeekDays";
 import { getWeekRangeLabel } from "../application/usecases/getWeekRangeLabel";
-import { groupSlotsByDay } from "../application/usecases/groupSlotsByDay";
 import { isSameLocalDay } from "../application/usecases/isSameLocalDay";
-import { TimeSlot } from "../domain/TimeSlot";
+import { Lesson } from "../domain/lesson";
 
-type AvailabilityCalendarProps = {
-  slots: TimeSlot[];
+type LessonsCalendarProps = {
+  lessons: Lesson[];
+  onSelectLesson?: (lesson: Lesson) => void;
   anchor?: Date;
 };
 
@@ -19,7 +19,35 @@ function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-export function AvailabilityCalendar({ slots, anchor }: AvailabilityCalendarProps) {
+function groupLessonsByDay(lessons: Lesson[], weekDays: Date[]): Lesson[][] {
+  const buckets: Lesson[][] = weekDays.map(() => []);
+
+  for (const lesson of lessons) {
+    const startDate = new Date(lesson.scheduledAt);
+    if (Number.isNaN(startDate.getTime())) {
+      continue;
+    }
+
+    const dayIndex = weekDays.findIndex((day) => isSameLocalDay(day, startDate));
+    if (dayIndex === -1) {
+      continue;
+    }
+
+    buckets[dayIndex].push(lesson);
+  }
+
+  for (const bucket of buckets) {
+    bucket.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+  }
+
+  return buckets;
+}
+
+export function LessonsCalendar({
+  lessons,
+  onSelectLesson,
+  anchor
+}: LessonsCalendarProps) {
   const { t, locale, formatTime } = useI18n();
   const today = useMemo(() => startOfDay(new Date()), []);
   const initialAnchor = useMemo(
@@ -32,7 +60,10 @@ export function AvailabilityCalendar({ slots, anchor }: AvailabilityCalendarProp
     () => buildWeekDays(currentAnchor, WEEK_STARTS_ON),
     [currentAnchor]
   );
-  const buckets = useMemo(() => groupSlotsByDay(slots, weekDays), [slots, weekDays]);
+  const buckets = useMemo(
+    () => groupLessonsByDay(lessons, weekDays),
+    [lessons, weekDays]
+  );
   const weekLabel = useMemo(
     () => getWeekRangeLabel(weekDays, locale),
     [weekDays, locale]
@@ -56,81 +87,84 @@ export function AvailabilityCalendar({ slots, anchor }: AvailabilityCalendarProp
   }
 
   return (
-    <section className="availability-calendar" aria-label={t("schedule.calendar.title")}>
-      <div className="availability-calendar-toolbar">
+    <section className="lessons-calendar" aria-label={t("lessons.calendar.title")}>
+      <div className="lessons-calendar-toolbar">
         <button
           type="button"
           className="ghost-action icon-only-button"
-          aria-label={t("schedule.calendar.weekPrev")}
+          aria-label={t("lessons.calendar.weekPrev")}
           onClick={() => shiftWeek(-7)}
         >
           <ChevronLeft size={18} aria-hidden="true" />
         </button>
-        <div className="availability-calendar-range" aria-live="polite">
+        <div className="lessons-calendar-range" aria-live="polite">
           {weekLabel}
         </div>
         <button
           type="button"
-          className="availability-calendar-today"
+          className="lessons-calendar-today"
           onClick={goToToday}
         >
-          {t("schedule.calendar.weekToday")}
+          {t("lessons.calendar.weekToday")}
         </button>
         <button
           type="button"
           className="ghost-action icon-only-button"
-          aria-label={t("schedule.calendar.weekNext")}
+          aria-label={t("lessons.calendar.weekNext")}
           onClick={() => shiftWeek(7)}
         >
           <ChevronRight size={18} aria-hidden="true" />
         </button>
       </div>
 
-      <div className="availability-calendar-grid">
+      <div className="lessons-calendar-grid">
         {weekDays.map((day, index) => {
           const isToday = isSameLocalDay(day, today);
-          const daySlots = buckets[index] ?? [];
+          const dayLessons = buckets[index] ?? [];
 
           return (
             <div
               key={day.toISOString()}
-              className={`availability-calendar-day${isToday ? " is-today" : ""}`}
+              className={`lessons-calendar-day${isToday ? " is-today" : ""}`}
             >
-              <div className="availability-calendar-day-header">
-                <span className="availability-calendar-weekday">
+              <div className="lessons-calendar-day-header">
+                <span className="lessons-calendar-weekday">
                   {weekdayShort(index)}
                 </span>
-                <span className="availability-calendar-day-number">
+                <span className="lessons-calendar-day-number">
                   {dayNumber(day)}
                 </span>
               </div>
-              <div className="availability-calendar-day-body">
-                {daySlots.length === 0 ? (
-                  <span className="availability-calendar-empty muted">
-                    {t("schedule.calendar.emptyDay")}
+              <div className="lessons-calendar-day-body">
+                {dayLessons.length === 0 ? (
+                  <span className="lessons-calendar-empty muted">
+                    {t("lessons.calendar.emptyDay")}
                   </span>
                 ) : (
-                  daySlots.map((slot, slotIndex) => (
-                    <div
-                      key={`${slot.start}-${slotIndex}`}
-                      className="availability-slot"
-                    >
-                      <span className="availability-slot-time">
-                        {formatTime(slot.start)}
-                        {slot.end ? `–${formatTime(slot.end)}` : ""}
-                      </span>
-                    </div>
-                  ))
+                  dayLessons.map((lesson) => {
+                    const title = lesson.subject || t("lessons.defaultTitle");
+                    return (
+                      <button
+                        key={lesson.id}
+                        type="button"
+                        className="lessons-calendar-lesson"
+                        onClick={() => onSelectLesson?.(lesson)}
+                      >
+                        <span className="lessons-calendar-lesson-time">
+                          {formatTime(lesson.scheduledAt)}
+                        </span>
+                        <span className="lessons-calendar-lesson-title">
+                          {title}
+                        </span>
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </div>
           );
         })}
       </div>
-
-      <p className="muted availability-calendar-hint">
-        {t("schedule.calendar.hint")}
-      </p>
     </section>
   );
 }

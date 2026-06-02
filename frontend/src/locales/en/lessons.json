@@ -13,5 +13,16 @@
   "saveNote": "Save note",
   "upcoming": "Upcoming",
   "past": "Past",
-  "empty": "No lessons in this segment."
+  "empty": "No lessons in this segment.",
+  "viewMode": {
+    "list": "List view",
+    "calendar": "Calendar view"
+  },
+  "calendar": {
+    "title": "Lessons calendar",
+    "weekPrev": "Previous week",
+    "weekNext": "Next week",
+    "weekToday": "Today",
+    "emptyDay": "—"
+  }
 }

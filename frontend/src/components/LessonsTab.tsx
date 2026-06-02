@@ -1,13 +1,16 @@
-import { CalendarClock, History } from "lucide-react";
+import { CalendarClock, CalendarRange, History, List } from "lucide-react";
+import { useState } from "react";
 import { Lesson, LessonStatus } from "../domain/lesson";
 import { lessonMessageThreadKey } from "../domain/messageThread";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
 import { toDisplayId } from "../utils/display";
+import { LessonsCalendar } from "./LessonsCalendar";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 
 type LessonSegment = "upcoming" | "past";
+type LessonViewMode = "list" | "calendar";
 
 type LessonsTabProps = {
   selectedLesson: Lesson | null;
@@ -51,6 +54,7 @@ export function LessonsTab({
   messageStatus
 }: LessonsTabProps) {
   const { t, formatDateTime } = useI18n();
+  const [viewMode, setViewMode] = useState<LessonViewMode>("list");
   if (selectedLesson) {
     const threadKey = lessonMessageThreadKey(selectedLesson);
     const counterpartyPubkey =
@@ -159,6 +163,7 @@ export function LessonsTab({
 
   const lessons =
     lessonSegment === "upcoming" ? lessonBuckets.upcoming : lessonBuckets.past;
+  const showCalendar = lessonSegment === "upcoming" && viewMode === "calendar";
 
   return (
     <section className="tab-panel lessons-tab">
@@ -183,49 +188,83 @@ export function LessonsTab({
             <span className="sr-only">{t("lessons.past")}</span>
           </button>
         </div>
-        <ul className="lesson-list">
-          {lessons.map((lesson) => {
-            const counterparty =
-              lesson.tutorId === currentPubkey ? lesson.studentId : lesson.tutorId;
-            const name = tutors[counterparty]?.profile.name || toDisplayId(counterparty);
-            const unreadCount = getUnreadCount(lessonMessageThreadKey(lesson));
-
-            return (
-              <li
-                key={lesson.id}
-                className={`lesson-card ${unreadCount > 0 ? "has-unread" : ""}`.trim()}
-                onClick={() => onSelectLesson(lesson)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onSelectLesson(lesson);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-              >
-                <div>
-                  <strong>{lesson.subject || t("lessons.defaultTitle")}</strong>
-                </div>
-                <div>{formatDateTime(lesson.scheduledAt)}</div>
-                <div>{name}</div>
-                {unreadCount > 0 ? (
-                  <span className="inline-indicator">
-                    {unreadCount === 1
-                      ? t("common.indicators.new")
-                      : t("common.indicators.newCount", { count: unreadCount })}
-                  </span>
-                ) : null}
-                <span className={`status-pill status-${lesson.status}`}>
-                  {t(`common.status.${lesson.status}`)} 
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-        {lessons.length === 0 ? (
-          <p className="muted">{t("lessons.empty")}</p>
+        {lessonSegment === "upcoming" ? (
+          <div className="segmented">
+            <button
+              type="button"
+              aria-label={t("lessons.viewMode.list")}
+              className={viewMode === "list" ? "active" : ""}
+              onClick={() => setViewMode("list")}
+            >
+              <List size={18} aria-hidden="true" />
+              <span className="sr-only">{t("lessons.viewMode.list")}</span>
+            </button>
+            <button
+              type="button"
+              aria-label={t("lessons.viewMode.calendar")}
+              className={viewMode === "calendar" ? "active" : ""}
+              onClick={() => setViewMode("calendar")}
+            >
+              <CalendarRange size={18} aria-hidden="true" />
+              <span className="sr-only">{t("lessons.viewMode.calendar")}</span>
+            </button>
+          </div>
         ) : null}
+        {showCalendar ? (
+          <LessonsCalendar
+            lessons={lessonBuckets.upcoming}
+            onSelectLesson={onSelectLesson}
+          />
+        ) : (
+          <>
+            <ul className="lesson-list">
+              {lessons.map((lesson) => {
+                const counterparty =
+                  lesson.tutorId === currentPubkey
+                    ? lesson.studentId
+                    : lesson.tutorId;
+                const name =
+                  tutors[counterparty]?.profile.name || toDisplayId(counterparty);
+                const unreadCount = getUnreadCount(lessonMessageThreadKey(lesson));
+
+                return (
+                  <li
+                    key={lesson.id}
+                    className={`lesson-card ${unreadCount > 0 ? "has-unread" : ""}`.trim()}
+                    onClick={() => onSelectLesson(lesson)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onSelectLesson(lesson);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div>
+                      <strong>{lesson.subject || t("lessons.defaultTitle")}</strong>
+                    </div>
+                    <div>{formatDateTime(lesson.scheduledAt)}</div>
+                    <div>{name}</div>
+                    {unreadCount > 0 ? (
+                      <span className="inline-indicator">
+                        {unreadCount === 1
+                          ? t("common.indicators.new")
+                          : t("common.indicators.newCount", { count: unreadCount })}
+                      </span>
+                    ) : null}
+                    <span className={`status-pill status-${lesson.status}`}>
+                      {t(`common.status.${lesson.status}`)} 
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            {lessons.length === 0 ? (
+              <p className="muted">{t("lessons.empty")}</p>
+            ) : null}
+          </>
+        )}
       </div>
     </section>
   );

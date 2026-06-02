@@ -1,6 +1,5 @@
 import { useI18n } from "../i18n/I18nProvider";
 import { TutorSchedule } from "../types/nostr";
-import { AvailabilityCalendar } from "./AvailabilityCalendar";
 import { ScheduleForm } from "./ScheduleForm";
 
 type DashboardTabProps = {
@@ -108,13 +107,6 @@ export function DashboardTab({
                 <p className="identity-value">{pubkey}</p>
               </div>
             </div>
-          </article>
-
-          <article className="panel dashboard-calendar-panel">
-            <div className="dashboard-section-heading">
-              <h3>{t("schedule.calendar.title")}</h3>
-            </div>
-            <AvailabilityCalendar slots={schedule.slots} />
           </article>
 
           <article className="panel dashboard-schedule-panel">
