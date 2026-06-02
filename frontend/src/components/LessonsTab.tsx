@@ -189,24 +189,24 @@ export function LessonsTab({
           </button>
         </div>
         {lessonSegment === "upcoming" ? (
-          <div className="segmented">
+          <div className="lessons-view-toggle" role="group" aria-label={t("lessons.viewMode.list")}>
             <button
               type="button"
               aria-label={t("lessons.viewMode.list")}
+              aria-pressed={viewMode === "list"}
               className={viewMode === "list" ? "active" : ""}
               onClick={() => setViewMode("list")}
             >
-              <List size={18} aria-hidden="true" />
-              <span className="sr-only">{t("lessons.viewMode.list")}</span>
+              <List size={14} aria-hidden="true" />
             </button>
             <button
               type="button"
               aria-label={t("lessons.viewMode.calendar")}
+              aria-pressed={viewMode === "calendar"}
               className={viewMode === "calendar" ? "active" : ""}
               onClick={() => setViewMode("calendar")}
             >
-              <CalendarRange size={18} aria-hidden="true" />
-              <span className="sr-only">{t("lessons.viewMode.calendar")}</span>
+              <CalendarRange size={14} aria-hidden="true" />
             </button>
           </div>
         ) : null}
