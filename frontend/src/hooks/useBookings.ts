@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import {
   createNostrBookingRepository,
   mapNostrBookings
-} from "../adapters/nostr/bookingRepository";
+} from "./RepoContext";
 import { AcceptBooking } from "../application/usecases/acceptBooking";
 import { createAcceptedLessonFactory } from "../application/usecases/createAcceptedLessonFactory";
 import {

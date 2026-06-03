@@ -50,8 +50,17 @@ Responsibilities:
 
 Current consumers:
 
-- [`useLessons.ts`](../../hooks/useLessons.ts)
-- [`useLessonRepository.ts`](../../hooks/useLessonRepository.ts)
+- [`lessonRepository.ts`](./lessonRepository.ts)
+
+### Other repository adapters
+
+| File | Port | Kind | Used by |
+|------|------|------|---------|
+| `nostrSignerManager.ts` | `SignerManager` | — | `useAuthController`, `useNostrKeypair` |
+| `profileEventRepository.ts` | `ProfileEventRepository` | 30000 | `useTutorProfile`, `useTutorDirectory` |
+| `scheduleEventRepository.ts` | `ScheduleEventRepository` | 30001 | `useTutorSchedule`, `useTutorSchedules` |
+| `publicLessonRepository.ts` | `PublicLessonRepository` | 30006 | `usePublicAllocatedSlots` |
+| `relayManager.ts` | `RelayManager` | — | `useRelays` |
 
 ## Design rule
 

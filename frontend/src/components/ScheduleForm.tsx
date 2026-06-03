@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
-import { ScheduleSlot, TutorSchedule } from "../types/nostr";
+import { TimeSlot, TutorSchedule } from "../hooks/hookTypes";
 import { addMinutesToDateTimeLocal } from "../utils/dateTimeLocal";
 
-const emptySlot: ScheduleSlot = { start: "", end: "" };
+const emptySlot: TimeSlot = { start: "", end: "" };
 
 type ScheduleFormProps = {
   schedule: TutorSchedule;
@@ -13,17 +13,16 @@ type ScheduleFormProps = {
 
 export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps) {
   const { t, formatDateTime } = useI18n();
-  const [newSlot, setNewSlot] = useState<ScheduleSlot>(emptySlot);
+  const [newSlot, setNewSlot] = useState<TimeSlot>(emptySlot);
   const [isDirty, setIsDirty] = useState(false);
 
   function addSlot() {
     if (!newSlot.start || !newSlot.end) return;
     onChange({
       ...schedule,
-      slots: [...schedule.slots, { start: newSlot.start, end: newSlot.end }],
+      slots: [...schedule.slots, newSlot as TimeSlot]
     });
     setNewSlot(emptySlot);
-    setIsDirty(true);
   }
 
   function removeSlot(index: number) {

@@ -1,9 +1,8 @@
 import { CalendarClock, CalendarRange, History, List } from "lucide-react";
 import { useState } from "react";
-import { Lesson, LessonStatus } from "../domain/lesson";
-import { lessonMessageThreadKey } from "../domain/messageThread";
+import { Lesson, LessonStatus, lessonMessageThreadKey, EncryptedMessage } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
-import { EncryptedMessage, TutorProfileEvent } from "../types/nostr";
+import { TutorProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
 import { LessonsCalendar } from "./LessonsCalendar";
 import { MessageComposer } from "./MessageComposer";

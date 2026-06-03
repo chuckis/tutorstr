@@ -1,4 +1,4 @@
-import { BookingRequestEvent, BookingStatusEvent } from "../types/nostr";
+import { BookingRequestEvent, BookingStatusEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 
 type MyBookingRequestsProps = {

@@ -1,10 +1,5 @@
-import { useMemo } from "react";
-import { createNostrLessonAgreementEventsRepository } from "../adapters/nostr/lessonAgreementEventsRepository";
-import { LessonAgreementEventsRepository } from "../ports/lessonAgreementEventsRepository";
+import { useRepo } from "./RepoContext";
 
 export function useLessonAgreementEventsRepository() {
-  return useMemo<LessonAgreementEventsRepository>(
-    () => createNostrLessonAgreementEventsRepository(),
-    []
-  );
+  return useRepo().lessonAgreementEventsRepository;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { LessonAgreementEvent } from "../../types/nostr";
+import { LessonAgreementEvent } from "../../ports/lessonAgreementEventsRepository";
 import { createNostrLessonRepository } from "./lessonRepository";
 
 function makeAgreement(

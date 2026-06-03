@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
-import { nostrClient } from "../nostr/client";
+import { useRepo } from "./RepoContext";
 
 const STORAGE_KEY = "nostr_relays";
 const DEFAULT_RELAYS = ["wss://relay.damus.io", "wss://nos.lol"].join("\n");
@@ -8,6 +8,7 @@ const DEFAULT_RELAYS = ["wss://relay.damus.io", "wss://nos.lol"].join("\n");
 
 export function useRelays() {
   const { t } = useI18n();
+  const { relayManager } = useRepo();
   const [relayInput, setRelayInput] = useState<string>(
     () => localStorage.getItem(STORAGE_KEY) ?? DEFAULT_RELAYS
   );
@@ -28,7 +29,7 @@ export function useRelays() {
       return;
     }
 
-    nostrClient.setRelays(parsed);
+    relayManager.setRelays(parsed);
     setRelayStatus(t("profile.saveRelays"));
   }
 

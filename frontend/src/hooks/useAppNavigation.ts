@@ -3,7 +3,7 @@ import { AccountRole } from "../domain/account";
 import { effectiveRequestSegment } from "../application/account/requestSegment";
 import { Booking } from "../domain/booking";
 import { Lesson } from "../domain/lesson";
-import { TutorProfileEvent } from "../types/nostr";
+import { TutorProfileEvent } from "../ports/eventTypes";
 
 export type MainTab = "discover" | "requests" | "lessons" | "profile";
 export type RequestSegment = "incoming" | "outgoing";

@@ -1,7 +1,7 @@
 import { Booking } from "../../domain/booking";
 import { makeSlotAllocationKey } from "../../domain/slotAllocation";
 import { BookingRepository } from "../../ports/bookingRepository";
-import { BookingRequestEvent, BookingStatusEvent } from "../../types/nostr";
+import { BookingRequestEvent, BookingStatusEvent } from "../../ports/bookingEventsRepository";
 import { bookingFromNostr, bookingStatusToNostr } from "./bookingAdapter";
 
 type PublishBookingStatus = (

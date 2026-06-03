@@ -1,10 +1,8 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
-import { buildWeekDays } from "../application/usecases/buildWeekDays";
-import { getWeekRangeLabel } from "../application/usecases/getWeekRangeLabel";
-import { isSameLocalDay } from "../application/usecases/isSameLocalDay";
-import { Lesson } from "../domain/lesson";
+import { buildWeekDays, getWeekRangeLabel, isSameLocalDay } from "../utils/calendar";
+import { Lesson } from "../hooks/hookTypes";
 
 type LessonsCalendarProps = {
   lessons: Lesson[];

@@ -1,6 +1,6 @@
 import { AccountRole } from "../../domain/account";
 import { assertRole } from "../account/assertRole";
-import { TutorSchedule } from "../../types/nostr";
+import { TutorSchedule } from "../../domain/schedule";
 
 export type SchedulePublisher = (schedule: TutorSchedule) => Promise<void>;
 

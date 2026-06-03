@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { ProgressEntry } from "../types/nostr";
+import { ProgressEntry } from "../domain/progress";
 import { usePrivateMessagingRepository } from "./usePrivateMessagingRepository";
 
 export function usePrivateMessagingActions() {

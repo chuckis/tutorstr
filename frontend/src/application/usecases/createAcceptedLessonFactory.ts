@@ -1,5 +1,5 @@
 import { Lesson } from "../../domain/lesson";
-import { BookingRequestEvent } from "../../types/nostr";
+import { BookingRequestEvent } from "../../ports/bookingEventsRepository";
 
 export type AcceptedLessonFactory = (input: {
   bookingId: string;

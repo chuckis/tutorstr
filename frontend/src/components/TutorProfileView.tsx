@@ -1,11 +1,5 @@
-import {
-  BookingRequestEvent,
-  BookingStatusEvent,
-  EncryptedMessage,
-  ProgressEntryEvent,
-  TutorProfileEvent,
-  TutorScheduleEvent
-} from "../types/nostr";
+import { EncryptedMessage } from "../hooks/hookTypes";
+import { BookingRequestEvent, BookingStatusEvent, ProgressEntryEvent, TutorProfileEvent, TutorScheduleEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { BookingRequestForm } from "./BookingRequestForm";
 import { MessageComposer } from "./MessageComposer";

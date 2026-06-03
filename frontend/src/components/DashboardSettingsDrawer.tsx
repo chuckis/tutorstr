@@ -1,9 +1,8 @@
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { AccountRole } from "../domain/account";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
-import { TutorProfile } from "../types/nostr";
+import { AccountRole, TutorProfile } from "../hooks/hookTypes";
 import { ProfileForm } from "./ProfileForm";
 import { RelayConfig } from "./RelayConfig";
 

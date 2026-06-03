@@ -12,5 +12,6 @@ Nostr relay client, configuration, and event kind definitions.
 
 ## Rules
 
-- Only imported by adapters and hooks (repository layer)
+- Only imported by adapters (repository layer) — `App.tsx` and `RepoContext.tsx` are the composition root exceptions
+- Hooks no longer import from here; they access Nostr through `RepoContext` port adapters
 - UI components never import from here directly

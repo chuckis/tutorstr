@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { createNostrLessonRepository } from "../adapters/nostr/lessonRepository";
+import { createNostrLessonRepository } from "./RepoContext";
 import { LessonRepository } from "../ports/lessonRepository";
 import { useLessonAgreementEventsRepository } from "./useLessonAgreementEventsRepository";
 import { useLessonAgreementsForUser } from "./useLessonAgreementsForUser";

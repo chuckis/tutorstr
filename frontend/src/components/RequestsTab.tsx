@@ -6,9 +6,9 @@ import {
   RequestsTabViewModel,
   SelectedRequest,
   SelectedRequestViewModel
-} from "../application/usecases/buildRequestsTabViewModel";
+} from "../hooks/useRequestsTabViewModel";
 import { useI18n } from "../i18n/I18nProvider";
-import { EncryptedMessage } from "../types/nostr";
+import { EncryptedMessage } from "../hooks/hookTypes";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 import { RequestCard } from "./RequestCard";

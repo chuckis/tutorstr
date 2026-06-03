@@ -1,4 +1,5 @@
-import { TutorProfile, TutorSchedule } from "../types/nostr";
+import { TutorProfile } from "../domain/profile";
+import { TutorSchedule } from "../domain/schedule";
 
 export const emptyProfile: TutorProfile = {
   name: "",

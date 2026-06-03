@@ -1,6 +1,6 @@
 import { SimplePool } from "nostr-tools/pool";
 import { DEFAULT_RELAYS } from "./config";
-import { NostrSigner } from "../adapters/nostr/vaultNostrSigner";
+import { NostrSigner } from "../ports/nostrSigner";
 
 export type NostrFilter = {
   ids?: string[];

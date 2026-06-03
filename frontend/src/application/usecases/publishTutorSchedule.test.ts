@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { TutorSchedule } from "../../types/nostr";
+import { TutorSchedule } from "../../domain/schedule";
 import { PublishTutorSchedule } from "./publishTutorSchedule";
 import { RoleMismatchError } from "../account/assertRole";
 

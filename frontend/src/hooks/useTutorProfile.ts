@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
-import { nostrClient } from "../nostr/client";
-import { TutorProfile } from "../types/nostr";
+import { useRepo } from "./RepoContext";
+import { TutorProfile } from "../domain/profile";
 import { emptyProfile, normalizeProfile } from "../utils/normalize";
 
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
@@ -15,6 +15,7 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
 
 export function useTutorProfile(pubkey: string) {
   const { t } = useI18n();
+  const { profileEventRepository } = useRepo();
   const [profile, setProfile] = useState<TutorProfile>(emptyProfile);
   const [status, setStatus] = useState<string>("");
   const [lastEventId, setLastEventId] = useState<string>("");
@@ -48,8 +49,8 @@ export function useTutorProfile(pubkey: string) {
       }
     }
 
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [30000], authors: [pubkey], limit: 1 },
+    const unsubscribe = profileEventRepository.subscribe(
+      pubkey,
       (event) => {
         try {
           const parsed = normalizeProfile(
@@ -64,6 +65,7 @@ export function useTutorProfile(pubkey: string) {
         }
       },
       {
+        limit: 1,
         onEose: () => {
           if (autoPublishStartedRef.current) {
             return;
@@ -82,15 +84,15 @@ export function useTutorProfile(pubkey: string) {
     setStatus(t("profile.form.publish"));
 
     try {
-      const published = await nostrClient.publishReplaceableEvent(
-        30000,
+      const eventId = await profileEventRepository.publish(
+        pubkey,
         JSON.stringify(nextProfile),
         buildProfileTags(nextProfile)
       );
       localStorage.setItem(`tutorhub:profile:${pubkey}`, JSON.stringify(nextProfile));
       latestProfileRef.current = nextProfile;
       setProfile(nextProfile);
-      setLastEventId(published.id);
+      setLastEventId(eventId);
       setStatus(t("profile.form.publish"));
     } catch (error) {
       setStatus(

@@ -1,16 +1,16 @@
-import { Booking } from "../domain/booking";
-import { AccountRole } from "../domain/account";
-import { fallbackDirectMessageThreadKey } from "../domain/messageThread";
-import { SlotOccupancy } from "../domain/slotOccupancy";
-import { TimeSlot } from "../domain/TimeSlot";
-import { makeSlotAllocationKey, makeSlotBidKey } from "../domain/slotAllocation";
 import {
+  Booking,
+  AccountRole,
   BookingRequest,
   EncryptedMessage,
   TutorProfile,
-  TutorProfileEvent,
-  TutorScheduleEvent
-} from "../types/nostr";
+  SlotOccupancy,
+  TimeSlot,
+  fallbackDirectMessageThreadKey,
+  makeSlotAllocationKey,
+  makeSlotBidKey
+} from "../hooks/hookTypes";
+import { TutorProfileEvent, TutorScheduleEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { isProfileEmpty } from "../utils/normalize";
 import { BookingRequestForm } from "./BookingRequestForm";

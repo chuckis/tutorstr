@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { EncryptedMessage } from "../types/nostr";
+import { EncryptedMessage } from "../domain/messaging";
 import { usePrivateMessagingRepository } from "./usePrivateMessagingRepository";
 
 export function useEncryptedMessages(pubkey: string) {

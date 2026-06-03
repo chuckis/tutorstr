@@ -2,12 +2,25 @@ import { useMemo } from "react";
 import {
   buildRequestsTabViewModel,
   RequestSegment,
-  SelectedRequest
+  SelectedRequest,
+  IncomingRequestGroupViewModel,
+  RequestListItemViewModel,
+  RequestsTabViewModel,
+  SelectedRequestViewModel
 } from "../application/usecases/buildRequestsTabViewModel";
 import { Booking } from "../domain/booking";
 import { useI18n } from "../i18n/I18nProvider";
-import { TutorProfileEvent } from "../types/nostr";
+import { TutorProfileEvent } from "../ports/eventTypes";
 import { toDisplayId } from "../utils/display";
+
+export type {
+  RequestSegment,
+  SelectedRequest,
+  IncomingRequestGroupViewModel,
+  RequestListItemViewModel,
+  RequestsTabViewModel,
+  SelectedRequestViewModel
+};
 
 type UseRequestsTabViewModelParams = {
   selectedRequest: SelectedRequest | null;

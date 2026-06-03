@@ -1,6 +1,6 @@
 import { Lesson } from "../../domain/lesson";
 import { LessonRepository } from "../../ports/lessonRepository";
-import { LessonAgreementEvent } from "../../types/nostr";
+import { LessonAgreementEvent } from "../../ports/lessonAgreementEventsRepository";
 import { lessonFromNostr, lessonToNostrStatus } from "./lessonAdapter";
 
 type PublishLessonAgreement = (

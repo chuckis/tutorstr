@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { AccountRole } from "../domain/account";
+import { AccountRole } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 
 type AuthScreenProps = {

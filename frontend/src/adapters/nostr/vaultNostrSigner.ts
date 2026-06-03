@@ -4,14 +4,7 @@ import { AuthSession, MissingVaultError } from "../../domain/auth";
 import { authVaultRepository } from "../auth/localStorageVaultRepository";
 import { webCryptoVaultCipher } from "../auth/webCryptoVaultCipher";
 import { secretKeyHexToBytes } from "../auth/nostrKeyMaterial";
-import { NostrEvent } from "../../nostr/client";
-
-export type NostrSigner = {
-  getSession: () => AuthSession;
-  signEvent: (draft: Omit<NostrEvent, "id" | "pubkey" | "sig">) => Promise<NostrEvent>;
-  encrypt: (recipientPubkey: string, plaintext: string) => Promise<string>;
-  decrypt: (senderPubkey: string, ciphertext: string) => Promise<string | null>;
-};
+import { NostrSigner, SignedEvent } from "../../ports/nostrSigner";
 
 export function createVaultNostrSigner(
   session: AuthSession,
@@ -47,7 +40,7 @@ export function createVaultNostrSigner(
     },
     async signEvent(draft) {
       return withSecretKey(async (secretKey) =>
-        finalizeEvent(draft, secretKey) as NostrEvent
+        finalizeEvent(draft, secretKey) as SignedEvent
       );
     },
     async encrypt(recipientPubkey, plaintext) {

@@ -1,6 +1,6 @@
-import { Lesson, LessonStatus } from "../domain/lesson";
+import { Lesson, LessonStatus } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
-import { TutorProfileEvent } from "../types/nostr";
+import { TutorProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
 
 type LessonAgreementsPanelProps = {

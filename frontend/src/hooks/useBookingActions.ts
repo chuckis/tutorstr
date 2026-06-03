@@ -1,12 +1,9 @@
 import { useCallback } from "react";
 import { useBookingEventsRepository } from "./useBookingEventsRepository";
 import { useLessonAgreementEventsRepository } from "./useLessonAgreementEventsRepository";
-import {
-  BookingRequest,
-  BookingStatus,
-  LessonAgreement,
-  LessonAgreementStatus
-} from "../types/nostr";
+import { BookingRequest } from "../domain/booking";
+import { BookingStatusPayload } from "../ports/bookingEventsRepository";
+import { LessonAgreement, LessonAgreementStatus } from "../domain/lesson";
 
 export function useBookingActions(currentPubkey: string) {
   const bookingEventsRepository = useBookingEventsRepository();
@@ -26,7 +23,7 @@ export function useBookingActions(currentPubkey: string) {
   const publishBookingStatus = useCallback(
     async (
       studentPubkey: string,
-      payload: Omit<BookingStatus, "bookingId"> & { bookingId: string }
+      payload: Omit<BookingStatusPayload, "bookingId"> & { bookingId: string }
     ) => {
       await bookingEventsRepository.publishBookingStatus(studentPubkey, payload);
     },

@@ -1,4 +1,4 @@
-import { EncryptedMessage } from "../types/nostr";
+import { EncryptedMessage } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 
 const MAX_MESSAGES = 6;

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { AccountRole } from "../domain/account";
-import { TutorProfile } from "../types/nostr";
+import { AccountRole, TutorProfile } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { parseList } from "../utils/normalize";
 

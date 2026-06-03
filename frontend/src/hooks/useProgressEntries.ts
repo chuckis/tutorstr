@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ProgressEntryEvent } from "../types/nostr";
+import { ProgressEntryEvent } from "../ports/privateMessagingRepository";
 import { usePrivateMessagingRepository } from "./usePrivateMessagingRepository";
 
 export function useProgressEntries(pubkey: string) {

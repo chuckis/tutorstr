@@ -6,14 +6,14 @@ import { logout as logoutUseCase } from "../application/auth/logout";
 import { restoreStoredSession } from "../application/auth/restoreStoredSession";
 import { saveGeneratedProfile } from "../application/auth/saveGeneratedProfile";
 import { unlockVault } from "../application/auth/unlockVault";
-import { authVaultRepository } from "../adapters/auth/localStorageVaultRepository";
-import { nostrKeyMaterial } from "../adapters/auth/nostrKeyMaterial";
-import { webCryptoVaultCipher } from "../adapters/auth/webCryptoVaultCipher";
-import { createVaultNostrSigner } from "../adapters/nostr/vaultNostrSigner";
 import { AccountRole } from "../domain/account";
 import { AuthError, AuthSession } from "../domain/auth";
 import { useI18n } from "../i18n/I18nProvider";
-import { nostrClient } from "../nostr/client";
+import { AuthVaultRepository } from "../ports/authVaultRepository";
+import { VaultCipher } from "../ports/vaultCipher";
+import { NostrKeyMaterial } from "../ports/nostrKeyMaterial";
+import { NostrSigner } from "../ports/nostrSigner";
+import { SignerManager } from "../ports/signerManager";
 
 type AuthMode = "loading" | "welcome" | "unlock" | "role-pick" | "authenticated";
 
@@ -27,15 +27,18 @@ type PendingRolePick = {
   passphrase: string;
 };
 
-const authDependencies = {
-  vaultRepository: authVaultRepository,
-  vaultCipher: webCryptoVaultCipher,
-  keyMaterial: nostrKeyMaterial
+type AuthDependencies = {
+  vaultRepository: AuthVaultRepository;
+  vaultCipher: VaultCipher;
+  keyMaterial: NostrKeyMaterial;
+  signerManager: SignerManager;
 };
 
-// HYBRID: This hook is the temporary auth composition root during migration.
-// It wires concrete vault/key/signer adapters and pushes the signer into nostrClient.
-// The target architecture is to replace this with an application-facing auth service.
+type SignerFactory = (
+  session: AuthSession,
+  passphrase: string
+) => NostrSigner;
+
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   if (!(error instanceof Error)) {
     return "";
@@ -45,7 +48,10 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   return translated === error.message ? error.message : translated;
 }
 
-export function useAuthController() {
+export function useAuthController(
+  authDeps: AuthDependencies,
+  createSigner: SignerFactory
+) {
   const { t } = useI18n();
   const [mode, setMode] = useState<AuthMode>("loading");
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -56,9 +62,9 @@ export function useAuthController() {
   const [pendingRolePick, setPendingRolePick] = useState<PendingRolePick | null>(null);
 
   useEffect(() => {
-    const restored = restoreStoredSession(authVaultRepository);
+    const restored = restoreStoredSession(authDeps.vaultRepository);
     if (!restored) {
-      nostrClient.setSigner(null);
+      authDeps.signerManager.setSigner(null);
       setSession(null);
       setMode("welcome");
       return;
@@ -66,7 +72,7 @@ export function useAuthController() {
 
     setSession(restored);
     setMode("unlock");
-  }, []);
+  }, [authDeps.signerManager, authDeps.vaultRepository]);
 
   const isAuthenticated = mode === "authenticated" && session !== null;
 
@@ -85,7 +91,7 @@ export function useAuthController() {
         setStatus(t("auth.createTitle"));
 
         try {
-          const result = await createNewProfile(authDependencies, {
+          const result = await createNewProfile(authDeps, {
             passphrase: pendingRolePick.passphrase,
             role
           });
@@ -111,12 +117,12 @@ export function useAuthController() {
         setStatus(t("auth.importPanelTitle"));
 
         try {
-          const nextSession = await importExistingKey(authDependencies, {
+          const nextSession = await importExistingKey(authDeps, {
             secret,
             passphrase
           });
-          const signer = createVaultNostrSigner(nextSession, passphrase);
-          nostrClient.setSigner(signer);
+          const signer = createSigner(nextSession, passphrase);
+          authDeps.signerManager.setSigner(signer);
           setGeneratedNsec("");
           setSession(nextSession);
           setMode("authenticated");
@@ -129,9 +135,9 @@ export function useAuthController() {
         setStatus(t("auth.unlockTitle"));
 
         try {
-          const nextSession = await unlockVault(authDependencies, { passphrase });
-          const signer = createVaultNostrSigner(nextSession, passphrase);
-          nostrClient.setSigner(signer);
+          const nextSession = await unlockVault(authDeps, { passphrase });
+          const signer = createSigner(nextSession, passphrase);
+          authDeps.signerManager.setSigner(signer);
           setSession(nextSession);
           setMode("authenticated");
           setStatus("");
@@ -141,7 +147,7 @@ export function useAuthController() {
       },
       async revealSecret(passphrase: string) {
         try {
-          return await exportSecretKey(authDependencies, { passphrase });
+          return await exportSecretKey(authDeps, { passphrase });
         } catch (error) {
           if (error instanceof AuthError) {
             throw new Error(toLocalizedErrorMessage(error, t) || t("auth.runtime.unexpectedRevealError"));
@@ -151,8 +157,8 @@ export function useAuthController() {
         }
       },
       logout() {
-        logoutUseCase(authVaultRepository);
-        nostrClient.setSigner(null);
+        logoutUseCase(authDeps.vaultRepository);
+        authDeps.signerManager.setSigner(null);
         setGeneratedNsec("");
         setPendingGeneratedProfile(null);
         setSession(null);
@@ -168,18 +174,18 @@ export function useAuthController() {
         setStatus(t("common.app.loadingVault"));
 
         try {
-          await saveGeneratedProfile(authDependencies, {
+          await saveGeneratedProfile(authDeps, {
             secretKeyHex: pendingGeneratedProfile.secretKeyHex,
             passphrase: pendingGeneratedProfile.passphrase,
             pubkey: pendingGeneratedProfile.session.pubkey,
             npub: pendingGeneratedProfile.session.npub,
             role: pendingGeneratedProfile.session.role
           });
-          const signer = createVaultNostrSigner(
+          const signer = createSigner(
             pendingGeneratedProfile.session,
             pendingGeneratedProfile.passphrase
           );
-          nostrClient.setSigner(signer);
+          authDeps.signerManager.setSigner(signer);
           setSession(pendingGeneratedProfile.session);
           setMode("authenticated");
           setGeneratedNsec("");
@@ -192,7 +198,7 @@ export function useAuthController() {
         }
       },
     }),
-    [pendingGeneratedProfile, pendingRolePick, t]
+    [authDeps, createSigner, pendingGeneratedProfile, pendingRolePick, t]
   );
 
   return {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BookingStatusEvent } from "../types/nostr";
+import { BookingStatusEvent } from "../ports/bookingEventsRepository";
 import { useBookingEventsRepository } from "./useBookingEventsRepository";
 
 export function useBookingStatusesForUser(pubkey: string) {

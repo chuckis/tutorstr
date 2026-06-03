@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { nostrClient } from "../nostr/client";
-import { TutorProfileEvent } from "../types/nostr";
+import { useRepo } from "./RepoContext";
+import { TutorProfileEvent } from "../ports/eventTypes";
 import { isProfileEmpty, normalizeProfile } from "../utils/normalize";
 
 export function useTutorDirectory() {
+  const { profileEventRepository } = useRepo();
   const [tutors, setTutors] = useState<Record<string, TutorProfileEvent>>({});
   const [subjectFilter, setSubjectFilter] = useState<string>("");
 
   useEffect(() => {
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [30000], limit: 200 },
+    const unsubscribe = profileEventRepository.subscribeAll(
       (event) => {
         try {
           const parsed = normalizeProfile(JSON.parse(event.content));

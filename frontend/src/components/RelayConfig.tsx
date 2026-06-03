@@ -1,4 +1,4 @@
-import { AppLocale, SUPPORTED_LOCALES } from "../domain/locale";
+import { AppLocale, SUPPORTED_LOCALES } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 
 type RelayConfigProps = {

@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import { nostrClient } from "../nostr/client";
-import { TutorScheduleEvent } from "../types/nostr";
+import { useRepo } from "./RepoContext";
+import { TutorScheduleEvent } from "../ports/eventTypes";
 import { normalizeSchedule } from "../utils/normalize";
 
 export function useTutorSchedules() {
+  const { scheduleEventRepository } = useRepo();
   const [schedules, setSchedules] = useState<
     Record<string, TutorScheduleEvent>
   >({});
 
   useEffect(() => {
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [30001], limit: 200 },
+    const unsubscribe = scheduleEventRepository.subscribeAll(
       (event) => {
         try {
           const parsed = normalizeSchedule(JSON.parse(event.content));

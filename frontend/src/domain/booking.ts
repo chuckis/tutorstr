@@ -10,6 +10,14 @@ export type BookingResolutionReason =
   | "slot_filled"
   | "student_cancelled";
 
+export type BookingRequest = {
+  bookingId: string;
+  requestedSlot: { start: string; end: string };
+  message: string;
+  studentNpub: string;
+  slotAllocationKey?: string;
+};
+
 export type Booking = {
   id: string;
   tutorId: string;

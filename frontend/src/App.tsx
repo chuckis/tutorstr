@@ -9,11 +9,30 @@ import { LessonsTab } from "./components/LessonsTab";
 import { RequestsTab } from "./components/RequestsTab";
 import { useAuthController } from "./hooks/useAuthController";
 import { useAppController } from "./hooks/useAppController";
+import { RepoProvider } from "./hooks/RepoContext";
 import { useI18n } from "./i18n/I18nProvider";
 import { AccountRole } from "./domain/account";
+import { AuthSession } from "./domain/auth";
+import { authVaultRepository } from "./adapters/auth/localStorageVaultRepository";
+import { webCryptoVaultCipher } from "./adapters/auth/webCryptoVaultCipher";
+import { nostrKeyMaterial } from "./adapters/auth/nostrKeyMaterial";
+import { createVaultNostrSigner } from "./adapters/nostr/vaultNostrSigner";
+import { createNostrSignerManager } from "./adapters/nostr/nostrSignerManager";
+import { NostrSigner } from "./ports/nostrSigner";
+
+const authDeps = {
+  vaultRepository: authVaultRepository,
+  vaultCipher: webCryptoVaultCipher,
+  keyMaterial: nostrKeyMaterial,
+  signerManager: createNostrSignerManager()
+};
+
+function createSigner(session: AuthSession, passphrase: string): NostrSigner {
+  return createVaultNostrSigner(session, passphrase);
+}
 
 export default function App() {
-  const auth = useAuthController();
+  const auth = useAuthController(authDeps, createSigner);
   const { t } = useI18n();
 
   if (auth.mode === "loading") {
@@ -50,11 +69,13 @@ export default function App() {
   }
 
   return (
-    <AuthenticatedApp
-      viewerRole={auth.role ?? "tutor"}
-      onLogout={auth.actions.logout}
-      onRevealSecret={auth.actions.revealSecret}
-    />
+    <RepoProvider>
+      <AuthenticatedApp
+        viewerRole={auth.role ?? "tutor"}
+        onLogout={auth.actions.logout}
+        onRevealSecret={auth.actions.revealSecret}
+      />
+    </RepoProvider>
   );
 }
 

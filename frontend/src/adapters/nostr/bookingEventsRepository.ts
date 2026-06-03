@@ -1,7 +1,8 @@
 import { BookingEventsRepository } from "../../ports/bookingEventsRepository";
 import { TutorHubKind } from "../../nostr/kinds";
 import { nostrClient } from "../../nostr/client";
-import { BookingRequest, BookingRequestEvent, BookingStatus, BookingStatusEvent } from "../../types/nostr";
+import { BookingRequest } from "../../domain/booking";
+import { BookingRequestEvent, BookingStatusPayload, BookingStatusEvent } from "../../ports/bookingEventsRepository";
 import { getTagValue } from "../../utils/nostrTags";
 import { makeSlotAllocationKey } from "../../domain/slotAllocation";
 
@@ -39,7 +40,7 @@ function toBookingStatusEvent(
   eventId: string,
   createdAt: number,
   tags: string[][],
-  parsed: BookingStatus
+  parsed: BookingStatusPayload
 ): BookingStatusEvent {
   const bookingId = parsed.bookingId || getTagValue(tags, "d") || eventId;
 
@@ -108,7 +109,7 @@ export function createNostrBookingEventsRepository(): BookingEventsRepository {
         { kinds: [TutorHubKind.BookingStatus], "#p": [pubkey], limit: 200 },
         (event) => {
           try {
-            const parsed = JSON.parse(event.content) as BookingStatus;
+            const parsed = JSON.parse(event.content) as BookingStatusPayload;
             onStatus(
               toBookingStatusEvent(
                 event.pubkey,
@@ -129,7 +130,7 @@ export function createNostrBookingEventsRepository(): BookingEventsRepository {
         { kinds: [TutorHubKind.BookingStatus], authors: [pubkey], limit: 200 },
         (event) => {
           try {
-            const parsed = JSON.parse(event.content) as BookingStatus;
+            const parsed = JSON.parse(event.content) as BookingStatusPayload;
             onStatus(
               toBookingStatusEvent(
                 event.pubkey,
@@ -180,7 +181,8 @@ export function createNostrBookingEventsRepository(): BookingEventsRepository {
     },
 
     async publishBookingStatus(studentPubkey, payload) {
-      const status: BookingStatus = {
+      const status: BookingStatusPayload = {
+
         bookingId: payload.bookingId,
         status: payload.status,
         note: payload.note,

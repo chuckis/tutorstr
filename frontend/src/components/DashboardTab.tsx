@@ -1,7 +1,6 @@
 import { useI18n } from "../i18n/I18nProvider";
-import { AccountRole } from "../domain/account";
-import { Lesson } from "../domain/lesson";
-import { TutorSchedule, TutorProfileEvent } from "../types/nostr";
+import { AccountRole, Lesson, TutorSchedule } from "../hooks/hookTypes";
+import { TutorProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
 import { ScheduleForm } from "./ScheduleForm";
 

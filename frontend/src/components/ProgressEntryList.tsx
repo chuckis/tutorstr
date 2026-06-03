@@ -1,4 +1,4 @@
-import { ProgressEntryEvent } from "../types/nostr";
+import { ProgressEntryEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 
 type ProgressEntryListProps = {

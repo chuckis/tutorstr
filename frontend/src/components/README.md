@@ -32,3 +32,4 @@ React components and tab screens. Pure presentation — no direct Nostr or local
 - Components receive data via props from hooks (not directly from repositories)
 - Role branching uses a `role: AccountRole` prop, not direct auth reads
 - No imports from `nostr/`, `adapters/`, or `ports/`
+- Port event types (e.g. `TutorProfileEvent`) are imported from `../hooks/hookTypes`, never from `../ports/`

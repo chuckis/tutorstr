@@ -1,7 +1,8 @@
 import { LessonAgreementEventsRepository } from "../../ports/lessonAgreementEventsRepository";
 import { TutorHubKind } from "../../nostr/kinds";
 import { nostrClient } from "../../nostr/client";
-import { LessonAgreement, LessonAgreementEvent, LessonAgreementStatus } from "../../types/nostr";
+import { LessonAgreement, LessonAgreementStatus } from "../../domain/lesson";
+import { LessonAgreementEvent } from "../../ports/lessonAgreementEventsRepository";
 import { getTagValue, getTagValues } from "../../utils/nostrTags";
 
 export function toLessonAgreementEvent(

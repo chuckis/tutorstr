@@ -3,7 +3,7 @@ import { AccountRole } from "../domain/account";
 import { Booking } from "../domain/booking";
 import { Lesson } from "../domain/lesson";
 import { lessonMessageThreadKey, requestMessageThreadKey } from "../domain/messageThread";
-import { EncryptedMessage } from "../types/nostr";
+import { EncryptedMessage } from "../domain/messaging";
 
 type Surface = "requests" | "lessons";
 

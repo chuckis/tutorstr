@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSlotEndFromDuration, makeSlotAllocationKey } from "../domain/slotAllocation";
 import { SlotOccupancy } from "../domain/slotOccupancy";
-import { TutorHubKind } from "../nostr/kinds";
-import { nostrClient } from "../nostr/client";
-import { LessonAgreement, LessonAgreementEvent } from "../types/nostr";
+import { useRepo } from "./RepoContext";
+import { LessonAgreement } from "../domain/lesson";
+import { LessonAgreementEvent } from "../ports/lessonAgreementEventsRepository";
 import { getTagValue, getTagValues } from "../utils/nostrTags";
 
 export function usePublicAllocatedSlots() {
+  const { publicLessonRepository } = useRepo();
   const [agreements, setAgreements] = useState<Record<string, LessonAgreementEvent>>(
     {}
   );
 
   useEffect(() => {
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [TutorHubKind.LessonAgreement], limit: 400 },
+    const unsubscribe = publicLessonRepository.subscribeAll(
       (event) => {
         try {
           const parsed = JSON.parse(event.content) as LessonAgreement;

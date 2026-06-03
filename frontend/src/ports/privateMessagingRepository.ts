@@ -1,4 +1,13 @@
-import { EncryptedMessage, ProgressEntry, ProgressEntryEvent } from "../types/nostr";
+import { EncryptedMessage } from "../domain/messaging";
+import { ProgressEntry } from "../domain/progress";
+
+export type ProgressEntryEvent = {
+  id: string;
+  created_at: number;
+  pubkey: string;
+  counterparty: string;
+  entry: ProgressEntry;
+};
 
 export interface PrivateMessagingRepository {
   subscribeMessagesForUser(

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
-import { BookingRequest, TutorScheduleEvent } from "../types/nostr";
+import { BookingRequest } from "../hooks/hookTypes";
+import { TutorScheduleEvent } from "../hooks/hookTypes";
 import { addMinutesToDateTimeLocal } from "../utils/dateTimeLocal";
 
 const emptySlot = { start: "", end: "" };

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
-import { ProgressEntry } from "../types/nostr";
+import { ProgressEntry } from "../hooks/hookTypes";
 
 const emptyEntry: ProgressEntry = {
   topic: "",

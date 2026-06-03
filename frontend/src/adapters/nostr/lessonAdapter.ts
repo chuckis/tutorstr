@@ -1,5 +1,5 @@
-import { Lesson, LessonStatus } from "../../domain/lesson";
-import { LessonAgreement, LessonAgreementEvent } from "../../types/nostr";
+import { Lesson, LessonStatus, LessonAgreement, LessonAgreementStatus } from "../../domain/lesson";
+import { LessonAgreementEvent } from "../../ports/lessonAgreementEventsRepository";
 
 function toLessonStatus(status: string): LessonStatus {
   if (status === "completed") {
@@ -24,9 +24,9 @@ export function lessonFromNostr(event: LessonAgreementEvent): Lesson {
   };
 }
 
-export function lessonToNostrStatus(status: LessonStatus): LessonAgreement["status"] {
+export function lessonToNostrStatus(status: LessonStatus): LessonAgreementStatus {
   if (status === "canceled") {
     return "cancelled";
   }
-  return status;
+  return status as LessonAgreementStatus;
 }

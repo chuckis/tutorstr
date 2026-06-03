@@ -1,7 +1,9 @@
 import { fallbackDirectMessageThreadKey } from "../../domain/messageThread";
 import { PrivateMessagingRepository } from "../../ports/privateMessagingRepository";
 import { nostrClient } from "../../nostr/client";
-import { EncryptedMessage, ProgressEntry, ProgressEntryEvent } from "../../types/nostr";
+import { EncryptedMessage } from "../../domain/messaging";
+import { ProgressEntry } from "../../domain/progress";
+import { ProgressEntryEvent } from "../../ports/privateMessagingRepository";
 import { getTagValue } from "../../utils/nostrTags";
 
 export function createNostrPrivateMessagingRepository(): PrivateMessagingRepository {

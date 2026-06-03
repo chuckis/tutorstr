@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { LessonAgreementEvent } from "../types/nostr";
+import { LessonAgreementEvent } from "../ports/lessonAgreementEventsRepository";
 import { useLessonAgreementEventsRepository } from "./useLessonAgreementEventsRepository";
 
 export function useLessonAgreementsForUser(pubkey: string) {

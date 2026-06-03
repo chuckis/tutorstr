@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { AccountRole } from "../domain/account";
 import { useI18n } from "../i18n/I18nProvider";
-import { nostrClient } from "../nostr/client";
-import { TutorSchedule } from "../types/nostr";
+import { useRepo } from "./RepoContext";
+import { TutorSchedule } from "../domain/schedule";
 import { emptySchedule, normalizeSchedule } from "../utils/normalize";
 import { PublishTutorSchedule } from "../application/usecases/publishTutorSchedule";
 
@@ -17,6 +17,7 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
 
 export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
   const { t } = useI18n();
+  const { scheduleEventRepository } = useRepo();
   const [schedule, setSchedule] = useState<TutorSchedule>(emptySchedule);
   const [status, setStatus] = useState<string>("");
 
@@ -36,8 +37,8 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
       }
     }
 
-    const unsubscribe = nostrClient.subscribe(
-      { kinds: [30001], authors: [pubkey], limit: 1 },
+    const unsubscribe = scheduleEventRepository.subscribe(
+      pubkey,
       (event) => {
         try {
           const parsed = normalizeSchedule(
@@ -59,8 +60,8 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
       new PublishTutorSchedule(async (nextSchedule) => {
         const tags: string[][] = [["t", "role:tutor"]];
         const payload = normalizeSchedule(nextSchedule);
-        await nostrClient.publishReplaceableEvent(
-          30001,
+        await scheduleEventRepository.publish(
+          pubkey,
           JSON.stringify(payload),
           tags
         );
@@ -69,7 +70,7 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
           JSON.stringify(payload)
         );
       }),
-    [pubkey]
+    [pubkey, scheduleEventRepository]
   );
 
   async function publishSchedule(nextSchedule: TutorSchedule) {

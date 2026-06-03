@@ -1,10 +1,5 @@
-import { useMemo } from "react";
-import { createNostrBookingEventsRepository } from "../adapters/nostr/bookingEventsRepository";
-import { BookingEventsRepository } from "../ports/bookingEventsRepository";
+import { useRepo } from "./RepoContext";
 
 export function useBookingEventsRepository() {
-  return useMemo<BookingEventsRepository>(
-    () => createNostrBookingEventsRepository(),
-    []
-  );
+  return useRepo().bookingEventsRepository;
 }

@@ -1,6 +1,6 @@
 import { nip19 } from "nostr-tools";
 import { useI18n } from "../i18n/I18nProvider";
-import { TutorProfileEvent } from "../types/nostr";
+import { TutorProfileEvent } from "../hooks/hookTypes";
 
 type TutorCardProps = {
   entry: TutorProfileEvent;

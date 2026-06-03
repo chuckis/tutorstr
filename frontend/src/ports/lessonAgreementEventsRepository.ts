@@ -1,4 +1,15 @@
-import { LessonAgreement, LessonAgreementEvent, LessonAgreementStatus } from "../types/nostr";
+import { LessonAgreement, LessonAgreementStatus } from "../domain/lesson";
+
+export type LessonAgreementEvent = {
+  id: string;
+  created_at: number;
+  pubkey: string;
+  lessonId: string;
+  tutorPubkey: string;
+  studentPubkey: string;
+  bookingEventId?: string;
+  agreement: LessonAgreement;
+};
 
 export interface LessonAgreementEventsRepository {
   subscribeForUser(

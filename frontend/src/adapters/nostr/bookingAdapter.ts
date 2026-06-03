@@ -1,10 +1,10 @@
 import { Booking, BookingStatus } from "../../domain/booking";
 import { makeSlotAllocationKey } from "../../domain/slotAllocation";
-import { BookingRequestEvent, BookingStatusEvent } from "../../types/nostr";
+import { BookingRequestEvent, BookingStatusEvent } from "../../ports/bookingEventsRepository";
 
 type NostrBookingStatus = BookingStatusEvent["status"]["status"];
 
-function toBookingStatus(status?: string): BookingStatus {
+export function toBookingStatus(status?: string): BookingStatus {
   if (status === "accepted" || status === "rejected" || status === "cancelled") {
     return status;
   }

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LessonAgreement } from "../../types/nostr";
+import { LessonAgreement } from "../../domain/lesson";
 
 describe("toLessonAgreementEvent", () => {
   beforeEach(() => {
