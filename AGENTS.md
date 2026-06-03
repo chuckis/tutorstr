@@ -40,6 +40,22 @@ This repository contains a decentralized tutoring platform built on top of Nostr
 `/.github`
 - CI workflows and templates
 
+## Agents-first layer READMEs
+
+Every architectural layer in `frontend/src/` has a root `README.md` written in agents-first style — concise, structured, dependency-aware. Designed for quick onboarding of both AI agents and developers.
+
+| Layer | README | Purpose |
+|-------|--------|---------|
+| `domain/` | `domain/README.md` | Pure types, value objects, selectors |
+| `ports/` | `ports/README.md` | Interface contracts (zero implementation) |
+| `adapters/` | `adapters/README.md` | Port implementations (localStorage, Web Crypto, Nostr) |
+| `application/` | `application/README.md` | Use cases, auth, role guards |
+| `hooks/` | `hooks/README.md` | React orchestration hooks |
+| `components/` | `components/README.md` | UI components and tab screens |
+| `nostr/` | `nostr/README.md` | Nostr transport (client, config, kinds) |
+
+Each README lists key files with a short purpose, layer-specific rules, and dependency direction. Use them as the entry point before reading individual files.
+
 ## Nostr event kinds in use
 
 - `30000` — Profile (replaceable, tutor or student — see `docs/spec.md` §7.1)
