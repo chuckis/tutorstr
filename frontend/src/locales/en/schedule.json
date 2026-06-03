@@ -8,6 +8,7 @@
   "remove": "Remove",
   "noSlots": "No slots added yet.",
   "publish": "Publish schedule",
+  "unsavedChanges": "You have unsaved changes",
   "calendar": {
     "title": "Availability calendar",
     "hint": "Visual overview of your published slots for the selected week.",

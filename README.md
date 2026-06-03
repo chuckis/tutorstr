@@ -42,6 +42,8 @@ The frontend is moving toward a layered structure where Nostr is an implementati
 
 This refactor is incremental: legacy Nostr hooks still exist, but new UI paths are being migrated onto domain-oriented hooks.
 
+> Dependency map: [`docs/diagrams/actual-dependency-map.mmd`](docs/diagrams/actual-dependency-map.mmd) — visual overview of module dependencies and current violations.
+
 ## Nostr Kinds Used
 
 - `30000` Tutor Profile

@@ -14,33 +14,34 @@ type ScheduleFormProps = {
 export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps) {
   const { t, formatDateTime } = useI18n();
   const [newSlot, setNewSlot] = useState<ScheduleSlot>(emptySlot);
+  const [isDirty, setIsDirty] = useState(false);
 
   function addSlot() {
-    if (!newSlot.start || !newSlot.end) {
-      return;
-    }
+    if (!newSlot.start || !newSlot.end) return;
     onChange({
       ...schedule,
-      slots: [...schedule.slots, { start: newSlot.start, end: newSlot.end }]
+      slots: [...schedule.slots, { start: newSlot.start, end: newSlot.end }],
     });
     setNewSlot(emptySlot);
+    setIsDirty(true);
   }
 
   function removeSlot(index: number) {
     onChange({
       ...schedule,
-      slots: schedule.slots.filter((_, slotIndex) => slotIndex !== index)
+      slots: schedule.slots.filter((_, slotIndex) => slotIndex !== index),
     });
+    setIsDirty(true);
+  }
+
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    onSubmit();
+    setIsDirty(false);
   }
 
   return (
-    <form
-      className="schedule-form"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSubmit();
-      }}
-    >
+    <form className="schedule-form" onSubmit={handleSubmit}>
       <div className="schedule-header">
         <h3>{t("schedule.availability")}</h3>
         <span className="muted">{schedule.timezone}</span>
@@ -66,7 +67,7 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
             onChange={(event) =>
               setNewSlot({
                 start: event.target.value,
-                end: addMinutesToDateTimeLocal(event.target.value, 60)
+                end: addMinutesToDateTimeLocal(event.target.value, 60),
               })
             }
           />
@@ -107,7 +108,12 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
         <p className="muted">{t("schedule.noSlots")}</p>
       )}
 
-      <button type="submit">{t("schedule.publish")}</button>
+      <div className="schedule-footer">
+        <button type="submit">{t("schedule.publish")}</button>
+        {isDirty && (
+          <span className="schedule-unsaved">{t("schedule.unsavedChanges")}</span>
+        )}
+      </div>
     </form>
   );
 }
