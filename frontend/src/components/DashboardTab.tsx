@@ -2,6 +2,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { AccountRole, Lesson, TutorSchedule } from "../hooks/hookTypes";
 import { TutorProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
+import { Avatar } from "./Avatar";
 import { ScheduleForm } from "./ScheduleForm";
 
 type DashboardMode = "tutor" | "student";
@@ -9,6 +10,8 @@ type DashboardMode = "tutor" | "student";
 type DashboardTabProps = {
   npub: string;
   pubkey: string;
+  profileName: string;
+  profileAvatarUrl: string;
   profileBio: string;
   profileSubjects: string[];
   hourlyRate: number;
@@ -30,6 +33,8 @@ function dashboardMode(role: AccountRole): DashboardMode {
 export function DashboardTab({
   npub,
   pubkey,
+  profileName,
+  profileAvatarUrl,
   profileBio,
   profileSubjects,
   hourlyRate,
@@ -60,16 +65,17 @@ export function DashboardTab({
         <article className="panel dashboard-hero">
           <div className="dashboard-hero-copy">
             <p className="dashboard-eyebrow">{t("common.nav.profile")}</p>
-            <h2>
-              {isTutor
-                ? t("profile.dashboardTitle")
-                : t("profile.student.dashboardTitle")}
-            </h2>
-            <p className="muted">
-              {isTutor
-                ? t("profile.dashboardIntro")
-                : t("profile.student.dashboardIntro")}
-            </p>
+            <div className="dashboard-hero-profile">
+              <Avatar url={profileAvatarUrl} role={role} size="lg" />
+              <div>
+                <h2>{profileName || (isTutor ? t("profile.dashboardTitle") : t("profile.student.dashboardTitle"))}</h2>
+                <p className="muted">
+                  {isTutor
+                    ? t("profile.dashboardIntro")
+                    : t("profile.student.dashboardIntro")}
+                </p>
+              </div>
+            </div>
           </div>
         </article>
 

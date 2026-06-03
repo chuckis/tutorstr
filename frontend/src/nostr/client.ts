@@ -92,6 +92,10 @@ export class NostrClient {
     return this.signer?.getSession() ?? null;
   }
 
+  getSigner(): NostrSigner | null {
+    return this.signer;
+  }
+
   private requireSigner() {
     if (!this.signer) {
       throw new Error("common.runtime.authenticationRequired");

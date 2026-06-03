@@ -48,6 +48,9 @@
     "hourlyRate": "Hourly rate (USD)",
     "avatarUrl": "Avatar URL",
     "avatarPlaceholder": "https://example.com/avatar.png",
+    "avatarHint": "Click avatar to upload a new image",
+    "blossomServerUrl": "Blossom server URL",
+    "blossomHint": "Blossom server used to upload profile images. Get a free one at blossom.nostr.build",
     "publish": "Publish profile"
   },
   "student": {

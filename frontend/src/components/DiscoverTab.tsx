@@ -14,6 +14,7 @@ import { TutorProfileEvent, TutorScheduleEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { isProfileEmpty } from "../utils/normalize";
 import { isSlotInPast } from "../domain/TimeSlot";
+import { Avatar } from "./Avatar";
 import { BookingRequestForm } from "./BookingRequestForm";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -111,9 +112,17 @@ export function DiscoverTab({
             {t("discover.backToDiscover")}
           </button>
           <article className="panel">
-            <h2>
-              {selectedTutor.profile.name || t("common.states.unnamedTutor")}
-            </h2>
+            <div className="tutor-profile-header">
+              <Avatar url={selectedTutor.profile.avatarUrl} role="tutor" size="lg" />
+              <div>
+                <h2>
+                  {selectedTutor.profile.name || t("common.states.unnamedTutor")}
+                </h2>
+                <p className="muted">
+                  {selectedTutor.profile.languages.join(", ") || t("common.states.notSet")}
+                </p>
+              </div>
+            </div>
             <p>{selectedTutor.profile.bio || t("common.states.noBioYet")}</p>
             {selectedTutor.profile.subjects.length > 0 ? (
               <div className="chips">

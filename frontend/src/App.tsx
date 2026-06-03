@@ -1,5 +1,5 @@
 import "./App.css";
-import { useMemo, useState } from "react";
+import { useState, useCallback } from "react";
 import { AuthScreen } from "./components/AuthScreen";
 import { BottomNav } from "./components/BottomNav";
 import { DashboardSettingsDrawer } from "./components/DashboardSettingsDrawer";
@@ -7,8 +7,10 @@ import { DashboardTab } from "./components/DashboardTab";
 import { DiscoverTab } from "./components/DiscoverTab";
 import { LessonsTab } from "./components/LessonsTab";
 import { RequestsTab } from "./components/RequestsTab";
+import { Avatar } from "./components/Avatar";
 import { useAuthController } from "./hooks/useAuthController";
 import { useAppController } from "./hooks/useAppController";
+import { useBlossomConfig } from "./hooks/useBlossomConfig";
 import { RepoProvider } from "./hooks/RepoContext";
 import { useI18n } from "./i18n/I18nProvider";
 import { AccountRole } from "./domain/account";
@@ -109,17 +111,13 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     viewModel,
     requestsTabViewModel
   } = useAppController(onLogout, viewerRole);
+  const { blossomUrl, setBlossomUrl, uploadAvatar } = useBlossomConfig();
 
   const profileBadgeLabel = profileState.profile.name || viewModel.viewerLabel;
-  const profileInitials = useMemo(() => {
-    const source = profileBadgeLabel.trim() || keypair.npub.slice(0, 2);
 
-    return source
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join("");
-  }, [keypair.npub, profileBadgeLabel]);
+  const handleAvatarUpload = useCallback(async (file: File) => {
+    await uploadAvatar(file, profileState.profile, profileState.setProfile);
+  }, [uploadAvatar, profileState.profile, profileState.setProfile]);
 
   return (
     <main className="app-shell">
@@ -135,17 +133,11 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             aria-expanded={isSettingsOpen}
             aria-controls="dashboard-settings-drawer"
           >
-            {profileState.profile.avatarUrl ? (
-              <img
-                className="profile-badge-avatar"
-                src={profileState.profile.avatarUrl}
-                alt={profileBadgeLabel}
-              />
-            ) : (
-              <span className="profile-badge-fallback" aria-hidden="true">
-                {profileInitials}
-              </span>
-            )}
+            <Avatar
+              url={profileState.profile.avatarUrl}
+              role={viewerRole}
+              size="sm"
+            />
             <span className="profile-badge-copy">
               <strong>{profileBadgeLabel}</strong>
               <span>{t("profile.openSettings")}</span>
@@ -222,6 +214,8 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
           <DashboardTab
             npub={keypair.npub}
             pubkey={keypair.pubkey}
+            profileName={profileState.profile.name}
+            profileAvatarUrl={profileState.profile.avatarUrl}
             profileBio={profileState.profile.bio}
             profileSubjects={profileState.profile.subjects}
             hourlyRate={profileState.profile.hourlyRate}
@@ -248,6 +242,9 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
         onLogout={actions.logout}
         onRevealSecret={onRevealSecret}
         role={viewerRole}
+        onAvatarUpload={handleAvatarUpload}
+        blossomUrl={blossomUrl}
+        onBlossomUrlChange={setBlossomUrl}
       />
 
       <BottomNav

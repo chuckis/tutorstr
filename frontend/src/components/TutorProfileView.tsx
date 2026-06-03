@@ -1,6 +1,7 @@
 import { EncryptedMessage } from "../hooks/hookTypes";
 import { BookingRequestEvent, BookingStatusEvent, ProgressEntryEvent, TutorProfileEvent, TutorScheduleEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
+import { Avatar } from "./Avatar";
 import { BookingRequestForm } from "./BookingRequestForm";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -44,7 +45,13 @@ export function TutorProfileView({
       <button type="button" className="ghost" onClick={onBack}>
         {t("discover.backToDirectory")}
       </button>
-      <h2>{entry.profile.name || t("common.states.unnamedTutor")}</h2>
+      <div className="tutor-profile-header">
+        <Avatar url={entry.profile.avatarUrl} role="tutor" size="lg" />
+        <div>
+          <h2>{entry.profile.name || t("common.states.unnamedTutor")}</h2>
+          <p className="muted">{entry.profile.languages.join(", ") || "—"}</p>
+        </div>
+      </div>
       <p>{entry.profile.bio || t("common.states.noBioYet")}</p>
       <div className="chips">
         {entry.profile.subjects.map((subject) => (
@@ -52,9 +59,6 @@ export function TutorProfileView({
         ))}
       </div>
       <div className="meta">
-        <span>
-          {t("profile.form.languages")}: {entry.profile.languages.join(", ") || "—"}
-        </span>
         <span>
           {t("discover.rate")}:{" "}
           {entry.profile.hourlyRate

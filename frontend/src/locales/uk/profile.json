@@ -48,6 +48,9 @@
     "hourlyRate": "Погодинна ставка (USD)",
     "avatarUrl": "URL аватара",
     "avatarPlaceholder": "https://example.com/avatar.png",
+    "avatarHint": "Натисніть на аватар щоб завантажити нове зображення",
+    "blossomServerUrl": "URL Blossom сервера",
+    "blossomHint": "Blossom сервер для завантаження зображень. Безкоштовний на blossom.nostr.build",
     "publish": "Опублікувати профіль"
   },
   "student": {

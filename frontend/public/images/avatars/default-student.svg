@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <rect width="256" height="256" rx="128" fill="#f3e5f5"/>
+  <text x="128" y="100" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" fill="#9c27b0" font-weight="600">STUDENT</text>
+  <text x="128" y="140" text-anchor="middle" font-family="system-ui,sans-serif" font-size="40" fill="#7b1fa2">🎓</text>
+  <text x="128" y="180" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#ce93d8">Replace with anime image</text>
+</svg>

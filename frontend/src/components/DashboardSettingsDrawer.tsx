@@ -1,8 +1,9 @@
 import { X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
 import { AccountRole, TutorProfile } from "../hooks/hookTypes";
+import { Avatar } from "./Avatar";
 import { ProfileForm } from "./ProfileForm";
 import { RelayConfig } from "./RelayConfig";
 
@@ -17,6 +18,9 @@ type DashboardSettingsDrawerProps = {
   onLogout: () => void;
   onRevealSecret: (passphrase: string) => Promise<string>;
   role: AccountRole;
+  onAvatarUpload?: (file: File) => Promise<void>;
+  blossomUrl: string;
+  onBlossomUrlChange: (url: string) => void;
 };
 
 export function DashboardSettingsDrawer({
@@ -29,7 +33,10 @@ export function DashboardSettingsDrawer({
   relay,
   onLogout,
   onRevealSecret,
-  role
+  role,
+  onAvatarUpload,
+  blossomUrl,
+  onBlossomUrlChange
 }: DashboardSettingsDrawerProps) {
   const { t } = useI18n();
   const [revealPassphrase, setRevealPassphrase] = useState("");
@@ -37,15 +44,6 @@ export function DashboardSettingsDrawer({
   const [revealedSecret, setRevealedSecret] = useState("");
 
   const displayName = profile.name || t("common.states.unnamedTutor");
-  const profileInitials = useMemo(() => {
-    const source = profile.name.trim() || npub.slice(0, 2);
-
-    return source
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join("");
-  }, [npub, profile.name]);
 
   async function handleRevealSecret() {
     try {
@@ -97,17 +95,13 @@ export function DashboardSettingsDrawer({
         <div className="dashboard-drawer-content">
           <article className="panel dashboard-identity-card">
             <div className="dashboard-identity-card-top">
-              {profile.avatarUrl ? (
-                <img
-                  className="profile-badge-avatar"
-                  src={profile.avatarUrl}
-                  alt={displayName}
-                />
-              ) : (
-                <span className="profile-badge-fallback" aria-hidden="true">
-                  {profileInitials}
-                </span>
-              )}
+              <Avatar
+                url={profile.avatarUrl}
+                role={role}
+                size="md"
+                editable
+                onChange={onAvatarUpload}
+              />
               <div>
                 <h3>{displayName}</h3>
                 <p className="muted">{t("profile.identityHint")}</p>
@@ -125,6 +119,19 @@ export function DashboardSettingsDrawer({
               onSubmit={onPublishProfile}
               role={role}
             />
+          </article>
+
+          <article className="panel">
+            <h3>{t("profile.form.blossomServerUrl")}</h3>
+            <label className="filter">
+              <input
+                type="url"
+                value={blossomUrl}
+                onChange={(event) => onBlossomUrlChange(event.target.value)}
+                placeholder="https://blossom.example.com"
+              />
+            </label>
+            <p className="muted">{t("profile.form.blossomHint")}</p>
           </article>
 
           <RelayConfig
