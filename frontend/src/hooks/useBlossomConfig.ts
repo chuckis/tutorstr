@@ -3,11 +3,23 @@ import { useRepo } from "./RepoContext";
 import { blossomMediaRepository, BLOSSOM_STORAGE_KEY } from "../adapters/nostr/blossomMediaRepository";
 import { TutorProfile } from "../hooks/hookTypes";
 
+export type UploadStatus = { type: "idle" } | { type: "uploading" } | { type: "success"; url: string } | { type: "error"; message: string };
+
+const DEFAULT_BLOSSOM_URL = "https://blossom.nostr.build";
+
 export function useBlossomConfig() {
   const { signerManager } = useRepo();
   const [blossomUrl, setBlossomUrlState] = useState(
-    () => localStorage.getItem(BLOSSOM_STORAGE_KEY) || ""
+    () => {
+      const stored = localStorage.getItem(BLOSSOM_STORAGE_KEY);
+      if (stored) return stored;
+      localStorage.setItem(BLOSSOM_STORAGE_KEY, DEFAULT_BLOSSOM_URL);
+      return DEFAULT_BLOSSOM_URL;
+    }
   );
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>({ type: "idle" });
+
+  const clearUploadStatus = useCallback(() => setUploadStatus({ type: "idle" }), []);
 
   const setBlossomUrl = useCallback((url: string) => {
     setBlossomUrlState(url);
@@ -23,13 +35,20 @@ export function useBlossomConfig() {
     profile: TutorProfile,
     onProfileChange: (p: TutorProfile) => void
   ) => {
-    const signer = signerManager.getSigner();
-    if (!signer) throw new Error("No signer available");
-    const serverUrl = localStorage.getItem(BLOSSOM_STORAGE_KEY);
-    if (!serverUrl) throw new Error("No Blossom server configured");
-    const url = await blossomMediaRepository.upload(file, serverUrl, signer);
-    onProfileChange({ ...profile, avatarUrl: url });
-  }, [signerManager]);
+    setUploadStatus({ type: "uploading" });
+    try {
+      const signer = signerManager.getSigner();
+      if (!signer) throw new Error("No signer available");
+      const serverUrl = blossomUrl || localStorage.getItem(BLOSSOM_STORAGE_KEY);
+      if (!serverUrl) throw new Error("No Blossom server configured");
+      const url = await blossomMediaRepository.upload(file, serverUrl, signer);
+      onProfileChange({ ...profile, avatarUrl: url });
+      setUploadStatus({ type: "success", url });
+    } catch (error) {
+      setUploadStatus({ type: "error", message: error instanceof Error ? error.message : "Upload failed" });
+      throw error;
+    }
+  }, [signerManager, blossomUrl]);
 
-  return { blossomUrl, setBlossomUrl, uploadAvatar };
+  return { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus, clearUploadStatus };
 }

@@ -1,8 +1,9 @@
-import { X } from "lucide-react";
+import { X, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
 import { AccountRole, TutorProfile } from "../hooks/hookTypes";
+import { UploadStatus } from "../hooks/useBlossomConfig";
 import { Avatar } from "./Avatar";
 import { ProfileForm } from "./ProfileForm";
 import { RelayConfig } from "./RelayConfig";
@@ -21,6 +22,7 @@ type DashboardSettingsDrawerProps = {
   onAvatarUpload?: (file: File) => Promise<void>;
   blossomUrl: string;
   onBlossomUrlChange: (url: string) => void;
+  uploadStatus?: UploadStatus;
 };
 
 export function DashboardSettingsDrawer({
@@ -36,7 +38,8 @@ export function DashboardSettingsDrawer({
   role,
   onAvatarUpload,
   blossomUrl,
-  onBlossomUrlChange
+  onBlossomUrlChange,
+  uploadStatus
 }: DashboardSettingsDrawerProps) {
   const { t } = useI18n();
   const [revealPassphrase, setRevealPassphrase] = useState("");
@@ -107,6 +110,22 @@ export function DashboardSettingsDrawer({
                 <p className="muted">{t("profile.identityHint")}</p>
               </div>
             </div>
+            {uploadStatus?.type === "uploading" ? (
+              <p className="upload-status upload-status--loading">
+                <Loader2 size={14} className="spin" aria-hidden="true" />
+                {" "}{t("profile.uploadingAvatar")}
+              </p>
+            ) : uploadStatus?.type === "success" ? (
+              <p className="upload-status upload-status--success">
+                <CheckCircle2 size={14} aria-hidden="true" />
+                {" "}{t("profile.avatarUploaded")}
+              </p>
+            ) : uploadStatus?.type === "error" ? (
+              <p className="upload-status upload-status--error">
+                <AlertCircle size={14} aria-hidden="true" />
+                {" "}{uploadStatus.message}
+              </p>
+            ) : null}
             <p className="muted">{t("profile.npubLabel")}</p>
             <p className="identity-value">{npub}</p>
           </article>

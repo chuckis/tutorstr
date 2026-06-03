@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import { AccountRole } from "../hooks/hookTypes";
 
@@ -19,8 +19,8 @@ const SIZE_MAP: Record<AvatarSize, number> = {
   lg: 96
 };
 
-const DEFAULT_TUTOR = "/images/avatars/default-tutor.svg";
-const DEFAULT_STUDENT = "/images/avatars/default-student.svg";
+const DEFAULT_TUTOR = "/images/avatars/default-tutor.png";
+const DEFAULT_STUDENT = "/images/avatars/default-student.png";
 
 export function Avatar({
   url,
@@ -31,9 +31,10 @@ export function Avatar({
   alt
 }: AvatarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [imgError, setImgError] = useState(false);
   const px = SIZE_MAP[size];
   const defaultSrc = role === "tutor" ? DEFAULT_TUTOR : DEFAULT_STUDENT;
-  const imgSrc = url?.trim() || defaultSrc;
+  const imgSrc = imgError || !url?.trim() ? defaultSrc : url.trim();
 
   function handleClick() {
     if (editable && onChange) {
@@ -70,6 +71,7 @@ export function Avatar({
         alt={alt || ""}
         width={px}
         height={px}
+        onError={() => setImgError(true)}
       />
       {editable ? (
         <div className="avatar-overlay">

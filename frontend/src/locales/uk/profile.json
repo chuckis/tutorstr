@@ -36,6 +36,8 @@
   "revealPassword": "Головний пароль для показу nsec",
   "revealButton": "Показати мій секретний ключ",
   "lastEvent": "Остання подія: {{id}}",
+  "uploadingAvatar": "Завантаження...",
+  "avatarUploaded": "Аватар завантажено!",
   "form": {
     "name": "Ім'я",
     "namePlaceholder": "Ада Лавлейс",

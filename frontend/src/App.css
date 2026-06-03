@@ -1340,6 +1340,39 @@ button:active {
   display: none;
 }
 
+.upload-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.upload-status--loading {
+  color: var(--color-primary);
+  background: rgba(79, 172, 120, 0.08);
+}
+
+.upload-status--success {
+  color: #1b7a3d;
+  background: rgba(27, 122, 61, 0.08);
+}
+
+.upload-status--error {
+  color: #c62828;
+  background: rgba(198, 40, 40, 0.08);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .tutor-card:hover,
   .lesson-card:hover {

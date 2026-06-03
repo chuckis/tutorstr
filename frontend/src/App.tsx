@@ -111,12 +111,16 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     viewModel,
     requestsTabViewModel
   } = useAppController(onLogout, viewerRole);
-  const { blossomUrl, setBlossomUrl, uploadAvatar } = useBlossomConfig();
+  const { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus } = useBlossomConfig();
 
   const profileBadgeLabel = profileState.profile.name || viewModel.viewerLabel;
 
   const handleAvatarUpload = useCallback(async (file: File) => {
-    await uploadAvatar(file, profileState.profile, profileState.setProfile);
+    try {
+      await uploadAvatar(file, profileState.profile, profileState.setProfile);
+    } catch {
+      // error surfaced via uploadStatus
+    }
   }, [uploadAvatar, profileState.profile, profileState.setProfile]);
 
   return (
@@ -245,6 +249,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
         onAvatarUpload={handleAvatarUpload}
         blossomUrl={blossomUrl}
         onBlossomUrlChange={setBlossomUrl}
+        uploadStatus={uploadStatus}
       />
 
       <BottomNav

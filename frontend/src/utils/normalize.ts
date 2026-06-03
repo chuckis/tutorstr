@@ -15,12 +15,14 @@ export const emptySchedule: TutorSchedule = {
   slots: []
 };
 
-export function normalizeProfile(input: Partial<TutorProfile> | null | undefined) {
+export function normalizeProfile(input: Record<string, unknown> | null | undefined) {
   return {
-    ...emptyProfile,
-    ...input,
-    subjects: Array.isArray(input?.subjects) ? input?.subjects : [],
-    languages: Array.isArray(input?.languages) ? input?.languages : []
+    name: typeof input?.name === "string" ? input.name : "",
+    bio: typeof input?.bio === "string" ? input.bio : typeof input?.about === "string" ? input.about : "",
+    subjects: Array.isArray(input?.subjects) ? input.subjects as string[] : [],
+    languages: Array.isArray(input?.languages) ? input.languages as string[] : [],
+    hourlyRate: typeof input?.hourlyRate === "number" ? input.hourlyRate : 0,
+    avatarUrl: typeof input?.avatarUrl === "string" ? input.avatarUrl : typeof input?.picture === "string" ? input.picture : ""
   };
 }
 
