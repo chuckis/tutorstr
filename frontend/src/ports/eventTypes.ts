@@ -4,6 +4,7 @@ import { TutorSchedule } from "../domain/schedule";
 export type TutorProfileEvent = {
   pubkey: string;
   created_at: number;
+  tags: string[][];
   profile: TutorProfile;
 };
 

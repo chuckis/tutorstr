@@ -13,6 +13,7 @@ import {
 import { TutorProfileEvent, TutorScheduleEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { isProfileEmpty } from "../utils/normalize";
+import { isSlotInPast } from "../domain/TimeSlot";
 import { BookingRequestForm } from "./BookingRequestForm";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -131,10 +132,14 @@ export function DiscoverTab({
             </p>
             <div className="stack">
               <h3>{t("discover.publishedSlots")}</h3>
-              {schedules[selectedTutor.pubkey]?.schedule.slots.length ? (
-                <ul className="slot-list">
-                  {schedules[selectedTutor.pubkey].schedule.slots.map(
-                    (slot, index) => {
+              {(() => {
+                const futureSlots =
+                  schedules[selectedTutor.pubkey]?.schedule.slots.filter(
+                    (s) => !isSlotInPast(s)
+                  ) ?? [];
+                return futureSlots.length > 0 ? (
+                  <ul className="slot-list">
+                    {futureSlots.map((slot, index) => {
                       const slotState = getSlotState(
                         selectedTutor.pubkey,
                         slot
@@ -162,12 +167,12 @@ export function DiscoverTab({
                           </div>
                         </li>
                       );
-                    }
-                  )}
-                </ul>
-              ) : (
-                <p className="muted">{t("discover.noSlots")}</p>
-              )}
+                    })}
+                  </ul>
+                ) : (
+                  <p className="muted">{t("discover.noSlots")}</p>
+                );
+              })()}
               {discoverStatus ? (
                 <p className="muted">{discoverStatus}</p>
               ) : null}
