@@ -4,44 +4,62 @@ flowchart LR
   A[application/usecases]
   AA[application/auth]
   AACC[application/account]
+  ALOC[application/locale]
   P[ports]
   D[domain]
   AD[adapters/nostr]
   AAUTH[adapters/auth]
-  ALOC[adapters/locale]
-  N[nostr/client]
+  N[nostr]
   NK[nostr/kinds]
-  NC[nostr/config]
   T[types/nostr]
   U[utils]
+  I[i18n]
 
-  UI --> H
-  UI -.-> A
-  UI -.-> D
+  AACC --> A
+  AACC --> D
+  AAUTH --> D
+  AAUTH --> P
+  AA --> D
+  AA --> P
+  AD -.-> AAUTH
+  AD --> D
+  AD --> N
+  AD --> NK
+  AD --> P
+  AD --> T
+  AD --> U
+  ALOC --> D
+  ALOC --> P
+  A --> AACC
+  A --> D
+  A --> P
+  A -.-> T
   H --> A
   H --> AA
   H --> AACC
-  H --> P
-  H -.-> AD
   H -.-> AAUTH
+  H -.-> AD
+  H --> D
+  H --> I
   H -.-> N
   H -.-> NK
-  AA --> P
-  AA --> D
-  AACC --> P
-  AACC --> D
-  A --> P
-  A --> D
-  AD --> P
-  AD --> D
-  AD --> T
-  AD --> N
-  AD --> NK
-  AAUTH --> P
-  AAUTH --> N
-  ALOC --> P
+  H --> P
+  H -.-> T
+  H --> U
+  I --> ALOC
+  I --> D
   N -.-> AD
-  T -.-> D
+  P --> D
+  P -.-> T
+  T --> D
+  UI -.-> A
+  UI -.-> D
+  UI --> H
+  UI --> I
+  UI -.-> T
+  UI --> U
+  U --> D
+  U --> T
 
   classDef leak stroke:#c2410c,stroke-width:2px,color:#7c2d12;
-  class N,AD,AAUTH,NK,T leak;
+  class A,AAUTH,AD,D,N,NK,T leak;

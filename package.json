@@ -9,9 +9,10 @@
     "dev": "npm --workspace frontend run dev",
     "build": "npm --workspace frontend run build",
     "preview": "npm --workspace frontend run preview",
-    "test": "node -e \"console.log('no tests yet')\""
+    "test": "node -e \"console.log('no tests yet')\"",
+    "depmap": "node scripts/generate-dependency-map.mjs"
   },
-  "dependencies": {
-    "lucide-react": "^1.3.0"
+  "devDependencies": {
+    "madge": "^8.0.0"
   }
 }
