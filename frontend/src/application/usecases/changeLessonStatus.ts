@@ -33,13 +33,9 @@ export class ChangeLessonStatus {
 
     await this.lessons.updateStatus(lesson.id, nextStatus);
 
-    if (
-      nextStatus === "canceled" &&
-      lesson.studentId === viewerPubkey &&
-      lesson.status === "scheduled"
-    ) {
+    if (nextStatus === "canceled" && lesson.status === "scheduled") {
       await this.bookings.updateStatus(lesson.bookingId, "cancelled", {
-        reason: "student_cancelled"
+        reason: "tutor_rejected"
       });
     }
   }

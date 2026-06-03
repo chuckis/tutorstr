@@ -60,7 +60,7 @@ describe("ChangeLessonStatus", () => {
     expect(bookingRepo.updateStatus).not.toHaveBeenCalled();
   });
 
-  it("lets a tutor cancel a scheduled lesson without touching the booking", async () => {
+  it("lets a tutor cancel a scheduled lesson and cancels the underlying booking", async () => {
     const lesson = makeLesson();
     const lessonRepo = makeLessonRepo();
     const bookingRepo = makeBookingRepo();
@@ -73,7 +73,11 @@ describe("ChangeLessonStatus", () => {
     );
 
     expect(lessonRepo.updateStatus).toHaveBeenCalledWith(lesson.id, "canceled");
-    expect(bookingRepo.updateStatus).not.toHaveBeenCalled();
+    expect(bookingRepo.updateStatus).toHaveBeenCalledWith(
+      lesson.bookingId,
+      "cancelled",
+      { reason: "tutor_rejected" }
+    );
   });
 
   it("refuses to complete a lesson when the viewer is a student", async () => {

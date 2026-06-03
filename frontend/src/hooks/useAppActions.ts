@@ -7,7 +7,6 @@ import { Lesson, LessonStatus } from "../domain/lesson";
 import { BookingRepository } from "../ports/bookingRepository";
 import { LessonRepository } from "../ports/lessonRepository";
 import { useI18n } from "../i18n/I18nProvider";
-import { AcceptBooking } from "../application/usecases/acceptBooking";
 import { ChangeLessonStatus } from "../application/usecases/changeLessonStatus";
 import { CancelBooking } from "../application/usecases/cancelBooking";
 import {
