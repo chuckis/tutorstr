@@ -49,7 +49,7 @@ describe("groupLessonsByTimeline", () => {
     );
 
     expect(result.upcoming).toEqual([]);
-    expect(result.past).toEqual([pastScheduled, completedFuture]);
+    expect(result.past).toEqual([completedFuture, pastScheduled]);
   });
 
   it("treats invalid dates as upcoming when the lesson is still scheduled", () => {

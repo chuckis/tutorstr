@@ -105,7 +105,9 @@ function groupIncomingRequests(requestItems: Booking[]) {
     return acc;
   }, {});
 
-  return Object.values(grouped).map(sortIncomingGroup);
+  return Object.values(grouped)
+    .map(sortIncomingGroup)
+    .sort((a, b) => Date.parse(a[0].scheduledAt) - Date.parse(b[0].scheduledAt));
 }
 
 function getCounterpartyPubkey(request: Booking, segment: RequestSegment) {
@@ -214,15 +216,19 @@ export function buildRequestsTabViewModel({
 
   const outgoingRequests =
     requestSegment === "outgoing"
-      ? requestItems.map((request) =>
-          buildRequestListItem({
-            request,
-            segment: "outgoing",
-            profileNamesByPubkey,
-            getUnreadCount,
-            toFallbackDisplayId
-          })
-        )
+      ? [...requestItems]
+          .sort(
+            (a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt)
+          )
+          .map((request) =>
+            buildRequestListItem({
+              request,
+              segment: "outgoing",
+              profileNamesByPubkey,
+              getUnreadCount,
+              toFallbackDisplayId
+            })
+          )
       : [];
 
   return {

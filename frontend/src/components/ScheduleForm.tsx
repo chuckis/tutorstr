@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { TimeSlot, TutorSchedule } from "../hooks/hookTypes";
 import { addMinutesToDateTimeLocal } from "../utils/dateTimeLocal";
+import { isSlotInPast } from "../domain/TimeSlot";
 
 const emptySlot: TimeSlot = { start: "", end: "" };
 
@@ -15,6 +16,14 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
   const { t, formatDateTime } = useI18n();
   const [newSlot, setNewSlot] = useState<TimeSlot>(emptySlot);
   const [isDirty, setIsDirty] = useState(false);
+
+  const visibleSlots = useMemo(
+    () =>
+      schedule.slots
+        .map((slot, index) => ({ slot, originalIndex: index }))
+        .filter(({ slot }) => !isSlotInPast(slot)),
+    [schedule.slots]
+  );
 
   function addSlot() {
     if (!newSlot.start || !newSlot.end) return;
@@ -86,17 +95,17 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
         </button>
       </div>
 
-      {schedule.slots.length ? (
+      {visibleSlots.length > 0 ? (
         <ul className="slot-list">
-          {schedule.slots.map((slot, index) => (
-            <li key={`${slot.start}-${index}`}>
+          {visibleSlots.map(({ slot, originalIndex }) => (
+            <li key={`${slot.start}-${originalIndex}`}>
               <span>
                 {formatDateTime(slot.start)} → {formatDateTime(slot.end)}
               </span>
               <button
                 type="button"
                 className="ghost"
-                onClick={() => removeSlot(index)}
+                onClick={() => removeSlot(originalIndex)}
               >
                 {t("schedule.remove")}
               </button>

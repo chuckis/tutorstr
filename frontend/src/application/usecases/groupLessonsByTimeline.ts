@@ -20,5 +20,8 @@ export function groupLessonsByTimeline(
     past.push(lesson);
   });
 
+  upcoming.sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt));
+  past.sort((a, b) => Date.parse(b.scheduledAt) - Date.parse(a.scheduledAt));
+
   return { upcoming, past };
 }
