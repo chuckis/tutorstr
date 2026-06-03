@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import { AccountRole } from "../hooks/hookTypes";
+import { DEFAULT_AVATARS } from "../domain/avatarDefaults";
 
 export type AvatarSize = "sm" | "md" | "lg";
 
@@ -19,8 +20,8 @@ const SIZE_MAP: Record<AvatarSize, number> = {
   lg: 96
 };
 
-const DEFAULT_TUTOR = "/images/avatars/default-tutor.png";
-const DEFAULT_STUDENT = "/images/avatars/default-student.png";
+const DEFAULT_TUTOR = DEFAULT_AVATARS.tutor;
+const DEFAULT_STUDENT = DEFAULT_AVATARS.student;
 
 export function Avatar({
   url,
