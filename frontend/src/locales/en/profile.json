@@ -55,6 +55,34 @@
     "blossomHint": "Blossom server used to upload profile images. Get a free one at blossom.nostr.build",
     "publish": "Publish profile"
   },
+  "drawer": {
+    "settings": "Settings",
+    "profile": "Profile",
+    "faq": "FAQ",
+    "about": "About",
+    "back": "Back"
+  },
+  "faq": {
+    "dataStorage_q": "How is my data stored?",
+    "dataStorage_a": "All data is stored on Nostr relays as encrypted events. Your private key is encrypted with your master password and never leaves this device.",
+    "whatIsRelay_q": "What is a relay?",
+    "whatIsRelay_a": "A relay is a server that stores and forwards Nostr events. You can configure which relays to use in Settings.",
+    "privateKeySafety_q": "Is my private key safe?",
+    "privateKeySafety_a": "Your nsec (private key) is encrypted in your browser's local storage using your master password. It is never sent to any server.",
+    "changeRole_q": "Can I change my role?",
+    "changeRole_a": "Each npub is permanently bound to one role (tutor or student). To switch roles, create a new account.",
+    "bookLesson_q": "How do I book a lesson?",
+    "bookLesson_a": "Go to the Discover tab, find a tutor, select an available slot, and send a booking request.",
+    "privateKey_q": "What is a private key (nsec)?",
+    "privateKey_a": "It is your secret key that controls your Nostr identity. Anyone with access to your nsec can impersonate you, publish events, and access your encrypted messages. Never share it with anyone or paste it into untrusted websites. Store it in a password manager or write it down and keep it in a safe place."
+  },
+  "about": {
+    "title": "About Tutorstr",
+    "description": "Tutorstr is a decentralized tutoring platform built on the Nostr protocol. Identities, profiles, schedules, and agreements are all stored as Nostr events — no central server required.",
+    "version": "Version: MVP",
+    "builtOn": "Built on the Nostr protocol",
+    "sourceCode": "Source code"
+  },
   "student": {
     "dashboardTitle": "Student dashboard",
     "dashboardIntro": "Keep your public profile current so tutors can match you to the right lessons.",

@@ -113,8 +113,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
   } = useAppController(onLogout, viewerRole);
   const { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus } = useBlossomConfig();
 
-  const profileBadgeLabel = profileState.profile.name || viewModel.viewerLabel;
-
   const handleAvatarUpload = useCallback(async (file: File) => {
     try {
       await uploadAvatar(file, profileState.profile, profileState.setProfile);
@@ -127,27 +125,21 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     <main className="app-shell">
       <header className="topbar">
         <h1>{t("common.app.title")}</h1>
-        <div className="topbar-meta">
-          <p className="muted">{t("common.app.subtitle")}</p>
-          <button
-            type="button"
-            className="topbar-identity profile-badge-button topbar-profile-badge"
-            onClick={() => setIsSettingsOpen(true)}
-            aria-haspopup="dialog"
-            aria-expanded={isSettingsOpen}
-            aria-controls="dashboard-settings-drawer"
-          >
-            <Avatar
-              url={profileState.profile.avatarUrl}
-              role={viewerRole}
-              size="sm"
-            />
-            <span className="profile-badge-copy">
-              <strong>{profileBadgeLabel}</strong>
-              <span>{t("profile.openSettings")}</span>
-            </span>
-          </button>
-        </div>
+        <button
+          type="button"
+          className={`profile-badge-button${!profileState.profile.name ? " profile-badge-button--pulse" : ""}`}
+          onClick={() => setIsSettingsOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={isSettingsOpen}
+          aria-controls="dashboard-settings-drawer"
+          aria-label={t("profile.openSettings")}
+        >
+          <Avatar
+            url={profileState.profile.avatarUrl}
+            role={viewerRole}
+            size="sm"
+          />
+        </button>
       </header>
 
       <section className="screen">
