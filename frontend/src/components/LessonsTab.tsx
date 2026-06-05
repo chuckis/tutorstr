@@ -4,9 +4,11 @@ import { Lesson, LessonStatus, lessonMessageThreadKey, EncryptedMessage } from "
 import { useI18n } from "../i18n/I18nProvider";
 import { TutorProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
+import { DetailPageLayout } from "./DetailPageLayout";
 import { LessonsCalendar } from "./LessonsCalendar";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
+import { Spinner } from "./Spinner";
 
 type LessonSegment = "upcoming" | "past";
 type LessonViewMode = "list" | "calendar";
@@ -33,6 +35,7 @@ type LessonsTabProps = {
   getUnreadCount: (threadKey: string) => number;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
   messageStatus: string;
+  loading: boolean;
 };
 
 export function LessonsTab({
@@ -50,7 +53,8 @@ export function LessonsTab({
   messagesByThread,
   getUnreadCount,
   onSendMessage,
-  messageStatus
+  messageStatus,
+  loading
 }: LessonsTabProps) {
   const { t, formatDateTime } = useI18n();
   const [viewMode, setViewMode] = useState<LessonViewMode>("list");
@@ -62,16 +66,12 @@ export function LessonsTab({
         : selectedLesson.tutorId;
 
     return (
-      <section className="tab-panel lessons-tab">
-        <article className="panel details-screen">
-          <button
-            type="button"
-            className="ghost"
-            onClick={() => onSelectLesson(null)}
-          >
-            {t("lessons.backToLessons")}
-          </button>
-          <h2>{selectedLesson.subject || t("lessons.defaultTitle")}</h2>
+      <DetailPageLayout
+        backLabel={t("lessons.backToLessons")}
+        onBack={() => onSelectLesson(null)}
+        title={selectedLesson.subject || t("lessons.defaultTitle")}
+      >
+        <article className="panel">
           <p>
             <strong>{t("lessons.dateTime")}:</strong>{" "}
             {formatDateTime(selectedLesson.scheduledAt)}
@@ -147,16 +147,16 @@ export function LessonsTab({
               </button>
             </div>
           ) : null}
-          <div className="stack">
-            <h3>{t("common.messages.title")}</h3>
-            <MessageThread messages={messagesByThread[threadKey] || []} />
-            <MessageComposer
-              onSend={(text) => onSendMessage(counterpartyPubkey, text, threadKey)}
-            />
-            {messageStatus ? <p className="muted">{messageStatus}</p> : null}
-          </div>
         </article>
-      </section>
+        <div className="stack">
+          <h3>{t("common.messages.title")}</h3>
+          <MessageThread messages={messagesByThread[threadKey] || []} />
+          <MessageComposer
+            onSend={(text) => onSendMessage(counterpartyPubkey, text, threadKey)}
+          />
+          {messageStatus ? <p className="muted">{messageStatus}</p> : null}
+        </div>
+      </DetailPageLayout>
     );
   }
 
@@ -209,7 +209,9 @@ export function LessonsTab({
             </button>
           </div>
         ) : null}
-        {showCalendar ? (
+        {loading && lessons.length === 0 ? (
+          <Spinner label={t("common.states.loading")} />
+        ) : showCalendar ? (
           <LessonsCalendar
             lessons={lessonBuckets.upcoming}
             onSelectLesson={onSelectLesson}

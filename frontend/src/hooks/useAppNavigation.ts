@@ -22,6 +22,7 @@ export function useAppNavigation(role: AccountRole = "tutor") {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
   const requestSegment = effectiveRequestSegment(role, storedRequestSegment);
+  const detailActive = selectedTutor !== null || selectedRequest !== null || selectedLesson !== null;
 
   function selectTab(tab: MainTab) {
     setActiveTab(tab);
@@ -53,6 +54,7 @@ export function useAppNavigation(role: AccountRole = "tutor") {
     selectedRequest,
     setSelectedRequest,
     selectedLesson,
-    setSelectedLesson
+    setSelectedLesson,
+    detailActive
   };
 }

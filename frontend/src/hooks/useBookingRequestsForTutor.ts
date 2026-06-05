@@ -2,13 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import { BookingRequestEvent } from "../ports/bookingEventsRepository";
 import { useBookingEventsRepository } from "./useBookingEventsRepository";
 
+const LOAD_TIMEOUT = 8000;
+
 export function useBookingRequestsForTutor(pubkey: string) {
   const [requests, setRequests] = useState<Record<string, BookingRequestEvent>>(
     {}
   );
+  const [loading, setLoading] = useState(true);
   const bookingEventsRepository = useBookingEventsRepository();
 
   useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), LOAD_TIMEOUT);
+
     const unsubscribe = bookingEventsRepository.subscribeRequestsForTutor(
       pubkey,
       (request) => {
@@ -22,10 +28,15 @@ export function useBookingRequestsForTutor(pubkey: string) {
             [request.id]: request
           };
         });
+        setLoading(false);
+        clearTimeout(timer);
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, [bookingEventsRepository, pubkey]);
 
   const list = useMemo(
@@ -36,5 +47,5 @@ export function useBookingRequestsForTutor(pubkey: string) {
     [requests]
   );
 
-  return { requests: list };
+  return { requests: list, loading };
 }

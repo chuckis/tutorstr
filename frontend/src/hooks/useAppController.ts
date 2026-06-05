@@ -80,6 +80,13 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
   const visibleIncoming =
     viewerRole === "student" ? [] : bookingsState.incoming;
 
+  const stateLoading = {
+    discover: directoryState.loading || schedulesState.loading,
+    requests: bookingsState.loading,
+    lessons: lessonsState.loading || publicAllocationState.loading,
+    profile: profileState.loading || scheduleState.loading
+  };
+
   const actions = useAppActions({
     viewerRole,
     studentPubkey: keypair.pubkey,
@@ -158,6 +165,7 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
     messagesState,
     lessonNoteState,
     messageIndicators,
+    stateLoading,
     actions,
     requestActions: {
       respondToRequestById,

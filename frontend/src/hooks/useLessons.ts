@@ -7,9 +7,11 @@ export function useLessons(userId: string, options?: { now?: number }) {
   const lessonRepository = useLessonRepository(userId);
   const now = options?.now ?? Date.now();
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isActive = true;
+    setLoading(true);
 
     lessonRepository.getForUser(userId).then((nextLessons) => {
       if (!isActive) {
@@ -17,6 +19,7 @@ export function useLessons(userId: string, options?: { now?: number }) {
       }
 
       setLessons(nextLessons);
+      setLoading(false);
     });
 
     return () => {
@@ -37,6 +40,7 @@ export function useLessons(userId: string, options?: { now?: number }) {
     lessons,
     lessonBuckets,
     lessonMap,
-    lessonRepository
+    lessonRepository,
+    loading
   };
 }

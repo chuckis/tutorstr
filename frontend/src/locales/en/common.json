@@ -30,7 +30,8 @@
     "noBioYet": "No bio provided yet.",
     "noBio": "No bio provided.",
     "notSet": "Not set",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "loading": "Loading..."
   },
   "language": {
     "label": "Language",

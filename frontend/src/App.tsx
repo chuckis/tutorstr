@@ -109,7 +109,8 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     actions,
     requestActions,
     viewModel,
-    requestsTabViewModel
+    requestsTabViewModel,
+    stateLoading
   } = useAppController(onLogout, viewerRole);
   const { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus } = useBlossomConfig();
 
@@ -123,26 +124,28 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
 
   return (
     <main className="app-shell">
-      <header className="topbar">
-        <h1>{t("common.app.title")}</h1>
-        <button
-          type="button"
-          className={`profile-badge-button${!profileState.profile.name ? " profile-badge-button--pulse" : ""}`}
-          onClick={() => setIsSettingsOpen(true)}
-          aria-haspopup="dialog"
-          aria-expanded={isSettingsOpen}
-          aria-controls="dashboard-settings-drawer"
-          aria-label={t("profile.openSettings")}
-        >
-          <Avatar
-            url={profileState.profile.avatarUrl}
-            role={viewerRole}
-            size="sm"
-          />
-        </button>
-      </header>
+      {!navigation.detailActive ? (
+        <header className="topbar">
+          <h1>{t("common.app.title")}</h1>
+          <button
+            type="button"
+            className={`profile-badge-button${!profileState.profile.name ? " profile-badge-button--pulse" : ""}`}
+            onClick={() => setIsSettingsOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={isSettingsOpen}
+            aria-controls="dashboard-settings-drawer"
+            aria-label={t("profile.openSettings")}
+          >
+            <Avatar
+              url={profileState.profile.avatarUrl}
+              role={viewerRole}
+              size="sm"
+            />
+          </button>
+        </header>
+      ) : null}
 
-      <section className="screen">
+      <section className={`screen${navigation.detailActive ? " screen--detail" : ""}`}>
         {navigation.activeTab === "discover" ? (
           <DiscoverTab
             selectedTutor={navigation.selectedTutor}
@@ -166,6 +169,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             }}
             onBookingRequest={actions.requestBooking}
             role={viewerRole}
+            loading={stateLoading.discover}
           />
         ) : null}
 
@@ -181,6 +185,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}
             role={viewerRole}
+            loading={stateLoading.requests}
           />
         ) : null}
 
@@ -203,6 +208,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             }
             onSendMessage={actions.sendEncryptedMessage}
             messageStatus={messageStatus}
+            loading={stateLoading.lessons}
           />
         ) : null}
 
@@ -215,6 +221,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             profileBio={profileState.profile.bio}
             profileSubjects={profileState.profile.subjects}
             hourlyRate={profileState.profile.hourlyRate}
+            loading={stateLoading.profile}
             schedule={scheduleState.schedule}
             onScheduleChange={scheduleState.setSchedule}
             onPublishSchedule={() => scheduleState.publishSchedule(scheduleState.schedule)}
@@ -244,12 +251,14 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
         uploadStatus={uploadStatus}
       />
 
-      <BottomNav
-        activeTab={navigation.activeTab}
-        requestsUnreadCount={messageIndicators.requestUnreadCount}
-        lessonsUnreadCount={messageIndicators.lessonUnreadCount}
-        onSelectTab={navigation.setActiveTab}
-      />
+      {!navigation.detailActive ? (
+        <BottomNav
+          activeTab={navigation.activeTab}
+          requestsUnreadCount={messageIndicators.requestUnreadCount}
+          lessonsUnreadCount={messageIndicators.lessonUnreadCount}
+          onSelectTab={navigation.setActiveTab}
+        />
+      ) : null}
     </main>
   );
 }

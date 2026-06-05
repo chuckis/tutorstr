@@ -1,4 +1,4 @@
-import { ArrowLeft, Inbox, Send } from "lucide-react";
+import { Inbox, Send } from "lucide-react";
 import {
   IncomingRequestGroupViewModel,
   RequestListItemViewModel,
@@ -9,9 +9,11 @@ import {
 } from "../hooks/useRequestsTabViewModel";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage } from "../hooks/hookTypes";
+import { DetailPageLayout } from "./DetailPageLayout";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 import { RequestCard } from "./RequestCard";
+import { Spinner } from "./Spinner";
 
 type RequestsTabProps = {
   viewModel: RequestsTabViewModel;
@@ -27,6 +29,7 @@ type RequestsTabProps = {
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
   messageStatus: string;
   role: "tutor" | "student";
+  loading: boolean;
 };
 
 type RequestItemActions = {
@@ -175,17 +178,12 @@ function RequestDetailsView({
   const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
 
   return (
-    <section className="tab-panel requests-tab">
-      <article className="panel details-screen">
-        <button
-          type="button"
-          className="ghost icon-only-button"
-          aria-label={t("requests.backToRequests")}
-          onClick={onBack}
-        >
-          <ArrowLeft size={18} aria-hidden="true" />
-        </button>
-        <h2>{t("requests.detailsTitle")}</h2>
+    <DetailPageLayout
+      backLabel={t("requests.backToRequests")}
+      onBack={onBack}
+      title={t("requests.detailsTitle")}
+    >
+      <article className="panel">
         <p>
           <strong>{t("requests.scheduled")}:</strong>{" "}
           {formatLocalizedDateTime(selectedRequest.request.scheduledAt)}
@@ -252,22 +250,22 @@ function RequestDetailsView({
             </button>
           </div>
         ) : null}
-        <div className="stack">
-          <h3>{t("common.messages.title")}</h3>
-          <MessageThread messages={messagesByThread[selectedRequest.threadKey] || []} />
-          <MessageComposer
-            onSend={(text) =>
-              onSendMessage(
-                selectedRequest.recipientPubkey,
-                text,
-                selectedRequest.threadKey
-              )
-            }
-          />
-          {messageStatus ? <p className="muted">{messageStatus}</p> : null}
-        </div>
       </article>
-    </section>
+      <div className="stack">
+        <h3>{t("common.messages.title")}</h3>
+        <MessageThread messages={messagesByThread[selectedRequest.threadKey] || []} />
+        <MessageComposer
+          onSend={(text) =>
+            onSendMessage(
+              selectedRequest.recipientPubkey,
+              text,
+              selectedRequest.threadKey
+            )
+          }
+        />
+        {messageStatus ? <p className="muted">{messageStatus}</p> : null}
+      </div>
+    </DetailPageLayout>
   );
 }
 
@@ -359,7 +357,8 @@ export function RequestsTab({
   messagesByThread,
   onSendMessage,
   messageStatus,
-  role
+  role,
+  loading
 }: RequestsTabProps) {
   const { t } = useI18n();
   const isStudent = role === "student";
@@ -411,7 +410,9 @@ export function RequestsTab({
         </div>
       )}
 
-      {viewModel.isEmpty ? (
+      {viewModel.isEmpty && loading ? (
+        <Spinner label={t("common.states.loading")} />
+      ) : viewModel.isEmpty ? (
         <p className="muted">
           {isStudent
             ? t("requests.student.empty")

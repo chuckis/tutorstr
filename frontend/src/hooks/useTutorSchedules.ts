@@ -3,13 +3,19 @@ import { useRepo } from "./RepoContext";
 import { TutorScheduleEvent } from "../ports/eventTypes";
 import { normalizeSchedule } from "../utils/normalize";
 
+const LOAD_TIMEOUT = 8000;
+
 export function useTutorSchedules() {
   const { scheduleEventRepository } = useRepo();
   const [schedules, setSchedules] = useState<
     Record<string, TutorScheduleEvent>
   >({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), LOAD_TIMEOUT);
+
     const unsubscribe = scheduleEventRepository.subscribeAll(
       (event) => {
         try {
@@ -28,14 +34,19 @@ export function useTutorSchedules() {
               }
             };
           });
+          setLoading(false);
+          clearTimeout(timer);
         } catch {
           // ignore malformed content
         }
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, []);
 
-  return { schedules };
+  return { schedules, loading };
 }

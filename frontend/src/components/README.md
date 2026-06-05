@@ -15,11 +15,12 @@ React components and tab screens. Pure presentation — no direct Nostr or local
 
 | Component | Purpose |
 |-----------|---------|
+| `DetailPageLayout.tsx` | Shared detail page shell (sticky top bar + scrollable content) |
 | `AuthScreen.tsx` | Welcome, create/import/unlock/role-pick |
 | `ProfileForm.tsx` | Profile editor (role-aware) |
 | `ScheduleForm.tsx` | Schedule editor (tutor only) |
 | `TutorCard.tsx` | Tutor card in discover list |
-| `TutorProfileView.tsx` | Full tutor detail |
+| `DetailPageLayout.tsx` | Shared detail page shell (sticky top bar + scrollable content) |
 | `BookingRequestForm.tsx` | Send booking request |
 | `RequestCard.tsx` | Request list item |
 | `MessageComposer.tsx` | Message input |

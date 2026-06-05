@@ -24,9 +24,9 @@ export function useBookings(userId: string, lessonDefaults?: {
   price?: number;
   currency?: string;
 }) {
-  const { requests: incomingRequests } = useBookingRequestsForTutor(userId);
-  const { requests: outgoingRequests } = useMyBookingRequests(userId);
-  const { statuses } = useBookingStatusesForUser(userId);
+  const { requests: incomingRequests, loading: loadingIncoming } = useBookingRequestsForTutor(userId);
+  const { requests: outgoingRequests, loading: loadingOutgoing } = useMyBookingRequests(userId);
+  const { statuses, loading: loadingStatuses } = useBookingStatusesForUser(userId);
   const { publishBookingStatus } = useBookingActions(userId);
   const lessonRepository = useLessonRepository(userId, lessonDefaults);
 
@@ -112,9 +112,12 @@ export function useBookings(userId: string, lessonDefaults?: {
     [acceptedLessonFactory, bookingRepository, lessonRepository]
   );
 
+  const loading = loadingIncoming || loadingOutgoing || loadingStatuses;
+
   return {
     incoming,
     outgoing,
+    loading,
     latestIncomingRequestTs,
     requestsByAllocationKey,
     winnerByAllocationKey,

@@ -6,13 +6,19 @@ import { LessonAgreement } from "../domain/lesson";
 import { LessonAgreementEvent } from "../ports/lessonAgreementEventsRepository";
 import { getTagValue, getTagValues } from "../utils/nostrTags";
 
+const LOAD_TIMEOUT = 8000;
+
 export function usePublicAllocatedSlots() {
   const { publicLessonRepository } = useRepo();
   const [agreements, setAgreements] = useState<Record<string, LessonAgreementEvent>>(
     {}
   );
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), LOAD_TIMEOUT);
+
     const unsubscribe = publicLessonRepository.subscribeAll(
       (event) => {
         try {
@@ -46,13 +52,18 @@ export function usePublicAllocatedSlots() {
               }
             };
           });
+          setLoading(false);
+          clearTimeout(timer);
         } catch {
           // ignore malformed payloads
         }
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, []);
 
   const allocatedSlotsByKey = useMemo(() => {
@@ -81,6 +92,7 @@ export function usePublicAllocatedSlots() {
   }, [agreements]);
 
   return {
-    allocatedSlotsByKey
+    allocatedSlotsByKey,
+    loading
   };
 }

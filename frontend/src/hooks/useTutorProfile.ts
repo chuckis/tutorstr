@@ -19,6 +19,7 @@ export function useTutorProfile(pubkey: string) {
   const [profile, setProfile] = useState<TutorProfile>(emptyProfile);
   const [status, setStatus] = useState<string>("");
   const [lastEventId, setLastEventId] = useState<string>("");
+  const [loading, setLoading] = useState(true);
   const latestProfileRef = useRef<TutorProfile>(emptyProfile);
   const autoPublishStartedRef = useRef(false);
 
@@ -36,6 +37,7 @@ export function useTutorProfile(pubkey: string) {
 
   useEffect(() => {
     autoPublishStartedRef.current = false;
+    setLoading(true);
     const profileStorageKey = `tutorhub:profile:${pubkey}`;
     const stored = localStorage.getItem(profileStorageKey);
     if (stored) {
@@ -60,6 +62,7 @@ export function useTutorProfile(pubkey: string) {
           setProfile(parsed);
           localStorage.setItem(profileStorageKey, JSON.stringify(parsed));
           setLastEventId(event.id);
+          setLoading(false);
         } catch {
           // ignore malformed content
         }
@@ -67,6 +70,8 @@ export function useTutorProfile(pubkey: string) {
       {
         limit: 1,
         onEose: () => {
+          setLoading(false);
+
           if (autoPublishStartedRef.current) {
             return;
           }
@@ -105,6 +110,7 @@ export function useTutorProfile(pubkey: string) {
     profile,
     setProfile,
     status,
+    loading,
     lastEventId,
     publishProfile
   };

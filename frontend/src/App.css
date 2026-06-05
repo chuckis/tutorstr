@@ -63,6 +63,11 @@
   min-width: 0;
 }
 
+.screen--detail {
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
 .tab-panel,
 .stack,
 .profile-form,
@@ -74,6 +79,85 @@
 
 .tab-panel {
   animation: fade-slide-in 180ms ease-in-out;
+}
+
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.detail-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  background: var(--color-bg);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.detail-topbar-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.detail-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: 4px;
+  min-height: 36px;
+  min-width: 36px;
+  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background var(--motion);
+}
+
+.detail-back-button:hover,
+.detail-back-button:focus-visible {
+  background: var(--color-surface);
+}
+
+.detail-title {
+  flex: 1;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-title-spacer {
+  flex: 1;
+}
+
+.detail-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.detail-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: 0;
 }
 
 .panel,
@@ -1323,6 +1407,25 @@ button:active {
 .tabs button.active {
   border-color: var(--color-border);
   background: var(--color-bg);
+}
+
+.spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  color: var(--color-text-muted);
+}
+
+.spinner-icon {
+  color: var(--color-text-muted);
+}
+
+.spinner-label {
+  font-size: 0.92rem;
+  font-weight: 500;
 }
 
 .sr-only {

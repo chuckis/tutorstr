@@ -15,17 +15,23 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   return translated === error.message ? error.message : translated;
 }
 
+const LOAD_TIMEOUT = 8000;
+
 export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
   const { t } = useI18n();
   const { scheduleEventRepository } = useRepo();
   const [schedule, setSchedule] = useState<TutorSchedule>(emptySchedule);
   const [status, setStatus] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (viewerRole !== "tutor") {
+      setLoading(false);
       return;
     }
 
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), LOAD_TIMEOUT);
     const scheduleStorageKey = `tutorhub:schedule:${pubkey}`;
     const stored = localStorage.getItem(scheduleStorageKey);
     if (stored) {
@@ -46,13 +52,18 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
           );
           setSchedule(parsed);
           localStorage.setItem(scheduleStorageKey, JSON.stringify(parsed));
+          setLoading(false);
+          clearTimeout(timer);
         } catch {
           // ignore malformed content
         }
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, [pubkey, viewerRole]);
 
   const publishUseCase = useMemo(
@@ -94,6 +105,7 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
     schedule,
     setSchedule,
     status,
+    loading,
     publishSchedule
   };
 }

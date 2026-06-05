@@ -4,6 +4,7 @@ import { TutorProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
 import { Avatar } from "./Avatar";
 import { ScheduleForm } from "./ScheduleForm";
+import { Spinner } from "./Spinner";
 
 type DashboardMode = "tutor" | "student";
 
@@ -24,6 +25,7 @@ type DashboardTabProps = {
   mode?: DashboardMode;
   upcomingLessons?: Lesson[];
   tutors?: Record<string, TutorProfileEvent>;
+  loading: boolean;
 };
 
 function dashboardMode(role: AccountRole): DashboardMode {
@@ -45,6 +47,7 @@ export function DashboardTab({
   profileStatus,
   role,
   mode,
+  loading,
   upcomingLessons = [],
   tutors = {}
 }: DashboardTabProps) {
@@ -58,6 +61,14 @@ export function DashboardTab({
   const activeStatus = scheduleStatus || profileStatus || t("profile.statusIdle");
 
   const previewLessons = upcomingLessons.slice(0, 3);
+
+  if (loading) {
+    return (
+      <section className="tab-panel dashboard-tab">
+        <Spinner label={t("common.states.loading")} />
+      </section>
+    );
+  }
 
   return (
     <section className="tab-panel dashboard-tab">
