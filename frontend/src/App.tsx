@@ -183,6 +183,15 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onRespondToRequest={requestActions.respondToRequestById}
             onCancelRequest={requestActions.cancelRequestById}
             onSendMessage={actions.sendEncryptedMessage}
+            onViewProfile={() => {
+              const sr = requestsTabViewModel.selectedRequest;
+              if (sr) {
+                const profile = directoryState.tutors[sr.recipientPubkey];
+                if (profile) {
+                  navigation.navigateToProfileFromRequest(sr, profile);
+                }
+              }
+            }}
             messageStatus={messageStatus}
             role={viewerRole}
             loading={stateLoading.requests}

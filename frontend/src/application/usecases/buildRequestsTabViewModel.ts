@@ -1,5 +1,8 @@
 import { Booking, BookingResolutionReason } from "../../domain/booking";
 import { requestMessageThreadKey } from "../../domain/messageThread";
+import { BookingStatusEvent } from "../../ports/bookingEventsRepository";
+import { UserProfileEvent } from "../../ports/eventTypes";
+import { AccountRole } from "../../domain/account";
 
 export type RequestSegment = "incoming" | "outgoing";
 
@@ -9,6 +12,12 @@ export type SelectedRequest = {
 };
 
 export type RequestReasonLabel = BookingResolutionReason | "accepted";
+
+export type StatusHistoryEntry = {
+  status: "pending" | "accepted" | "rejected" | "cancelled";
+  reason?: BookingResolutionReason;
+  timestamp: number;
+};
 
 export type RequestListItemViewModel = {
   request: Booking;
@@ -37,6 +46,9 @@ export type IncomingRequestGroupViewModel = {
 
 export type SelectedRequestViewModel = RequestListItemViewModel & {
   recipientPubkey: string;
+  counterpartyProfile?: UserProfileEvent;
+  statusHistory: StatusHistoryEntry[];
+  viewerRole: AccountRole;
 };
 
 export type RequestsTabViewModel = {
@@ -54,6 +66,10 @@ type BuildRequestsTabViewModelParams = {
   getUnreadCount: (threadKey: string) => number;
   getUnreadTotal: (threadKeys: string[]) => number;
   toFallbackDisplayId: (pubkey: string) => string;
+  requestTimestamps: Record<string, number>;
+  statusEvents: Record<string, BookingStatusEvent>;
+  counterpartyProfiles: Record<string, UserProfileEvent>;
+  viewerRole: AccountRole;
 };
 
 function requestStatusLabel(status: Booking["status"]) {
@@ -114,6 +130,33 @@ function getCounterpartyPubkey(request: Booking, segment: RequestSegment) {
   return segment === "incoming" ? request.studentId : request.tutorId;
 }
 
+function buildStatusHistory(
+  request: Booking,
+  requestTimestamps: Record<string, number>,
+  statusEvents: Record<string, BookingStatusEvent>
+): StatusHistoryEntry[] {
+  const history: StatusHistoryEntry[] = [];
+
+  const requestCreatedAt = requestTimestamps[request.id];
+  if (requestCreatedAt) {
+    history.push({
+      status: "pending",
+      timestamp: requestCreatedAt
+    });
+  }
+
+  const statusEvent = statusEvents[request.id];
+  if (statusEvent && request.status !== "pending") {
+    history.push({
+      status: request.status,
+      reason: request.resolutionReason,
+      timestamp: statusEvent.created_at
+    });
+  }
+
+  return history;
+}
+
 function buildRequestListItem({
   request,
   segment,
@@ -151,7 +194,7 @@ function buildSelectedRequestViewModel(
   selectedRequest: SelectedRequest,
   params: Pick<
     BuildRequestsTabViewModelParams,
-    "profileNamesByPubkey" | "getUnreadCount" | "toFallbackDisplayId"
+    "profileNamesByPubkey" | "getUnreadCount" | "toFallbackDisplayId" | "requestTimestamps" | "statusEvents" | "counterpartyProfiles" | "viewerRole"
   >
 ): SelectedRequestViewModel {
   const item = buildRequestListItem({
@@ -160,12 +203,21 @@ function buildSelectedRequestViewModel(
     ...params
   });
 
+  const counterpartyPubkey = getCounterpartyPubkey(
+    selectedRequest.request,
+    selectedRequest.segment
+  );
+
   return {
     ...item,
-    recipientPubkey: getCounterpartyPubkey(
+    recipientPubkey: counterpartyPubkey,
+    counterpartyProfile: params.counterpartyProfiles[counterpartyPubkey],
+    statusHistory: buildStatusHistory(
       selectedRequest.request,
-      selectedRequest.segment
-    )
+      params.requestTimestamps,
+      params.statusEvents
+    ),
+    viewerRole: params.viewerRole
   };
 }
 
@@ -176,13 +228,21 @@ export function buildRequestsTabViewModel({
   profileNamesByPubkey,
   getUnreadCount,
   getUnreadTotal,
-  toFallbackDisplayId
+  toFallbackDisplayId,
+  requestTimestamps,
+  statusEvents,
+  counterpartyProfiles,
+  viewerRole
 }: BuildRequestsTabViewModelParams): RequestsTabViewModel {
   const selectedRequestViewModel = selectedRequest
     ? buildSelectedRequestViewModel(selectedRequest, {
         profileNamesByPubkey,
         getUnreadCount,
-        toFallbackDisplayId
+        toFallbackDisplayId,
+        requestTimestamps,
+        statusEvents,
+        counterpartyProfiles,
+        viewerRole
       })
     : null;
 

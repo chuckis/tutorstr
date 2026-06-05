@@ -13,6 +13,7 @@ import { DetailPageLayout } from "./DetailPageLayout";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 import { RequestCard } from "./RequestCard";
+import { RequestDetailsView } from "./RequestDetailsView";
 import { Spinner } from "./Spinner";
 
 type RequestsTabProps = {
@@ -27,6 +28,7 @@ type RequestsTabProps = {
   onCancelRequest: (requestId: string) => void | Promise<void>;
   messagesByThread: Record<string, EncryptedMessage[]>;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
+  onViewProfile: () => void;
   messageStatus: string;
   role: "tutor" | "student";
   loading: boolean;
@@ -158,117 +160,6 @@ function RequestItemCard({
   );
 }
 
-function RequestDetailsView({
-  selectedRequest,
-  messagesByThread,
-  onBack,
-  onRespondToRequest,
-  onCancelRequest,
-  onSendMessage,
-  messageStatus
-}: {
-  selectedRequest: SelectedRequestViewModel;
-  messagesByThread: Record<string, EncryptedMessage[]>;
-  onBack: () => void;
-  onRespondToRequest: RequestsTabProps["onRespondToRequest"];
-  onCancelRequest: RequestsTabProps["onCancelRequest"];
-  onSendMessage: RequestsTabProps["onSendMessage"];
-  messageStatus: string;
-}) {
-  const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
-
-  return (
-    <DetailPageLayout
-      backLabel={t("requests.backToRequests")}
-      onBack={onBack}
-      title={t("requests.detailsTitle")}
-    >
-      <article className="panel">
-        <p>
-          <strong>{t("requests.scheduled")}:</strong>{" "}
-          {formatLocalizedDateTime(selectedRequest.request.scheduledAt)}
-        </p>
-        {selectedRequest.request.scheduledEnd ? (
-          <p>
-            <strong>{t("requests.ends")}:</strong>{" "}
-            {formatLocalizedDateTime(selectedRequest.request.scheduledEnd)}
-          </p>
-        ) : null}
-        <p>
-          <strong>{t("requests.counterparty")}:</strong>{" "}
-          {selectedRequest.counterpartyLabel}
-        </p>
-        <p>
-          <strong>{t("requests.status")}:</strong>{" "}
-          {t(`common.status.${selectedRequest.statusLabel}`)}
-        </p>
-        {selectedRequest.reasonLabel ? (
-          <p>
-            <strong>{t("requests.resolution")}:</strong>{" "}
-            {t(`common.requestResolution.${selectedRequest.reasonLabel}`)}
-          </p>
-        ) : null}
-        {selectedRequest.canAccept || selectedRequest.canDecline ? (
-          <div className="action-buttons">
-            {selectedRequest.canAccept ? (
-              <button
-                type="button"
-                onClick={() =>
-                  Promise.resolve(
-                    onRespondToRequest(selectedRequest.id, "accepted")
-                  ).then(onBack)
-                }
-              >
-                {t("requests.accept")}
-              </button>
-            ) : null}
-            {selectedRequest.canDecline ? (
-              <button
-                type="button"
-                className="ghost-action"
-                onClick={() =>
-                  Promise.resolve(
-                    onRespondToRequest(selectedRequest.id, "rejected")
-                  ).then(onBack)
-                }
-              >
-                {t("requests.decline")}
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-        {selectedRequest.canCancel ? (
-          <div className="action-buttons">
-            <button
-              type="button"
-              className="ghost-action"
-              onClick={() =>
-                Promise.resolve(onCancelRequest(selectedRequest.id)).then(onBack)
-              }
-            >
-              {t("requests.cancelRequest")}
-            </button>
-          </div>
-        ) : null}
-      </article>
-      <div className="stack">
-        <h3>{t("common.messages.title")}</h3>
-        <MessageThread messages={messagesByThread[selectedRequest.threadKey] || []} />
-        <MessageComposer
-          onSend={(text) =>
-            onSendMessage(
-              selectedRequest.recipientPubkey,
-              text,
-              selectedRequest.threadKey
-            )
-          }
-        />
-        {messageStatus ? <p className="muted">{messageStatus}</p> : null}
-      </div>
-    </DetailPageLayout>
-  );
-}
-
 function IncomingRequestGroups({
   groups,
   onSelectRequest,
@@ -356,6 +247,7 @@ export function RequestsTab({
   onCancelRequest,
   messagesByThread,
   onSendMessage,
+  onViewProfile,
   messageStatus,
   role,
   loading
@@ -372,6 +264,7 @@ export function RequestsTab({
         onRespondToRequest={onRespondToRequest}
         onCancelRequest={onCancelRequest}
         onSendMessage={onSendMessage}
+        onViewProfile={onViewProfile}
         messageStatus={messageStatus}
       />
     );

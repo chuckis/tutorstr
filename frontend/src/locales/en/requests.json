@@ -23,5 +23,7 @@
   "student": {
     "empty": "You have not sent any requests yet.",
     "incomingHidden": "Incoming requests are only available to tutors."
-  }
+  },
+  "viewProfile": "View profile",
+  "statusHistory": "Status history"
 }

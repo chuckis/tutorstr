@@ -114,6 +114,11 @@ export function useBookings(userId: string, lessonDefaults?: {
 
   const loading = loadingIncoming || loadingOutgoing || loadingStatuses;
 
+  const statusesList = useMemo(
+    () => Object.values(statuses),
+    [statuses]
+  );
+
   return {
     incoming,
     outgoing,
@@ -124,6 +129,9 @@ export function useBookings(userId: string, lessonDefaults?: {
     activeBidBySlotAndStudent,
     bookingRepository,
     acceptBooking,
+    requestMap,
+    statuses,
+    statusesList,
     getById(id: string) {
       return bookingRepository.getById(id);
     }

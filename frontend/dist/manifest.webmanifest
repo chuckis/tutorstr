@@ -4,7 +4,7 @@
   "start_url": "/tutorstr/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#79c99a",
+  "theme_color": "#ffffff",
   "icons": [
   {
     "src": "/tutorstr/icons/icon-192.png",

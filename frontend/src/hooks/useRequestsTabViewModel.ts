@@ -6,11 +6,14 @@ import {
   IncomingRequestGroupViewModel,
   RequestListItemViewModel,
   RequestsTabViewModel,
-  SelectedRequestViewModel
+  SelectedRequestViewModel,
+  StatusHistoryEntry
 } from "../application/usecases/buildRequestsTabViewModel";
 import { Booking } from "../domain/booking";
+import { BookingStatusEvent } from "../ports/bookingEventsRepository";
 import { useI18n } from "../i18n/I18nProvider";
 import { UserProfileEvent } from "../ports/eventTypes";
+import { AccountRole } from "../domain/account";
 import { toDisplayId } from "../utils/display";
 
 export type {
@@ -19,7 +22,8 @@ export type {
   IncomingRequestGroupViewModel,
   RequestListItemViewModel,
   RequestsTabViewModel,
-  SelectedRequestViewModel
+  SelectedRequestViewModel,
+  StatusHistoryEntry
 };
 
 type UseRequestsTabViewModelParams = {
@@ -29,6 +33,9 @@ type UseRequestsTabViewModelParams = {
   tutors: Record<string, UserProfileEvent>;
   getUnreadCount: (threadKey: string) => number;
   getUnreadTotal: (threadKeys: string[]) => number;
+  requestTimestamps: Record<string, number>;
+  statusEvents: Record<string, BookingStatusEvent>;
+  viewerRole: AccountRole;
 };
 
 export function useRequestsTabViewModel({
@@ -37,7 +44,10 @@ export function useRequestsTabViewModel({
   requestItems,
   tutors,
   getUnreadCount,
-  getUnreadTotal
+  getUnreadTotal,
+  requestTimestamps,
+  statusEvents,
+  viewerRole
 }: UseRequestsTabViewModelParams) {
   const { t } = useI18n();
 
@@ -63,7 +73,11 @@ export function useRequestsTabViewModel({
         getUnreadCount,
         getUnreadTotal,
         toFallbackDisplayId: (pubkey) =>
-          toDisplayId(pubkey, t("common.states.unknown"))
+          toDisplayId(pubkey, t("common.states.unknown")),
+        requestTimestamps,
+        statusEvents,
+        counterpartyProfiles: tutors,
+        viewerRole
       }),
     [
       getUnreadCount,
@@ -72,6 +86,9 @@ export function useRequestsTabViewModel({
       requestItems,
       requestSegment,
       selectedRequest,
+      requestTimestamps,
+      statusEvents,
+      viewerRole,
       t
     ]
   );

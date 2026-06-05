@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AccountRole } from "../domain/account";
 import { lessonMessageThreadKey, requestMessageThreadKey } from "../domain/messageThread";
 import { useAppActions } from "./useAppActions";
@@ -123,6 +123,17 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
     outgoingRequests: bookingsState.outgoing
   });
 
+  const requestTimestamps = useMemo(
+    () => {
+      const timestamps: Record<string, number> = {};
+      for (const [bookingId, request] of Object.entries(bookingsState.requestMap)) {
+        timestamps[bookingId] = request.created_at;
+      }
+      return timestamps;
+    },
+    [bookingsState.requestMap]
+  );
+
   const requestsTabViewModel = useRequestsTabViewModel({
     selectedRequest: navigation.selectedRequest,
     requestSegment: navigation.requestSegment,
@@ -131,7 +142,10 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
     getUnreadCount: (threadKey) =>
       messageIndicators.getUnreadCount("requests", threadKey),
     getUnreadTotal: (threadKeys) =>
-      messageIndicators.getUnreadTotal("requests", threadKeys)
+      messageIndicators.getUnreadTotal("requests", threadKeys),
+    requestTimestamps,
+    statusEvents: bookingsState.statuses,
+    viewerRole
   });
 
   async function respondToRequestById(
