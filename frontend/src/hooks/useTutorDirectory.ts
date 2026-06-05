@@ -1,15 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRepo } from "./RepoContext";
-import { TutorProfileEvent } from "../ports/eventTypes";
+import { TutorProfileEvent, TutorScheduleEvent } from "../ports/eventTypes";
+import { SlotOccupancy } from "../domain/slotOccupancy";
+import { TutorDirectoryQuery } from "../domain/tutorDirectoryQuery";
 import { isProfileEmpty, normalizeProfile } from "../utils/normalize";
 import { hasRoleTag } from "../domain/profile";
+import {
+  tutorMatchesSubject,
+  tutorMatchesLanguage,
+  tutorHasLocationMode,
+  tutorHasFreeSlotsThisWeek,
+  tutorIsAvailableNow
+} from "../domain/tutorSelectors";
 
 const LOAD_TIMEOUT = 8000;
 
-export function useTutorDirectory() {
+export function useTutorDirectory(
+  schedules?: Record<string, TutorScheduleEvent>,
+  winnerByAllocationKey?: Record<string, SlotOccupancy>
+) {
   const { profileEventRepository } = useRepo();
   const [tutors, setTutors] = useState<Record<string, TutorProfileEvent>>({});
-  const [subjectFilter, setSubjectFilter] = useState<string>("");
+  const [directoryQuery, setDirectoryQuery] = useState<TutorDirectoryQuery>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,31 +61,41 @@ export function useTutorDirectory() {
     };
   }, []);
 
-  const filteredTutors = useMemo(() => {
-    const visibleTutors = Object.values(tutors).filter(
-      (entry) => !isProfileEmpty(entry.profile)
-    );
+  const occupiedKeys = useMemo(() => {
+    if (!winnerByAllocationKey) return new Set<string>();
+    return new Set(Object.keys(winnerByAllocationKey));
+  }, [winnerByAllocationKey]);
 
-    const withoutStudents = visibleTutors.filter(
+  const filteredTutors = useMemo(() => {
+    const entries = Object.values(tutors).filter(
+      (entry) => !isProfileEmpty(entry.profile)
+    ).filter(
       (entry) => !hasRoleTag(entry.tags, "student")
     );
 
-    if (!subjectFilter.trim()) {
-      return withoutStudents;
-    }
-    const term = subjectFilter.trim().toLowerCase();
-    return withoutStudents.filter((entry) =>
-      entry.profile.subjects.some((subject) =>
-        subject.toLowerCase().includes(term)
-      )
-    );
-  }, [subjectFilter, tutors]);
+    const { subject, language, locationMode, availableNow, hasFreeSlotsThisWeek } = directoryQuery;
+
+    return entries.filter((entry) => {
+      const p = entry.profile;
+      if (!tutorMatchesSubject(p, subject || "")) return false;
+      if (!tutorMatchesLanguage(p, language || "")) return false;
+      if (!tutorHasLocationMode(p, locationMode)) return false;
+
+      if (availableNow || hasFreeSlotsThisWeek) {
+        const schedule = schedules?.[entry.pubkey]?.schedule;
+        if (availableNow && !tutorIsAvailableNow(schedule, entry.pubkey, occupiedKeys)) return false;
+        if (hasFreeSlotsThisWeek && !tutorHasFreeSlotsThisWeek(schedule, entry.pubkey, occupiedKeys)) return false;
+      }
+
+      return true;
+    });
+  }, [directoryQuery, tutors, schedules, occupiedKeys]);
 
   return {
     tutors,
     filteredTutors,
-    subjectFilter,
-    setSubjectFilter,
+    directoryQuery,
+    setDirectoryQuery,
     loading
   };
 }

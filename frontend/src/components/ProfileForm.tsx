@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AccountRole, TutorProfile } from "../hooks/hookTypes";
+import { AccountRole, TutorProfile, AvailabilityMode, AVAILABILITY_MODES } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { parseList } from "../utils/normalize";
 
@@ -122,6 +122,28 @@ export function ProfileForm({
               })
             }
           />
+        </label>
+      ) : null}
+
+      {showTutorFields ? (
+        <label>
+          {t("profile.form.availabilityMode")}
+          <select
+            value={profile.availabilityMode ?? ""}
+            onChange={(event) =>
+              onChange({
+                ...profile,
+                availabilityMode: (event.target.value || undefined) as AvailabilityMode | undefined
+              })
+            }
+          >
+            <option value="">{t("profile.form.notSpecified")}</option>
+            {AVAILABILITY_MODES.map((mode) => (
+              <option key={mode} value={mode}>
+                {t(`profile.form.${mode}`)}
+              </option>
+            ))}
+          </select>
         </label>
       ) : null}
 

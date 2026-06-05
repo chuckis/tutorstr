@@ -28,5 +28,17 @@
   "activeRequestHint": "You already have an active request for this slot.",
   "slotAllocatedHint": "This slot has already been allocated.",
   "studentChat": "Message this tutor",
-  "tutorAnnouncements": "Tutor announcements"
+  "tutorAnnouncements": "Tutor announcements",
+  "subjectLabel": "Subject",
+  "subjectPlaceholder": "calculus",
+  "languageLabel": "Language",
+  "languagePlaceholder": "English, Spanish",
+  "locationModeLabel": "Lesson format",
+  "availableNow": "Available now",
+  "freeSlotsThisWeek": "Has free slots this week",
+  "remote": "Remote",
+  "offline": "Offline",
+  "hybrid": "Hybrid",
+  "any": "Any",
+  "filters": "Filters"
 }

@@ -6,6 +6,7 @@ import {
   TutorProfile,
   SlotOccupancy,
   TimeSlot,
+  TutorDirectoryQuery,
   fallbackDirectMessageThreadKey,
   makeSlotAllocationKey,
   makeSlotBidKey
@@ -16,6 +17,7 @@ import { isProfileEmpty } from "../utils/normalize";
 import { isSlotInPast } from "../domain/TimeSlot";
 import { Avatar } from "./Avatar";
 import { BookingRequestForm } from "./BookingRequestForm";
+import { FilterBar } from "./FilterBar";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 import { DetailPageLayout } from "./DetailPageLayout";
@@ -26,8 +28,8 @@ type DiscoverTabProps = {
   selectedTutor: TutorProfileEvent | null;
   onSelectTutor: (entry: TutorProfileEvent | null) => void;
   profile: TutorProfile;
-  subjectFilter: string;
-  onSubjectFilterChange: (value: string) => void;
+  directoryQuery: TutorDirectoryQuery;
+  onDirectoryQueryChange: (next: TutorDirectoryQuery) => void;
   filteredTutors: TutorProfileEvent[];
   schedules: Record<string, TutorScheduleEvent>;
   discoverStatus: string;
@@ -52,8 +54,8 @@ export function DiscoverTab({
   selectedTutor,
   onSelectTutor,
   profile,
-  subjectFilter,
-  onSubjectFilterChange,
+  directoryQuery,
+  onDirectoryQueryChange,
   filteredTutors,
   schedules,
   discoverStatus,
@@ -230,14 +232,10 @@ export function DiscoverTab({
           </article>
         ) : null}
 
-        <label className="filter">
-          {t("discover.searchLabel")}
-          <input
-            value={subjectFilter}
-            onChange={(event) => onSubjectFilterChange(event.target.value)}
-            placeholder={t("discover.searchPlaceholder")}
-          />
-        </label>
+        <FilterBar
+          query={directoryQuery}
+          onChange={onDirectoryQueryChange}
+        />
 
         {loading ? (
           <Spinner label={t("common.states.loading")} />

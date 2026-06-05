@@ -28,10 +28,14 @@ export function useTutorProfile(pubkey: string) {
   }, [profile]);
 
   function buildProfileTags(nextProfile: TutorProfile) {
+    const modeTag = nextProfile.availabilityMode
+      ? (["t", `mode:${nextProfile.availabilityMode}`] as string[])
+      : [];
     return [
       ["t", "role:tutor"],
       ...nextProfile.subjects.map((subject) => ["t", `subject:${subject}`]),
-      ...nextProfile.languages.map((language) => ["t", `language:${language}`])
+      ...nextProfile.languages.map((language) => ["t", `language:${language}`]),
+      ...(modeTag.length ? [modeTag] : [])
     ];
   }
 

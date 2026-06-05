@@ -1,6 +1,6 @@
 import { nip19 } from "nostr-tools";
 import { useI18n } from "../i18n/I18nProvider";
-import { TutorProfileEvent } from "../hooks/hookTypes";
+import { TutorProfileEvent, AvailabilityMode } from "../hooks/hookTypes";
 import { Avatar } from "./Avatar";
 
 type TutorCardProps = {
@@ -8,10 +8,17 @@ type TutorCardProps = {
   onSelect: (entry: TutorProfileEvent) => void;
 };
 
+const MODE_LABEL_KEY: Record<AvailabilityMode, string> = {
+  remote: "discover.remote",
+  offline: "discover.offline",
+  hybrid: "discover.hybrid"
+};
+
 export function TutorCard({ entry, onSelect }: TutorCardProps) {
   const { t } = useI18n();
   const displayName = entry.profile.name || toDisplayId(entry.pubkey);
   const idLabel = toDisplayId(entry.pubkey);
+  const mode = entry.profile.availabilityMode;
 
   return (
     <button
@@ -25,6 +32,9 @@ export function TutorCard({ entry, onSelect }: TutorCardProps) {
           <h3>{displayName}</h3>
           <span className="tutor-card-id">{idLabel}</span>
         </div>
+        {mode ? (
+          <span className="tutor-card-mode">{t(MODE_LABEL_KEY[mode])}</span>
+        ) : null}
       </div>
       <p className="tutor-card-bio">
         {entry.profile.bio || t("common.states.noBioYet")}

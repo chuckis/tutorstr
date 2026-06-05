@@ -53,7 +53,12 @@
     "avatarHint": "Нажмите на аватар чтобы загрузить новое изображение",
     "blossomServerUrl": "URL Blossom сервера",
     "blossomHint": "Blossom сервер для загрузки изображений. Бесплатный на blossom.nostr.build",
-    "publish": "Опубликовать профиль"
+    "publish": "Опубликовать профиль",
+    "availabilityMode": "Формат занятия",
+    "notSpecified": "Не указан",
+    "remote": "Дистанционно",
+    "offline": "Очно",
+    "hybrid": "Смешанно"
   },
   "drawer": {
     "settings": "Настройки",

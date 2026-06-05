@@ -28,5 +28,17 @@
   "activeRequestHint": "У вас уже є активний запит на цей слот.",
   "slotAllocatedHint": "Цей слот уже розподілено.",
   "studentChat": "Повідомлення тьютору",
-  "tutorAnnouncements": "Оголошення тьютора"
+  "tutorAnnouncements": "Оголошення тьютора",
+  "subjectLabel": "Предмет",
+  "subjectPlaceholder": "матаналіз",
+  "languageLabel": "Мова",
+  "languagePlaceholder": "Українська, English",
+  "locationModeLabel": "Формат заняття",
+  "availableNow": "Доступний зараз",
+  "freeSlotsThisWeek": "Є вільні слоти цього тижня",
+  "remote": "Дистанційно",
+  "offline": "Очно",
+  "hybrid": "Змішано",
+  "any": "Будь-який",
+  "filters": "Фільтри"
 }

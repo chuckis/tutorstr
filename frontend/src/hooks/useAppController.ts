@@ -29,8 +29,6 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
   const keypair = useNostrKeypair();
   const profileState = useTutorProfile(keypair.pubkey);
   const scheduleState = useTutorSchedule(keypair.pubkey, viewerRole);
-  const directoryState = useTutorDirectory();
-  const schedulesState = useTutorSchedules();
   const relay = useRelays();
   const { publishBookingRequest } = useBookingActions(keypair.pubkey);
   const bookingsState = useBookings(keypair.pubkey, {
@@ -42,6 +40,16 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
   const lessonsState = useLessons(keypair.pubkey);
   const messagesState = useEncryptedMessages(keypair.pubkey);
   const publicAllocationState = usePublicAllocatedSlots();
+  const schedulesState = useTutorSchedules();
+
+  const winnerByAllocationKey = {
+    ...publicAllocationState.allocatedSlotsByKey,
+    ...bookingsState.winnerByAllocationKey
+  };
+  const directoryState = useTutorDirectory(
+    schedulesState.schedules,
+    winnerByAllocationKey
+  );
   const lessonNoteState = useLessonNote(
     keypair.pubkey,
     navigation.selectedLesson

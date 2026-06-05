@@ -28,5 +28,17 @@
   "activeRequestHint": "На этот слот уже есть активная заявка от вас.",
   "slotAllocatedHint": "Этот слот уже занят.",
   "studentChat": "Сообщение репетитору",
-  "tutorAnnouncements": "Объявления репетитора"
+  "tutorAnnouncements": "Объявления репетитора",
+  "subjectLabel": "Предмет",
+  "subjectPlaceholder": "математический анализ",
+  "languageLabel": "Язык",
+  "languagePlaceholder": "Русский, Английский",
+  "locationModeLabel": "Формат занятия",
+  "availableNow": "Доступен сейчас",
+  "freeSlotsThisWeek": "Есть свободные слоты на этой неделе",
+  "remote": "Дистанционно",
+  "offline": "Очно",
+  "hybrid": "Смешанно",
+  "any": "Любой",
+  "filters": "Фильтры"
 }

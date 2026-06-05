@@ -151,8 +151,8 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             selectedTutor={navigation.selectedTutor}
             onSelectTutor={navigation.setSelectedTutor}
             profile={profileState.profile}
-            subjectFilter={directoryState.subjectFilter}
-            onSubjectFilterChange={directoryState.setSubjectFilter}
+            directoryQuery={directoryState.directoryQuery}
+            onDirectoryQueryChange={directoryState.setDirectoryQuery}
             filteredTutors={directoryState.filteredTutors}
             schedules={schedulesState.schedules}
             discoverStatus={discoverStatus}

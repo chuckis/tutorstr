@@ -1,4 +1,4 @@
-import { TutorProfile } from "../domain/profile";
+import { TutorProfile, isAvailabilityMode } from "../domain/profile";
 import { TutorSchedule } from "../domain/schedule";
 
 export const emptyProfile: TutorProfile = {
@@ -7,7 +7,8 @@ export const emptyProfile: TutorProfile = {
   subjects: [],
   languages: [],
   hourlyRate: 0,
-  avatarUrl: ""
+  avatarUrl: "",
+  availabilityMode: undefined
 };
 
 export const emptySchedule: TutorSchedule = {
@@ -16,13 +17,15 @@ export const emptySchedule: TutorSchedule = {
 };
 
 export function normalizeProfile(input: Record<string, unknown> | null | undefined) {
+  const rawMode = input?.availabilityMode;
   return {
     name: typeof input?.name === "string" ? input.name : "",
     bio: typeof input?.bio === "string" ? input.bio : typeof input?.about === "string" ? input.about : "",
     subjects: Array.isArray(input?.subjects) ? input.subjects as string[] : [],
     languages: Array.isArray(input?.languages) ? input.languages as string[] : [],
     hourlyRate: typeof input?.hourlyRate === "number" ? input.hourlyRate : 0,
-    avatarUrl: typeof input?.avatarUrl === "string" ? input.avatarUrl : typeof input?.picture === "string" ? input.picture : ""
+    avatarUrl: typeof input?.avatarUrl === "string" ? input.avatarUrl : typeof input?.picture === "string" ? input.picture : "",
+    availabilityMode: typeof rawMode === "string" && isAvailabilityMode(rawMode) ? rawMode : undefined
   };
 }
 
