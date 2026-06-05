@@ -27,6 +27,7 @@
   },
   "states": {
     "unnamedTutor": "Unnamed Tutor",
+    "unnamedStudent": "Unnamed Student",
     "noBioYet": "No bio provided yet.",
     "noBio": "No bio provided.",
     "notSet": "Not set",

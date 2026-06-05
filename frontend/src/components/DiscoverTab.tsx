@@ -22,6 +22,7 @@ import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 import { DetailPageLayout } from "./DetailPageLayout";
 import { Spinner } from "./Spinner";
+import { StudentDetailView } from "./StudentDetailView";
 import { TutorCard } from "./TutorCard";
 
 type DiscoverTabProps = {
@@ -101,6 +102,21 @@ export function DiscoverTab({
   }
 
   if (selectedTutor) {
+    const isStudentView = selectedTutor.profile.role === "student";
+
+    if (isStudentView) {
+      return (
+        <StudentDetailView
+          profile={selectedTutor}
+          viewerRole={role}
+          onBack={() => onSelectTutor(null)}
+          onSendMessage={onSendMessage}
+          messagesByThread={messagesByThread}
+          messageStatus={messageStatus}
+        />
+      );
+    }
+
     const threadKey = fallbackDirectMessageThreadKey(selectedTutor.pubkey);
     const chatMessages = isStudent
       ? messagesByThread[threadKey] || []
@@ -114,7 +130,7 @@ export function DiscoverTab({
       >
         <article className="panel">
           <div className="tutor-profile-header">
-            <Avatar url={selectedTutor.profile.avatarUrl} role="tutor" size="lg" />
+            <Avatar url={selectedTutor.profile.avatarUrl} role={selectedTutor.profile.role ?? "tutor"} size="lg" />
             <div>
               <h2>
                 {selectedTutor.profile.name || t("common.states.unnamedTutor")}

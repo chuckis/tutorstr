@@ -29,6 +29,7 @@
   "slotAllocatedHint": "This slot has already been allocated.",
   "studentChat": "Message this tutor",
   "tutorAnnouncements": "Tutor announcements",
+  "messageStudent": "Message this student",
   "subjectLabel": "Subject",
   "subjectPlaceholder": "calculus",
   "languageLabel": "Language",

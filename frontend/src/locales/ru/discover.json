@@ -29,6 +29,7 @@
   "slotAllocatedHint": "Этот слот уже занят.",
   "studentChat": "Сообщение репетитору",
   "tutorAnnouncements": "Объявления репетитора",
+  "messageStudent": "Сообщение студенту",
   "subjectLabel": "Предмет",
   "subjectPlaceholder": "математический анализ",
   "languageLabel": "Язык",

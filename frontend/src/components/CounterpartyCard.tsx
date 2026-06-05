@@ -45,7 +45,7 @@ export function CounterpartyCard({
       {profile.profile.bio ? (
         <p className="muted">{profile.profile.bio}</p>
       ) : null}
-      {profile.profile.subjects && profile.profile.subjects.length > 0 ? (
+      {role === "tutor" && profile.profile.subjects && profile.profile.subjects.length > 0 ? (
         <div className="chips">
           {profile.profile.subjects.map((subject) => (
             <span key={subject}>{subject}</span>
