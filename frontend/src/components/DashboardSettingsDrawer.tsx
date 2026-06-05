@@ -2,7 +2,7 @@ import { X, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Settings, User, HelpC
 import { useState } from "react";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
-import { AccountRole, TutorProfile } from "../hooks/hookTypes";
+import { AccountRole, UserProfile } from "../hooks/hookTypes";
 import { UploadStatus } from "../hooks/useBlossomConfig";
 import { Avatar } from "./Avatar";
 import { ProfileForm } from "./ProfileForm";
@@ -15,10 +15,10 @@ type DrawerSection = "menu" | "settings" | "profile" | "faq" | "about";
 type DashboardSettingsDrawerProps = {
   isOpen: boolean;
   npub: string;
-  profile: TutorProfile;
+  profile: UserProfile;
   onClose: () => void;
-  onProfileChange: (profile: TutorProfile) => void;
-  onPublishProfile: (profile: TutorProfile) => void;
+  onProfileChange: (profile: UserProfile) => void;
+  onPublishProfile: (profile: UserProfile) => void;
   relay: ReturnType<typeof useRelays>;
   onLogout: () => void;
   onRevealSecret: (passphrase: string) => Promise<string>;

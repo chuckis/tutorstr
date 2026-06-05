@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRepo } from "./RepoContext";
-import { TutorProfileEvent, TutorScheduleEvent } from "../ports/eventTypes";
+import { UserProfileEvent, TutorScheduleEvent } from "../ports/eventTypes";
 import { SlotOccupancy } from "../domain/slotOccupancy";
 import { TutorDirectoryQuery } from "../domain/tutorDirectoryQuery";
 import { isProfileEmpty, normalizeProfile } from "../utils/normalize";
-import { hasRoleTag } from "../domain/profile";
+import { hasRoleTag, hasSchemaTag, PROFILE_SCHEMA_VERSION } from "../domain/profile";
 import {
   tutorMatchesSubject,
   tutorMatchesLanguage,
@@ -20,7 +20,7 @@ export function useTutorDirectory(
   winnerByAllocationKey?: Record<string, SlotOccupancy>
 ) {
   const { profileEventRepository } = useRepo();
-  const [tutors, setTutors] = useState<Record<string, TutorProfileEvent>>({});
+  const [tutors, setTutors] = useState<Record<string, UserProfileEvent>>({});
   const [directoryQuery, setDirectoryQuery] = useState<TutorDirectoryQuery>({});
   const [loading, setLoading] = useState(true);
 
@@ -70,7 +70,9 @@ export function useTutorDirectory(
     const entries = Object.values(tutors).filter(
       (entry) => !isProfileEmpty(entry.profile)
     ).filter(
-      (entry) => !hasRoleTag(entry.tags, "student")
+      (entry) => hasSchemaTag(entry.tags, PROFILE_SCHEMA_VERSION)
+    ).filter(
+      (entry) => entry.profile.role === "tutor" || hasRoleTag(entry.tags, "tutor")
     );
 
     const { subject, language, locationMode, availableNow, hasFreeSlotsThisWeek } = directoryQuery;

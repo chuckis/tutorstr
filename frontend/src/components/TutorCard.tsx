@@ -1,11 +1,11 @@
 import { nip19 } from "nostr-tools";
 import { useI18n } from "../i18n/I18nProvider";
-import { TutorProfileEvent, AvailabilityMode } from "../hooks/hookTypes";
+import { UserProfileEvent, AvailabilityMode } from "../hooks/hookTypes";
 import { Avatar } from "./Avatar";
 
 type TutorCardProps = {
-  entry: TutorProfileEvent;
-  onSelect: (entry: TutorProfileEvent) => void;
+  entry: UserProfileEvent;
+  onSelect: (entry: UserProfileEvent) => void;
 };
 
 const MODE_LABEL_KEY: Record<AvailabilityMode, string> = {

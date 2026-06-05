@@ -3,7 +3,7 @@ import { AccountRole } from "../domain/account";
 import { effectiveRequestSegment } from "../application/account/requestSegment";
 import { Booking } from "../domain/booking";
 import { Lesson } from "../domain/lesson";
-import { TutorProfileEvent } from "../ports/eventTypes";
+import { UserProfileEvent } from "../ports/eventTypes";
 
 export type MainTab = "discover" | "requests" | "lessons" | "profile";
 export type RequestSegment = "incoming" | "outgoing";
@@ -14,7 +14,7 @@ export function useAppNavigation(role: AccountRole = "tutor") {
   const [storedRequestSegment, setStoredRequestSegment] =
     useState<RequestSegment>("incoming");
   const [lessonSegment, setLessonSegment] = useState<LessonSegment>("upcoming");
-  const [selectedTutor, setSelectedTutor] = useState<TutorProfileEvent | null>(null);
+  const [selectedTutor, setSelectedTutor] = useState<UserProfileEvent | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<{
     request: Booking;
     segment: RequestSegment;

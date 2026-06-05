@@ -1,13 +1,13 @@
 import { Lesson, LessonStatus } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
-import { TutorProfileEvent } from "../hooks/hookTypes";
+import { UserProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
 
 type LessonAgreementsPanelProps = {
   title: string;
   currentPubkey: string;
   agreements: Lesson[];
-  profilesByPubkey: Record<string, TutorProfileEvent>;
+  profilesByPubkey: Record<string, UserProfileEvent>;
   onStatusChange?: (agreement: Lesson, status: LessonStatus) => void;
 };
 

@@ -1,10 +1,10 @@
-export type { TutorProfileEvent, TutorScheduleEvent } from "../ports/eventTypes";
+export type { UserProfileEvent, TutorScheduleEvent } from "../ports/eventTypes";
 export type { BookingRequestEvent, BookingStatusEvent } from "../ports/bookingEventsRepository";
 export type { ProgressEntryEvent } from "../ports/privateMessagingRepository";
 export type { AccountRole } from "../domain/account";
 export type { Lesson, LessonStatus } from "../domain/lesson";
 export type { Booking } from "../domain/booking";
-export type { TutorProfile, AvailabilityMode } from "../domain/profile";
+export type { UserProfile, AvailabilityMode } from "../domain/profile";
 export { AVAILABILITY_MODES } from "../domain/profile";
 export type { TutorDirectoryQuery } from "../domain/tutorDirectoryQuery";
 export type { TutorSchedule } from "../domain/schedule";

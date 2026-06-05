@@ -1,6 +1,8 @@
-export const ACCOUNT_ROLES = ["tutor", "student"] as const;
+import { Role } from "./profile";
 
-export type AccountRole = (typeof ACCOUNT_ROLES)[number];
+export const ACCOUNT_ROLES: readonly Role[] = ["tutor", "student"] as const;
+
+export type AccountRole = Role;
 
 export const LEGACY_ACCOUNT_ROLE: AccountRole = "tutor";
 

@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useRepo } from "./RepoContext";
 import { blossomMediaRepository, BLOSSOM_STORAGE_KEY } from "../adapters/nostr/blossomMediaRepository";
-import { TutorProfile } from "../hooks/hookTypes";
+import { UserProfile } from "../hooks/hookTypes";
 
 export type UploadStatus = { type: "idle" } | { type: "uploading" } | { type: "success"; url: string } | { type: "error"; message: string };
 
@@ -32,8 +32,8 @@ export function useBlossomConfig() {
 
   const uploadAvatar = useCallback(async (
     file: File,
-    profile: TutorProfile,
-    onProfileChange: (p: TutorProfile) => void
+    profile: UserProfile,
+    onProfileChange: (p: UserProfile) => void
   ) => {
     setUploadStatus({ type: "uploading" });
     try {

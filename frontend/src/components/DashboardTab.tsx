@@ -1,6 +1,6 @@
 import { useI18n } from "../i18n/I18nProvider";
 import { AccountRole, Lesson, TutorSchedule } from "../hooks/hookTypes";
-import { TutorProfileEvent } from "../hooks/hookTypes";
+import { UserProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
 import { Avatar } from "./Avatar";
 import { ScheduleForm } from "./ScheduleForm";
@@ -24,7 +24,7 @@ type DashboardTabProps = {
   role: AccountRole;
   mode?: DashboardMode;
   upcomingLessons?: Lesson[];
-  tutors?: Record<string, TutorProfileEvent>;
+  tutors?: Record<string, UserProfileEvent>;
   loading: boolean;
 };
 

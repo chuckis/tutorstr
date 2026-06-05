@@ -2,7 +2,7 @@ import { CalendarClock, CalendarRange, History, List } from "lucide-react";
 import { useState } from "react";
 import { Lesson, LessonStatus, lessonMessageThreadKey, EncryptedMessage } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
-import { TutorProfileEvent } from "../hooks/hookTypes";
+import { UserProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
 import { DetailPageLayout } from "./DetailPageLayout";
 import { LessonsCalendar } from "./LessonsCalendar";
@@ -23,7 +23,7 @@ type LessonsTabProps = {
     past: Lesson[];
   };
   currentPubkey: string;
-  tutors: Record<string, TutorProfileEvent>;
+  tutors: Record<string, UserProfileEvent>;
   lessonNote: string;
   onLessonNoteChange: (value: string) => void;
   onSubmitLessonNote: () => void;

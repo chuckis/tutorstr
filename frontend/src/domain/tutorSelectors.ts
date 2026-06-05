@@ -1,4 +1,4 @@
-import { TutorProfile, AvailabilityMode } from "./profile";
+import { UserProfile, AvailabilityMode } from "./profile";
 import { TutorSchedule } from "./schedule";
 import { TimeSlot, isSlotInPast } from "./TimeSlot";
 import { makeSlotAllocationKey } from "./slotAllocation";
@@ -8,7 +8,7 @@ function normalizeFilter(value: string): string {
 }
 
 export function tutorMatchesSubject(
-  profile: TutorProfile,
+  profile: UserProfile,
   filter: string
 ): boolean {
   const term = normalizeFilter(filter);
@@ -17,7 +17,7 @@ export function tutorMatchesSubject(
 }
 
 export function tutorMatchesLanguage(
-  profile: TutorProfile,
+  profile: UserProfile,
   filter: string
 ): boolean {
   const term = normalizeFilter(filter);
@@ -26,7 +26,7 @@ export function tutorMatchesLanguage(
 }
 
 export function tutorHasLocationMode(
-  profile: TutorProfile,
+  profile: UserProfile,
   mode: AvailabilityMode | undefined
 ): boolean {
   if (!mode) return true;

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { AccountRole, TutorProfile, AvailabilityMode, AVAILABILITY_MODES } from "../hooks/hookTypes";
+import { AccountRole, UserProfile, AvailabilityMode, AVAILABILITY_MODES } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { parseList } from "../utils/normalize";
 
 type ProfileFormMode = "tutor" | "student";
 
 type ProfileFormProps = {
-  profile: TutorProfile;
-  onChange: (next: TutorProfile) => void;
-  onSubmit: (next: TutorProfile) => void;
+  profile: UserProfile;
+  onChange: (next: UserProfile) => void;
+  onSubmit: (next: UserProfile) => void;
   role: AccountRole;
   mode?: ProfileFormMode;
 };

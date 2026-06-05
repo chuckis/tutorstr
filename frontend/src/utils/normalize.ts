@@ -1,14 +1,15 @@
-import { TutorProfile, isAvailabilityMode } from "../domain/profile";
+import { UserProfile, isAvailabilityMode, isRole } from "../domain/profile";
 import { TutorSchedule } from "../domain/schedule";
 
-export const emptyProfile: TutorProfile = {
+export const emptyProfile: UserProfile = {
   name: "",
   bio: "",
   subjects: [],
   languages: [],
   hourlyRate: 0,
   avatarUrl: "",
-  availabilityMode: undefined
+  availabilityMode: undefined,
+  role: undefined
 };
 
 export const emptySchedule: TutorSchedule = {
@@ -16,8 +17,9 @@ export const emptySchedule: TutorSchedule = {
   slots: []
 };
 
-export function normalizeProfile(input: Record<string, unknown> | null | undefined) {
+export function normalizeProfile(input: Record<string, unknown> | null | undefined): UserProfile {
   const rawMode = input?.availabilityMode;
+  const rawRole = input?.role;
   return {
     name: typeof input?.name === "string" ? input.name : "",
     bio: typeof input?.bio === "string" ? input.bio : typeof input?.about === "string" ? input.about : "",
@@ -25,11 +27,12 @@ export function normalizeProfile(input: Record<string, unknown> | null | undefin
     languages: Array.isArray(input?.languages) ? input.languages as string[] : [],
     hourlyRate: typeof input?.hourlyRate === "number" ? input.hourlyRate : 0,
     avatarUrl: typeof input?.avatarUrl === "string" ? input.avatarUrl : typeof input?.picture === "string" ? input.picture : "",
-    availabilityMode: typeof rawMode === "string" && isAvailabilityMode(rawMode) ? rawMode : undefined
+    availabilityMode: typeof rawMode === "string" && isAvailabilityMode(rawMode) ? rawMode : undefined,
+    role: typeof rawRole === "string" && isRole(rawRole) ? rawRole : undefined
   };
 }
 
-export function isProfileEmpty(profile: TutorProfile) {
+export function isProfileEmpty(profile: UserProfile) {
   return (
     !profile.name.trim() &&
     !profile.bio.trim() &&

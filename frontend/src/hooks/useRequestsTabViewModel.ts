@@ -10,7 +10,7 @@ import {
 } from "../application/usecases/buildRequestsTabViewModel";
 import { Booking } from "../domain/booking";
 import { useI18n } from "../i18n/I18nProvider";
-import { TutorProfileEvent } from "../ports/eventTypes";
+import { UserProfileEvent } from "../ports/eventTypes";
 import { toDisplayId } from "../utils/display";
 
 export type {
@@ -26,7 +26,7 @@ type UseRequestsTabViewModelParams = {
   selectedRequest: SelectedRequest | null;
   requestSegment: RequestSegment;
   requestItems: Booking[];
-  tutors: Record<string, TutorProfileEvent>;
+  tutors: Record<string, UserProfileEvent>;
   getUnreadCount: (threadKey: string) => number;
   getUnreadTotal: (threadKeys: string[]) => number;
 };

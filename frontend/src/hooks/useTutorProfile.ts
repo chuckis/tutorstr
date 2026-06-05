@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { useRepo } from "./RepoContext";
-import { TutorProfile } from "../domain/profile";
+import { Role, UserProfile, PROFILE_SCHEMA_VERSION } from "../domain/profile";
 import { emptyProfile, normalizeProfile } from "../utils/normalize";
 
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
@@ -13,30 +13,41 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   return translated === error.message ? error.message : translated;
 }
 
-export function useTutorProfile(pubkey: string) {
+export function useTutorProfile(pubkey: string, viewerRole?: Role) {
   const { t } = useI18n();
   const { profileEventRepository } = useRepo();
-  const [profile, setProfile] = useState<TutorProfile>(emptyProfile);
+  const [profile, setProfile] = useState<UserProfile>(emptyProfile);
   const [status, setStatus] = useState<string>("");
   const [lastEventId, setLastEventId] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const latestProfileRef = useRef<TutorProfile>(emptyProfile);
+  const latestProfileRef = useRef<UserProfile>(emptyProfile);
   const autoPublishStartedRef = useRef(false);
 
   useEffect(() => {
     latestProfileRef.current = profile;
   }, [profile]);
 
-  function buildProfileTags(nextProfile: TutorProfile) {
-    const modeTag = nextProfile.availabilityMode
-      ? (["t", `mode:${nextProfile.availabilityMode}`] as string[])
-      : [];
-    return [
-      ["t", "role:tutor"],
-      ...nextProfile.subjects.map((subject) => ["t", `subject:${subject}`]),
-      ...nextProfile.languages.map((language) => ["t", `language:${language}`]),
-      ...(modeTag.length ? [modeTag] : [])
+  function buildProfileTags(nextProfile: UserProfile): string[][] {
+    const tags: string[][] = [
+      ["t", `schema:${PROFILE_SCHEMA_VERSION}`]
     ];
+
+    if (nextProfile.role) {
+      tags.push(["t", `role:${nextProfile.role}`]);
+    }
+
+    if (nextProfile.availabilityMode) {
+      tags.push(["t", `mode:${nextProfile.availabilityMode}`]);
+    }
+
+    for (const subject of nextProfile.subjects) {
+      tags.push(["t", `subject:${subject}`]);
+    }
+    for (const language of nextProfile.languages) {
+      tags.push(["t", `language:${language}`]);
+    }
+
+    return tags;
   }
 
   useEffect(() => {
@@ -46,7 +57,7 @@ export function useTutorProfile(pubkey: string) {
     const stored = localStorage.getItem(profileStorageKey);
     if (stored) {
       try {
-        const parsed = JSON.parse(stored) as TutorProfile;
+        const parsed = JSON.parse(stored) as UserProfile;
         const normalized = normalizeProfile(parsed);
         latestProfileRef.current = normalized;
         setProfile(normalized);
@@ -60,7 +71,7 @@ export function useTutorProfile(pubkey: string) {
       (event) => {
         try {
           const parsed = normalizeProfile(
-            JSON.parse(event.content) as TutorProfile
+            JSON.parse(event.content) as UserProfile
           );
           latestProfileRef.current = parsed;
           setProfile(parsed);
@@ -81,7 +92,11 @@ export function useTutorProfile(pubkey: string) {
           }
 
           autoPublishStartedRef.current = true;
-          void publishProfile(latestProfileRef.current);
+          const profileForPublish = { ...latestProfileRef.current };
+          if (viewerRole) {
+            profileForPublish.role = viewerRole;
+          }
+          void publishProfile(profileForPublish);
         }
       }
     );
@@ -89,7 +104,7 @@ export function useTutorProfile(pubkey: string) {
     return () => unsubscribe();
   }, [pubkey]);
 
-  async function publishProfile(nextProfile: TutorProfile) {
+  async function publishProfile(nextProfile: UserProfile) {
     setStatus(t("profile.form.publish"));
 
     try {

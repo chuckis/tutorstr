@@ -3,7 +3,7 @@ import {
   AccountRole,
   BookingRequest,
   EncryptedMessage,
-  TutorProfile,
+  UserProfile,
   SlotOccupancy,
   TimeSlot,
   TutorDirectoryQuery,
@@ -11,7 +11,7 @@ import {
   makeSlotAllocationKey,
   makeSlotBidKey
 } from "../hooks/hookTypes";
-import { TutorProfileEvent, TutorScheduleEvent } from "../hooks/hookTypes";
+import { UserProfileEvent, TutorScheduleEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { isProfileEmpty } from "../utils/normalize";
 import { isSlotInPast } from "../domain/TimeSlot";
@@ -25,12 +25,12 @@ import { Spinner } from "./Spinner";
 import { TutorCard } from "./TutorCard";
 
 type DiscoverTabProps = {
-  selectedTutor: TutorProfileEvent | null;
-  onSelectTutor: (entry: TutorProfileEvent | null) => void;
-  profile: TutorProfile;
+  selectedTutor: UserProfileEvent | null;
+  onSelectTutor: (entry: UserProfileEvent | null) => void;
+  profile: UserProfile;
   directoryQuery: TutorDirectoryQuery;
   onDirectoryQueryChange: (next: TutorDirectoryQuery) => void;
-  filteredTutors: TutorProfileEvent[];
+  filteredTutors: UserProfileEvent[];
   schedules: Record<string, TutorScheduleEvent>;
   discoverStatus: string;
   onRequestPublishedSlot: (tutorPubkey: string, slot: TimeSlot) => void;
