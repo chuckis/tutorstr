@@ -19,5 +19,20 @@ export const blossomMediaRepository: MediaUploadRepository = {
     const auth = await createUploadAuth(bSigner, file, {});
     const desc = await uploadBlob(normalized, file, { auth });
     return desc.url;
+  },
+
+  async uploadMultiple(files, serverUrl, signer) {
+    const normalized = serverUrl.replace(/\/+$/, "");
+    const bSigner = toBlossomSigner(signer);
+
+    const results = await Promise.all(
+      files.map(async (file) => {
+        const auth = await createUploadAuth(bSigner, file, {});
+        const desc = await uploadBlob(normalized, file, { auth });
+        return desc.url;
+      })
+    );
+
+    return results;
   }
 };

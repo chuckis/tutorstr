@@ -1,16 +1,59 @@
 import { fallbackDirectMessageThreadKey } from "../../domain/messageThread";
-import { PrivateMessagingRepository } from "../../ports/privateMessagingRepository";
+import { PrivateMessagingRepository, AttachmentMessagePayload } from "../../ports/privateMessagingRepository";
 import { nostrClient } from "../../nostr/client";
-import { EncryptedMessage } from "../../domain/messaging";
+import { TutorHubKind } from "../../nostr/kinds";
+import { EncryptedMessage, MessageAttachment } from "../../domain/messaging";
 import { ProgressEntry } from "../../domain/progress";
 import { ProgressEntryEvent } from "../../ports/privateMessagingRepository";
 import { getTagValue } from "../../utils/nostrTags";
+
+function parseMessageContent(content: string): { text: string; attachments: MessageAttachment[] } {
+  try {
+    const parsed = JSON.parse(content);
+    if (parsed && typeof parsed === "object" && Array.isArray(parsed.attachments)) {
+      return {
+        text: parsed.text || "",
+        attachments: parsed.attachments as MessageAttachment[],
+      };
+    }
+  } catch {
+    // not JSON — plain text message (backwards compat)
+  }
+  return { text: content, attachments: [] };
+}
+
+function buildEncryptedMessage(
+  eventId: string,
+  createdAt: number,
+  senderPubkey: string,
+  recipientPubkey: string,
+  plaintext: string,
+  tags: string[][]
+): EncryptedMessage {
+  const threadKeyFromTag = getTagValue(tags, "thread");
+  const fallback = fallbackDirectMessageThreadKey(recipientPubkey);
+  const threadInfo = threadKeyFromTag
+    ? { threadKey: threadKeyFromTag, type: "dm" as const, refId: recipientPubkey }
+    : fallback;
+  const { text, attachments } = parseMessageContent(plaintext);
+
+  return {
+    id: eventId,
+    created_at: createdAt,
+    pubkey: senderPubkey,
+    counterparty: recipientPubkey,
+    threadKey: threadInfo.threadKey,
+    threadInfo,
+    content: text,
+    attachments,
+  };
+}
 
 export function createNostrPrivateMessagingRepository(): PrivateMessagingRepository {
   return {
     subscribeMessagesForUser(pubkey, onMessage) {
       const incoming = nostrClient.subscribe(
-        { kinds: [4], "#p": [pubkey], limit: 200 },
+        { kinds: [TutorHubKind.DirectMessage], "#p": [pubkey], limit: 200 },
         async (event) => {
           const plaintext = await nostrClient.decryptContent(
             event.pubkey,
@@ -20,21 +63,21 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
             return;
           }
 
-          onMessage({
-            id: event.id,
-            created_at: event.created_at,
-            pubkey: event.pubkey,
-            counterparty: event.pubkey,
-            threadKey:
-              getTagValue(event.tags, "thread") ||
-              fallbackDirectMessageThreadKey(event.pubkey),
-            content: plaintext
-          });
+          onMessage(
+            buildEncryptedMessage(
+              event.id,
+              event.created_at,
+              event.pubkey,
+              event.pubkey,
+              plaintext,
+              event.tags
+            )
+          );
         }
       );
 
       const outgoing = nostrClient.subscribe(
-        { kinds: [4], authors: [pubkey], limit: 200 },
+        { kinds: [TutorHubKind.DirectMessage], authors: [pubkey], limit: 200 },
         async (event) => {
           const recipient = getTagValue(event.tags, "p");
           if (!recipient) {
@@ -49,16 +92,16 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
             return;
           }
 
-          onMessage({
-            id: event.id,
-            created_at: event.created_at,
-            pubkey: event.pubkey,
-            counterparty: recipient,
-            threadKey:
-              getTagValue(event.tags, "thread") ||
-              fallbackDirectMessageThreadKey(recipient),
-            content: plaintext
-          });
+          onMessage(
+            buildEncryptedMessage(
+              event.id,
+              event.created_at,
+              event.pubkey,
+              recipient,
+              plaintext,
+              event.tags
+            )
+          );
         }
       );
 
@@ -70,7 +113,7 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
 
     subscribeProgressEntriesForUser(pubkey, onEntry) {
       const incoming = nostrClient.subscribe(
-        { kinds: [30004], "#p": [pubkey], limit: 200 },
+        { kinds: [TutorHubKind.StudentProgress], "#p": [pubkey], limit: 200 },
         async (event) => {
           const plaintext = await nostrClient.decryptContent(
             event.pubkey,
@@ -96,7 +139,7 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
       );
 
       const outgoing = nostrClient.subscribe(
-        { kinds: [30004], authors: [pubkey], limit: 200 },
+        { kinds: [TutorHubKind.StudentProgress], authors: [pubkey], limit: 200 },
         async (event) => {
           const recipient = getTagValue(event.tags, "p");
           if (!recipient) {
@@ -137,14 +180,27 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
         return;
       }
 
-      await nostrClient.publishEncryptedEvent(4, recipientPubkey, text, [
-        ["thread", threadKey || fallbackDirectMessageThreadKey(recipientPubkey)]
-      ]);
+      await nostrClient.publishEncryptedEvent(
+        TutorHubKind.DirectMessage,
+        recipientPubkey,
+        text,
+        [["thread", threadKey || fallbackDirectMessageThreadKey(recipientPubkey).threadKey]]
+      );
+    },
+
+    async sendAttachmentMessage(recipientPubkey, payload, threadKey) {
+      const content = JSON.stringify(payload);
+      await nostrClient.publishEncryptedEvent(
+        TutorHubKind.DirectMessage,
+        recipientPubkey,
+        content,
+        [["thread", threadKey || fallbackDirectMessageThreadKey(recipientPubkey).threadKey]]
+      );
     },
 
     async sendProgressEntry(recipientPubkey, entry) {
       await nostrClient.publishEncryptedEvent(
-        30004,
+        TutorHubKind.StudentProgress,
         recipientPubkey,
         JSON.stringify(entry)
       );

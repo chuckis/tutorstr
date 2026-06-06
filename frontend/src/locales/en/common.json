@@ -13,6 +13,13 @@
     "lessons": "Lessons",
     "profile": "Dashboard"
   },
+  "share": {
+    "checkItOut": "Check it out on Tutorstr!"
+  },
+  "actions": {
+    "share": "Share",
+    "remove": "Remove"
+  },
   "buttons": {
     "back": "Back",
     "save": "Save",
@@ -32,7 +39,10 @@
     "noBio": "No bio provided.",
     "notSet": "Not set",
     "unknown": "Unknown",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "uploading": "Uploading...",
+    "error": "Error",
+    "saving": "Saving..."
   },
   "language": {
     "label": "Language",
@@ -45,7 +55,9 @@
   "messages": {
     "empty": "No messages yet.",
     "placeholder": "Write a private message...",
-    "title": "Encrypted messages"
+    "title": "Encrypted messages",
+    "attach": "Attach file",
+    "loadMore": "Load {{count}} older messages"
   },
   "runtime": {
     "noRelaysConfigured": "No relays configured.",

@@ -6,4 +6,9 @@ export interface MediaUploadRepository {
     serverUrl: string,
     signer: NostrSigner
   ): Promise<string>;
+  uploadMultiple(
+    files: File[],
+    serverUrl: string,
+    signer: NostrSigner
+  ): Promise<string[]>;
 }

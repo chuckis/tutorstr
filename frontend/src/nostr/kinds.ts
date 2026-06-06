@@ -5,5 +5,6 @@ export enum TutorHubKind {
   BookingStatus = 30003,
   StudentProgress = 30004,
   TutorBlogPost = 30005,
-  LessonAgreement = 30006
+  LessonAgreement = 30006,
+  DirectMessage = 4,
 }

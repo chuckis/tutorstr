@@ -9,7 +9,7 @@ export { AVAILABILITY_MODES } from "../domain/profile";
 export type { TutorDirectoryQuery } from "../domain/tutorDirectoryQuery";
 export type { TutorSchedule } from "../domain/schedule";
 export type { BookingRequest } from "../domain/booking";
-export type { EncryptedMessage } from "../domain/messaging";
+export type { EncryptedMessage, MessageAttachment, MessageThreadInfo, MessageThreadType } from "../domain/messaging";
 export type { ProgressEntry } from "../domain/progress";
 export type { TimeSlot } from "../domain/TimeSlot";
 export type { SlotOccupancy } from "../domain/slotOccupancy";

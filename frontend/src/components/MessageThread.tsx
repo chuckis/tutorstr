@@ -1,31 +1,68 @@
+import { useRef, useEffect, useCallback, useState } from "react";
 import { EncryptedMessage } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
+import { MessageAttachmentPreview } from "./MessageAttachmentPreview";
 
-const MAX_MESSAGES = 6;
+const PAGE_SIZE = 20;
 
 type MessageThreadProps = {
   messages: EncryptedMessage[];
+  currentPubkey?: string;
 };
 
-export function MessageThread({ messages }: MessageThreadProps) {
+export function MessageThread({ messages, currentPubkey }: MessageThreadProps) {
   const { t, formatDateTime } = useI18n();
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const visibleMessages = messages.slice(-visibleCount);
+  const hasMore = messages.length > visibleCount;
+
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages.length]);
+
+  const loadMore = useCallback(() => {
+    setVisibleCount((prev) => prev + PAGE_SIZE);
+  }, []);
 
   if (messages.length === 0) {
     return <p className="muted">{t("common.messages.empty")}</p>;
   }
 
-  const visible = messages.slice(-MAX_MESSAGES);
-
   return (
-    <div className="message-thread">
-      {visible.map((message) => (
-        <div key={message.id} className="message-bubble">
-          <p>{message.content}</p>
-          <span className="muted">
-            {formatDateTime(new Date(message.created_at * 1000).toISOString())}
-          </span>
-        </div>
-      ))}
+    <div className="message-thread" ref={containerRef}>
+      {hasMore ? (
+        <button
+          type="button"
+          className="load-more"
+          onClick={loadMore}
+        >
+          {t("common.messages.loadMore", { count: messages.length - visibleCount })}
+        </button>
+      ) : null}
+      {visibleMessages.map((message) => {
+        const isOwn = message.pubkey === currentPubkey;
+
+        return (
+          <div
+            key={message.id}
+            className={`message-bubble ${isOwn ? "message-sent" : "message-received"}`}
+          >
+            <div className="message-content">
+              {message.content ? <p>{message.content}</p> : null}
+              <MessageAttachmentPreview attachments={message.attachments} />
+            </div>
+            <span className="muted message-timestamp">
+              {formatDateTime(new Date(message.created_at * 1000).toISOString())}
+            </span>
+          </div>
+        );
+      })}
+      <div ref={bottomRef} />
     </div>
   );
 }

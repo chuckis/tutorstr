@@ -117,9 +117,9 @@ export function DiscoverTab({
       );
     }
 
-    const threadKey = fallbackDirectMessageThreadKey(selectedTutor.pubkey);
+    const threadInfo = fallbackDirectMessageThreadKey(selectedTutor.pubkey);
     const chatMessages = isStudent
-      ? messagesByThread[threadKey] || []
+      ? messagesByThread[threadInfo.threadKey] || []
       : [];
     const announcements = tutorAnnouncements[selectedTutor.pubkey] || [];
 
@@ -211,7 +211,7 @@ export function DiscoverTab({
             <MessageThread messages={chatMessages} />
             <MessageComposer
               onSend={(text) =>
-                onSendMessage(selectedTutor.pubkey, text, threadKey)
+                onSendMessage(selectedTutor.pubkey, text, threadInfo.threadKey)
               }
             />
             {messageStatus ? (

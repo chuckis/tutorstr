@@ -39,7 +39,11 @@ function buildViewModel({
         (total, threadKey) => total + (unreadByThread[threadKey] || 0),
         0
       ),
-    toFallbackDisplayId: (pubkey) => `fallback:${pubkey}`
+    toFallbackDisplayId: (pubkey) => `fallback:${pubkey}`,
+    requestTimestamps: {},
+    statusEvents: {},
+    counterpartyProfiles: {},
+    viewerRole: "tutor"
   });
 }
 

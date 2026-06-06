@@ -170,7 +170,7 @@ function buildRequestListItem({
   getUnreadCount: (threadKey: string) => number;
   toFallbackDisplayId: (pubkey: string) => string;
 }): RequestListItemViewModel {
-  const threadKey = requestMessageThreadKey(request);
+  const threadInfo = requestMessageThreadKey(request);
   const counterpartyPubkey = getCounterpartyPubkey(request, segment);
   const isPending = request.status === "pending";
 
@@ -182,8 +182,8 @@ function buildRequestListItem({
     reasonLabel: requestReasonLabel(request),
     counterpartyLabel:
       profileNamesByPubkey[counterpartyPubkey] || toFallbackDisplayId(counterpartyPubkey),
-    threadKey,
-    unreadCount: getUnreadCount(threadKey),
+    threadKey: threadInfo.threadKey,
+    unreadCount: getUnreadCount(threadInfo.threadKey),
     canAccept: segment === "incoming" && isPending,
     canDecline: segment === "incoming" && isPending,
     canCancel: segment === "outgoing" && isPending
@@ -250,7 +250,7 @@ export function buildRequestsTabViewModel({
     requestSegment === "incoming"
       ? groupIncomingRequests(requestItems).map((group) => {
           const slot = group[0];
-          const threadKeys = group.map((request) => requestMessageThreadKey(request));
+          const threadKeys = group.map((request) => requestMessageThreadKey(request).threadKey);
           const requests = group.map((request) =>
             buildRequestListItem({
               request,

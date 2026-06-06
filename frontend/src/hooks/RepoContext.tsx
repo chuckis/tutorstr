@@ -7,6 +7,8 @@ import { createNostrProfileEventRepository } from "../adapters/nostr/profileEven
 import { createNostrScheduleEventRepository } from "../adapters/nostr/scheduleEventRepository";
 import { createNostrPublicLessonRepository } from "../adapters/nostr/publicLessonRepository";
 import { createNostrRelayManager } from "../adapters/nostr/relayManager";
+import { createNostrLessonNoteRepository } from "../adapters/nostr/lessonNoteRepository";
+import { blossomMediaRepository } from "../adapters/nostr/blossomMediaRepository";
 import { BookingEventsRepository } from "../ports/bookingEventsRepository";
 import { LessonAgreementEventsRepository } from "../ports/lessonAgreementEventsRepository";
 import { PrivateMessagingRepository } from "../ports/privateMessagingRepository";
@@ -15,6 +17,8 @@ import { ScheduleEventRepository } from "../ports/scheduleEventRepository";
 import { PublicLessonRepository } from "../ports/publicLessonRepository";
 import { RelayManager } from "../ports/relayManager";
 import { SignerManager } from "../ports/signerManager";
+import { LessonNoteRepository } from "../ports/lessonNoteRepository";
+import { MediaUploadRepository } from "../ports/mediaUploadRepository";
 
 export { createNostrBookingRepository, mapNostrBookings } from "../adapters/nostr/bookingRepository";
 export { createNostrLessonRepository } from "../adapters/nostr/lessonRepository";
@@ -28,6 +32,8 @@ type RepoContextValue = {
   publicLessonRepository: PublicLessonRepository;
   relayManager: RelayManager;
   signerManager: SignerManager;
+  lessonNoteRepository: LessonNoteRepository;
+  mediaUploadRepository: MediaUploadRepository;
 };
 
 const RepoContext = createContext<RepoContextValue | null>(null);
@@ -42,7 +48,9 @@ export function RepoProvider({ children }: { children: ReactNode }) {
       scheduleEventRepository: createNostrScheduleEventRepository(),
       publicLessonRepository: createNostrPublicLessonRepository(),
       relayManager: createNostrRelayManager(),
-      signerManager: createNostrSignerManager()
+      signerManager: createNostrSignerManager(),
+      lessonNoteRepository: createNostrLessonNoteRepository(),
+      mediaUploadRepository: blossomMediaRepository,
     }),
     []
   );

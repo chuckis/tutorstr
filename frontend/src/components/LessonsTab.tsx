@@ -2,16 +2,29 @@ import { CalendarClock, CalendarRange, History, List } from "lucide-react";
 import { useState } from "react";
 import { Lesson, LessonStatus, lessonMessageThreadKey, EncryptedMessage } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
-import { UserProfileEvent } from "../hooks/hookTypes";
+import { UserProfileEvent, MessageAttachment } from "../hooks/hookTypes";
+import { AccountRole } from "../domain/account";
 import { toDisplayId } from "../utils/display";
 import { DetailPageLayout } from "./DetailPageLayout";
 import { LessonsCalendar } from "./LessonsCalendar";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 import { Spinner } from "./Spinner";
+import { LessonNoteEditor } from "./LessonNoteEditor";
+import { MessageAttachmentPreview } from "./MessageAttachmentPreview";
+
+type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
 
 type LessonSegment = "upcoming" | "past";
 type LessonViewMode = "list" | "calendar";
+
+type SharedNoteEntry = {
+  id: string;
+  authorPubkey: string;
+  createdAt: number;
+  content: string;
+  attachments: MessageAttachment[];
+};
 
 type LessonsTabProps = {
   selectedLesson: Lesson | null;
@@ -26,7 +39,12 @@ type LessonsTabProps = {
   tutors: Record<string, UserProfileEvent>;
   lessonNote: string;
   onLessonNoteChange: (value: string) => void;
-  onSubmitLessonNote: () => void;
+  onSaveNoteLocally: () => void;
+  onPublishNote: () => void;
+  onShareNote: () => void;
+  publishStatus?: ActionStatus;
+  shareStatus?: ActionStatus;
+  sharedNotes?: SharedNoteEntry[];
   onChangeLessonStatus: (
     lesson: Lesson,
     nextStatus: LessonStatus
@@ -48,7 +66,12 @@ export function LessonsTab({
   tutors,
   lessonNote,
   onLessonNoteChange,
-  onSubmitLessonNote,
+  onSaveNoteLocally,
+  onPublishNote,
+  onShareNote,
+  publishStatus = "idle",
+  shareStatus = "idle",
+  sharedNotes = [],
   onChangeLessonStatus,
   messagesByThread,
   getUnreadCount,
@@ -58,8 +81,9 @@ export function LessonsTab({
 }: LessonsTabProps) {
   const { t, formatDateTime } = useI18n();
   const [viewMode, setViewMode] = useState<LessonViewMode>("list");
+
   if (selectedLesson) {
-    const threadKey = lessonMessageThreadKey(selectedLesson);
+    const threadInfo = lessonMessageThreadKey(selectedLesson);
     const counterpartyPubkey =
       selectedLesson.tutorId === currentPubkey
         ? selectedLesson.studentId
@@ -72,25 +96,29 @@ export function LessonsTab({
         title={selectedLesson.subject || t("lessons.defaultTitle")}
       >
         <article className="panel">
-          <p>
-            <strong>{t("lessons.dateTime")}:</strong>{" "}
-            {formatDateTime(selectedLesson.scheduledAt)}
-          </p>
-          <p>
-            <strong>{t("lessons.duration")}:</strong>{" "}
-            {t("lessons.minutes", { count: selectedLesson.durationMin })}
-          </p>
-          <p>
-            <strong>{t("lessons.counterparty")}:</strong>{" "}
-            {tutors[counterpartyPubkey]?.profile.name ||
-              toDisplayId(counterpartyPubkey, t("common.states.unknown"))}
-          </p>
-          <p>
-            <strong>{t("lessons.status")}:</strong>{" "}
-            <span className={`status-pill status-${selectedLesson.status}`}>
-              {t(`common.status.${selectedLesson.status}`)}
-            </span>
-          </p>
+          <div className="lesson-header-row">
+            <div>
+              <p>
+                <strong>{t("lessons.dateTime")}:</strong>{" "}
+                {formatDateTime(selectedLesson.scheduledAt)}
+              </p>
+              <p>
+                <strong>{t("lessons.duration")}:</strong>{" "}
+                {t("lessons.minutes", { count: selectedLesson.durationMin })}
+              </p>
+              <p>
+                <strong>{t("lessons.counterparty")}:</strong>{" "}
+                {tutors[counterpartyPubkey]?.profile.name ||
+                  toDisplayId(counterpartyPubkey, t("common.states.unknown"))}
+              </p>
+              <p>
+                <strong>{t("lessons.status")}:</strong>{" "}
+                <span className={`status-pill status-${selectedLesson.status}`}>
+                  {t(`common.status.${selectedLesson.status}`)}
+                </span>
+              </p>
+            </div>
+          </div>
 
           {selectedLesson.tutorId === currentPubkey &&
           selectedLesson.status === "scheduled" ? (
@@ -119,40 +147,41 @@ export function LessonsTab({
             </div>
           ) : null}
 
-          {selectedLesson.studentId === currentPubkey ? (
-            <div className="stack">
-              {selectedLesson.status === "scheduled" ? (
-                <button
-                  type="button"
-                  className="ghost-action"
-                  onClick={() =>
-                    onChangeLessonStatus(selectedLesson, "canceled").then(() =>
-                      onSelectLesson(null)
-                    )
-                  }
-                >
-                  {t("lessons.cancelLesson")}
-                </button>
-              ) : null}
-              <label className="filter">
-                {t("lessons.personalNote")}
-                <textarea
-                  rows={4}
-                  value={lessonNote}
-                  onChange={(event) => onLessonNoteChange(event.target.value)}
-                />
-              </label>
-              <button type="button" onClick={onSubmitLessonNote}>
-                {t("lessons.saveNote")}
-              </button>
+          <LessonNoteEditor
+            value={lessonNote}
+            onChange={onLessonNoteChange}
+            onSave={onSaveNoteLocally}
+            onPublish={onPublishNote}
+            onShare={onShareNote}
+            publishStatus={publishStatus}
+            shareStatus={shareStatus}
+          />
+
+          {sharedNotes.length > 0 ? (
+            <div className="shared-notes">
+              <h4>{t("lessons.sharedNotes")}</h4>
+              {sharedNotes.map((note) => (
+                <div key={note.id} className="shared-note-bubble">
+                  <p>{note.content}</p>
+                  <span className="muted">
+                    {tutors[note.authorPubkey]?.profile.name || toDisplayId(note.authorPubkey)}
+                    {" · "}
+                    {formatDateTime(new Date(note.createdAt * 1000).toISOString())}
+                  </span>
+                  <MessageAttachmentPreview attachments={note.attachments} />
+                </div>
+              ))}
             </div>
           ) : null}
         </article>
         <div className="stack">
           <h3>{t("common.messages.title")}</h3>
-          <MessageThread messages={messagesByThread[threadKey] || []} />
+          <MessageThread
+            messages={messagesByThread[threadInfo.threadKey] || []}
+            currentPubkey={currentPubkey}
+          />
           <MessageComposer
-            onSend={(text) => onSendMessage(counterpartyPubkey, text, threadKey)}
+            onSend={(text) => onSendMessage(counterpartyPubkey, text, threadInfo.threadKey)}
           />
           {messageStatus ? <p className="muted">{messageStatus}</p> : null}
         </div>
@@ -226,7 +255,7 @@ export function LessonsTab({
                     : lesson.tutorId;
                 const name =
                   tutors[counterparty]?.profile.name || toDisplayId(counterparty);
-                const unreadCount = getUnreadCount(lessonMessageThreadKey(lesson));
+                const unreadCount = getUnreadCount(lessonMessageThreadKey(lesson).threadKey);
 
                 return (
                   <li

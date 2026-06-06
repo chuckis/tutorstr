@@ -138,7 +138,7 @@ export function useMessageIndicators(
 
     return getUnreadTotal(
       "requests",
-      trackedRequests.map((request) => requestMessageThreadKey(request))
+      trackedRequests.map((request) => requestMessageThreadKey(request).threadKey)
     );
   }, [getUnreadTotal, requests, role, currentUserId]);
 
@@ -146,7 +146,7 @@ export function useMessageIndicators(
     () =>
       getUnreadTotal(
         "lessons",
-        lessons.map((lesson) => lessonMessageThreadKey(lesson))
+        lessons.map((lesson) => lessonMessageThreadKey(lesson).threadKey)
       ),
     [getUnreadTotal, lessons]
   );

@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { ProgressEntry } from "../domain/progress";
+import { AttachmentMessagePayload } from "../ports/privateMessagingRepository";
 import { usePrivateMessagingRepository } from "./usePrivateMessagingRepository";
 
 export function usePrivateMessagingActions() {
@@ -12,6 +13,17 @@ export function usePrivateMessagingActions() {
     [messagingRepository]
   );
 
+  const sendAttachmentMessage = useCallback(
+    async (
+      recipientPubkey: string,
+      payload: AttachmentMessagePayload,
+      threadKey?: string
+    ) => {
+      await messagingRepository.sendAttachmentMessage(recipientPubkey, payload, threadKey);
+    },
+    [messagingRepository]
+  );
+
   const sendProgressEntry = useCallback(
     async (recipientPubkey: string, entry: ProgressEntry) => {
       await messagingRepository.sendProgressEntry(recipientPubkey, entry);
@@ -19,5 +31,5 @@ export function usePrivateMessagingActions() {
     [messagingRepository]
   );
 
-  return { sendMessage, sendProgressEntry };
+  return { sendMessage, sendAttachmentMessage, sendProgressEntry };
 }

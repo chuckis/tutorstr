@@ -25,8 +25,8 @@ export function StudentDetailView({
 }: StudentDetailViewProps) {
   const { t } = useI18n();
   const role = profile.profile.role ?? "student";
-  const threadKey = fallbackDirectMessageThreadKey(profile.pubkey);
-  const chatMessages = messagesByThread[threadKey] || [];
+  const threadInfo = fallbackDirectMessageThreadKey(profile.pubkey);
+  const chatMessages = messagesByThread[threadInfo.threadKey] || [];
 
   return (
     <DetailPageLayout
@@ -54,7 +54,7 @@ export function StudentDetailView({
           <MessageThread messages={chatMessages} />
           <MessageComposer
             onSend={(text) =>
-              onSendMessage(profile.pubkey, text, threadKey)
+              onSendMessage(profile.pubkey, text, threadInfo.threadKey)
             }
           />
           {messageStatus ? (

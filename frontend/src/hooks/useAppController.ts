@@ -70,7 +70,7 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
 
     messageIndicators.markRead(
       "requests",
-      requestMessageThreadKey(navigation.selectedRequest.request)
+      requestMessageThreadKey(navigation.selectedRequest.request).threadKey
     );
   }, [messageIndicators, navigation.selectedRequest]);
 
@@ -81,7 +81,7 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
 
     messageIndicators.markRead(
       "lessons",
-      lessonMessageThreadKey(navigation.selectedLesson)
+      lessonMessageThreadKey(navigation.selectedLesson).threadKey
     );
   }, [messageIndicators, navigation.selectedLesson]);
 

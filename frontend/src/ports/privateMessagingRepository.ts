@@ -9,6 +9,11 @@ export type ProgressEntryEvent = {
   entry: ProgressEntry;
 };
 
+export type AttachmentMessagePayload = {
+  text?: string;
+  attachmentUrls: string[];
+};
+
 export interface PrivateMessagingRepository {
   subscribeMessagesForUser(
     pubkey: string,
@@ -19,5 +24,10 @@ export interface PrivateMessagingRepository {
     onEntry: (entry: ProgressEntryEvent) => void
   ): () => void;
   sendMessage(recipientPubkey: string, text: string, threadKey?: string): Promise<void>;
+  sendAttachmentMessage(
+    recipientPubkey: string,
+    payload: AttachmentMessagePayload,
+    threadKey?: string
+  ): Promise<void>;
   sendProgressEntry(recipientPubkey: string, entry: ProgressEntry): Promise<void>;
 }
