@@ -28,6 +28,12 @@ type RequestsTabProps = {
   onCancelRequest: (requestId: string) => void | Promise<void>;
   messagesByThread: Record<string, EncryptedMessage[]>;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
+  onSendMessageWithFiles: (
+    recipientPubkey: string,
+    text: string,
+    files: File[],
+    threadKey?: string
+  ) => void | Promise<void>;
   onViewProfile: () => void;
   messageStatus: string;
   role: "tutor" | "student";
@@ -247,6 +253,7 @@ export function RequestsTab({
   onCancelRequest,
   messagesByThread,
   onSendMessage,
+  onSendMessageWithFiles,
   onViewProfile,
   messageStatus,
   role,
@@ -264,6 +271,7 @@ export function RequestsTab({
         onRespondToRequest={onRespondToRequest}
         onCancelRequest={onCancelRequest}
         onSendMessage={onSendMessage}
+        onSendMessageWithFiles={onSendMessageWithFiles}
         onViewProfile={onViewProfile}
         messageStatus={messageStatus}
       />

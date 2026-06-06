@@ -1,16 +1,29 @@
 import { useCallback } from "react";
 import { ProgressEntry } from "../domain/progress";
 import { AttachmentMessagePayload } from "../ports/privateMessagingRepository";
-import { usePrivateMessagingRepository } from "./usePrivateMessagingRepository";
+import { MessageAttachment } from "../domain/messaging";
+import { useRepo } from "./RepoContext";
+
+function toMessageAttachments(files: File[], urls: string[]): MessageAttachment[] {
+  return urls.map((url, index) => {
+    const file = files[index];
+    return {
+      url,
+      mimeType: file?.type || "application/octet-stream",
+      fileName: file?.name,
+      size: file?.size,
+    };
+  });
+}
 
 export function usePrivateMessagingActions() {
-  const messagingRepository = usePrivateMessagingRepository();
+  const { privateMessagingRepository, mediaUploadRepository, signerManager } = useRepo();
 
   const sendMessage = useCallback(
     async (recipientPubkey: string, text: string, threadKey?: string) => {
-      await messagingRepository.sendMessage(recipientPubkey, text, threadKey);
+      await privateMessagingRepository.sendMessage(recipientPubkey, text, threadKey);
     },
-    [messagingRepository]
+    [privateMessagingRepository]
   );
 
   const sendAttachmentMessage = useCallback(
@@ -19,17 +32,52 @@ export function usePrivateMessagingActions() {
       payload: AttachmentMessagePayload,
       threadKey?: string
     ) => {
-      await messagingRepository.sendAttachmentMessage(recipientPubkey, payload, threadKey);
+      await privateMessagingRepository.sendAttachmentMessage(recipientPubkey, payload, threadKey);
     },
-    [messagingRepository]
+    [privateMessagingRepository]
+  );
+
+  const sendMessageWithFiles = useCallback(
+    async (
+      recipientPubkey: string,
+      text: string,
+      files: File[],
+      blossomUrl: string,
+      threadKey?: string
+    ) => {
+      if (files.length === 0) {
+        await privateMessagingRepository.sendMessage(recipientPubkey, text, threadKey);
+        return;
+      }
+
+      const signer = signerManager.getSigner();
+      if (!signer) {
+        throw new Error("common.runtime.authenticationRequired");
+      }
+
+      if (!blossomUrl) {
+        throw new Error("profile.form.blossomServerUrl");
+      }
+
+      const urls = await mediaUploadRepository.uploadMultiple(files, blossomUrl, signer);
+      await privateMessagingRepository.sendAttachmentMessage(
+        recipientPubkey,
+        {
+          text: text.trim() || undefined,
+          attachments: toMessageAttachments(files, urls),
+        },
+        threadKey
+      );
+    },
+    [mediaUploadRepository, privateMessagingRepository, signerManager]
   );
 
   const sendProgressEntry = useCallback(
     async (recipientPubkey: string, entry: ProgressEntry) => {
-      await messagingRepository.sendProgressEntry(recipientPubkey, entry);
+      await privateMessagingRepository.sendProgressEntry(recipientPubkey, entry);
     },
-    [messagingRepository]
+    [privateMessagingRepository]
   );
 
-  return { sendMessage, sendAttachmentMessage, sendProgressEntry };
+  return { sendMessage, sendAttachmentMessage, sendMessageWithFiles, sendProgressEntry };
 }

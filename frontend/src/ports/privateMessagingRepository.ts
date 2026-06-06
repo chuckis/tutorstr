@@ -1,4 +1,4 @@
-import { EncryptedMessage } from "../domain/messaging";
+import { EncryptedMessage, MessageAttachment } from "../domain/messaging";
 import { ProgressEntry } from "../domain/progress";
 
 export type ProgressEntryEvent = {
@@ -11,7 +11,7 @@ export type ProgressEntryEvent = {
 
 export type AttachmentMessagePayload = {
   text?: string;
-  attachmentUrls: string[];
+  attachments: MessageAttachment[];
 };
 
 export interface PrivateMessagingRepository {

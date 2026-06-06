@@ -7,11 +7,11 @@ type FilePreview = {
 };
 
 type MessageComposerProps = {
-  onSend: (text: string) => void;
-  onSendWithFiles?: (text: string, files: File[]) => void;
-  isUploading?: boolean;
-  uploadProgress?: number;
+  onSend: (text: string) => void | Promise<void>;
+  onSendWithFiles?: (text: string, files: File[]) => void | Promise<void>;
 };
+
+type FileStatus = "idle" | "selected" | "uploading" | "sent" | "failed";
 
 function createPreviewUrl(file: File): string {
   if (file.type.startsWith("image/")) {
@@ -23,12 +23,11 @@ function createPreviewUrl(file: File): string {
 export function MessageComposer({
   onSend,
   onSendWithFiles,
-  isUploading = false,
-  uploadProgress = 0,
 }: MessageComposerProps) {
   const [text, setText] = useState("");
   const [files, setFiles] = useState<FilePreview[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [fileStatus, setFileStatus] = useState<FileStatus>("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useI18n();
 
@@ -40,6 +39,9 @@ export function MessageComposer({
         previewUrl: createPreviewUrl(file),
       }));
     setFiles((prev) => [...prev, ...newPreviews]);
+    if (newPreviews.length > 0) {
+      setFileStatus("selected");
+    }
   }, []);
 
   const removeFile = useCallback((index: number) => {
@@ -48,30 +50,41 @@ export function MessageComposer({
       if (entry?.previewUrl) {
         URL.revokeObjectURL(entry.previewUrl);
       }
-      return prev.filter((_, i) => i !== index);
+      const next = prev.filter((_, i) => i !== index);
+      if (next.length === 0) {
+        setFileStatus("idle");
+      }
+      return next;
     });
   }, []);
 
   const handleSubmit = useCallback(
-    (event: React.FormEvent) => {
+    async (event: React.FormEvent) => {
       event.preventDefault();
 
       if (files.length > 0 && onSendWithFiles) {
-        onSendWithFiles(
-          text,
-          files.map((f) => f.file)
-        );
-        setText("");
-        files.forEach((f) => {
-          if (f.previewUrl) {
-            URL.revokeObjectURL(f.previewUrl);
-          }
-        });
-        setFiles([]);
+        try {
+          setFileStatus("uploading");
+          await onSendWithFiles(
+            text,
+            files.map((f) => f.file)
+          );
+          setFileStatus("sent");
+          setText("");
+          files.forEach((f) => {
+            if (f.previewUrl) {
+              URL.revokeObjectURL(f.previewUrl);
+            }
+          });
+          setFiles([]);
+          window.setTimeout(() => setFileStatus("idle"), 2500);
+        } catch {
+          setFileStatus("failed");
+        }
         return;
       }
 
-      onSend(text);
+      await onSend(text);
       setText("");
     },
     [text, files, onSend, onSendWithFiles]
@@ -108,6 +121,24 @@ export function MessageComposer({
   );
 
   const hasContent = text.trim().length > 0 || files.length > 0;
+  const isUploading = fileStatus === "uploading";
+  const canSendFiles = files.length === 0 || Boolean(onSendWithFiles);
+
+  function getFileStatusLabel() {
+    if (fileStatus === "selected") {
+      return t("common.messages.filesSelected", { count: files.length });
+    }
+    if (fileStatus === "uploading") {
+      return t("common.states.uploading");
+    }
+    if (fileStatus === "sent") {
+      return t("common.messages.attachmentsSent");
+    }
+    if (fileStatus === "failed") {
+      return t("common.messages.uploadFailed");
+    }
+    return "";
+  }
 
   return (
     <form
@@ -141,12 +172,15 @@ export function MessageComposer({
         </div>
       ) : null}
 
-      {isUploading && uploadProgress > 0 ? (
+      {fileStatus !== "idle" ? (
+        <p className={`muted composer-file-status composer-file-status-${fileStatus}`}>
+          {getFileStatusLabel()}
+        </p>
+      ) : null}
+
+      {isUploading ? (
         <div className="upload-progress-bar">
-          <div
-            className="upload-progress-fill"
-            style={{ width: `${uploadProgress}%` }}
-          />
+          <div className="upload-progress-fill" />
         </div>
       ) : null}
 
@@ -167,7 +201,7 @@ export function MessageComposer({
           placeholder={t("common.messages.placeholder")}
           disabled={isUploading}
         />
-        <button type="submit" disabled={!hasContent || isUploading}>
+        <button type="submit" disabled={!hasContent || isUploading || !canSendFiles}>
           {isUploading
             ? t("common.states.uploading")
             : t("common.buttons.sendMessage")}

@@ -37,6 +37,12 @@ type DiscoverTabProps = {
   onRequestPublishedSlot: (tutorPubkey: string, slot: TimeSlot) => void;
   messagesByThread: Record<string, EncryptedMessage[]>;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
+  onSendMessageWithFiles: (
+    recipientPubkey: string,
+    text: string,
+    files: File[],
+    threadKey?: string
+  ) => void | Promise<void>;
   messageStatus: string;
   studentNpub: string;
   studentPubkey: string;
@@ -63,6 +69,7 @@ export function DiscoverTab({
   onRequestPublishedSlot,
   messagesByThread,
   onSendMessage,
+  onSendMessageWithFiles,
   messageStatus,
   studentNpub,
   studentPubkey,
@@ -111,6 +118,7 @@ export function DiscoverTab({
           viewerRole={role}
           onBack={() => onSelectTutor(null)}
           onSendMessage={onSendMessage}
+          onSendMessageWithFiles={onSendMessageWithFiles}
           messagesByThread={messagesByThread}
           messageStatus={messageStatus}
         />
@@ -212,6 +220,9 @@ export function DiscoverTab({
             <MessageComposer
               onSend={(text) =>
                 onSendMessage(selectedTutor.pubkey, text, threadInfo.threadKey)
+              }
+              onSendWithFiles={(text, files) =>
+                onSendMessageWithFiles(selectedTutor.pubkey, text, files, threadInfo.threadKey)
               }
             />
             {messageStatus ? (

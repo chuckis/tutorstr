@@ -21,7 +21,11 @@ import { useTutorSchedules } from "./useTutorSchedules";
 import { useRelays } from "./useRelays";
 import { useI18n } from "../i18n/I18nProvider";
 
-export function useAppController(onLogout: () => void, viewerRole: AccountRole) {
+export function useAppController(
+  onLogout: () => void,
+  viewerRole: AccountRole,
+  blossomUrl: string
+) {
   const { t } = useI18n();
   const navigation = useAppNavigation(viewerRole);
   const [discoverStatus, setDiscoverStatus] = useState("");
@@ -52,9 +56,10 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
   );
   const lessonNoteState = useLessonNote(
     keypair.pubkey,
-    navigation.selectedLesson
+    navigation.selectedLesson,
+    viewerRole
   );
-  const { sendMessage } = usePrivateMessagingActions();
+  const { sendMessage, sendMessageWithFiles } = usePrivateMessagingActions();
   const messageIndicators = useMessageIndicators(
     keypair.pubkey,
     messagesState.messages,
@@ -110,6 +115,8 @@ export function useAppController(onLogout: () => void, viewerRole: AccountRole) 
     lessonRepository: lessonsState.lessonRepository,
     acceptBooking: bookingsState.acceptBooking,
     sendMessage,
+    sendMessageWithFiles,
+    blossomUrl,
     setDiscoverStatus,
     setMessageStatus,
     onLogout

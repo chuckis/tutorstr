@@ -1,20 +1,20 @@
 {
   "app": {
     "title": "Tutorstr",
-    "subtitle": "Платформа репетиторов на Nostr",
+    "subtitle": "Nostr хаб репетиторов",
     "loadingVault": "Загрузка хранилища",
-    "checkingVault": "Проверка наличия сохранённого профиля Tutorstr на этом устройстве.",
-    "authSessionNotReady": "Сеанс аутентификации не готов."
+    "checkingVault": "Проверка сохранённого профиля Tutorstr.",
+    "authSessionNotReady": "Сессия аутентификации не готова."
   },
   "nav": {
     "primary": "Главная",
-    "discover": "Обзор",
-    "requests": "Заявки",
+    "discover": "Поиск",
+    "requests": "Запросы",
     "lessons": "Уроки",
-    "profile": "Дашборд"
+    "profile": "Профиль"
   },
   "share": {
-    "checkItOut": "Посмотри на Tutorstr!"
+    "checkItOut": "Смотри на Tutorstr!"
   },
   "actions": {
     "share": "Поделиться",
@@ -26,7 +26,7 @@
     "cancel": "Отмена",
     "details": "Подробнее",
     "logout": "Выйти",
-    "sendMessage": "Отправить сообщение"
+    "sendMessage": "Отправить"
   },
   "indicators": {
     "new": "Новое",
@@ -35,9 +35,9 @@
   "states": {
     "unnamedTutor": "Репетитор без имени",
     "unnamedStudent": "Студент без имени",
-    "noBioYet": "Описание ещё не добавлено.",
-    "noBio": "Описание отсутствует.",
-    "notSet": "Не задано",
+    "noBioYet": "Био пока не указано.",
+    "noBio": "Био не указано.",
+    "notSet": "Не указано",
     "unknown": "Неизвестно",
     "loading": "Загрузка...",
     "uploading": "Загрузка...",
@@ -53,32 +53,35 @@
     "npub": "npub"
   },
   "messages": {
-    "empty": "Сообщений пока нет.",
-    "placeholder": "Написать личное сообщение...",
+    "empty": "Пока нет сообщений.",
+    "placeholder": "Напишите личное сообщение...",
     "title": "Зашифрованные сообщения",
     "attach": "Прикрепить файл",
-    "loadMore": "Загрузить {{count}} более старых сообщений"
+    "loadMore": "Загрузить {{count}} более старых сообщений",
+    "filesSelected": "Выбрано {{count}} файл(ов)",
+    "attachmentsSent": "Вложения отправлены",
+    "uploadFailed": "Ошибка загрузки"
   },
   "runtime": {
-    "noRelaysConfigured": "Ретрансляторы не настроены.",
+    "noRelaysConfigured": "Рели не настроены.",
     "authenticationRequired": "Требуется аутентификация."
   },
   "status": {
     "pending": "Ожидает",
-    "accepted": "Принята",
-    "declined": "Отклонена",
-    "cancelled": "Отменена",
-    "completed": "Завершена",
-    "scheduled": "Запланирована"
+    "accepted": "Принято",
+    "declined": "Отклонено",
+    "cancelled": "Отменено",
+    "completed": "Завершено",
+    "scheduled": "Запланировано"
   },
   "requestResolution": {
-    "slot_filled": "Слот занят другим студентом",
+    "slot_filled": "Занято другим студентом",
     "tutor_rejected": "Отклонено репетитором",
-    "duplicate_bid": "Повторная заявка",
+    "duplicate_bid": "Повторный запрос",
     "student_cancelled": "Отменено студентом",
     "accepted": "Слот получен"
   },
   "validation": {
-    "requiredRelay": "Добавьте хотя бы один URL ретранслятора."
+    "requiredRelay": "Добавьте хотя бы один relay URL."
   }
 }

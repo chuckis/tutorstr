@@ -15,6 +15,12 @@ type RequestDetailsViewProps = {
   onRespondToRequest: (requestId: string, nextStatus: "accepted" | "rejected") => void | Promise<void>;
   onCancelRequest: (requestId: string) => void | Promise<void>;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
+  onSendMessageWithFiles: (
+    recipientPubkey: string,
+    text: string,
+    files: File[],
+    threadKey?: string
+  ) => void | Promise<void>;
   onViewProfile: () => void;
   messageStatus: string;
 };
@@ -26,6 +32,7 @@ export function RequestDetailsView({
   onRespondToRequest,
   onCancelRequest,
   onSendMessage,
+  onSendMessageWithFiles,
   onViewProfile,
   messageStatus
 }: RequestDetailsViewProps) {
@@ -91,6 +98,14 @@ export function RequestDetailsView({
             onSendMessage(
               selectedRequest.recipientPubkey,
               text,
+              selectedRequest.threadKey
+            )
+          }
+          onSendWithFiles={(text, files) =>
+            onSendMessageWithFiles(
+              selectedRequest.recipientPubkey,
+              text,
+              files,
               selectedRequest.threadKey
             )
           }

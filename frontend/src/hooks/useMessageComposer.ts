@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { useRepo } from "./RepoContext";
 import { AttachmentMessagePayload } from "../ports/privateMessagingRepository";
+import { MessageAttachment } from "../domain/messaging";
 
 export type MessageComposerState = {
   text: string;
@@ -73,9 +74,15 @@ export function useMessageComposer(
         }
 
         if (attachmentUrls.length > 0) {
+          const attachments: MessageAttachment[] = attachmentUrls.map((url, index) => ({
+            url,
+            mimeType: files[index]?.type || "application/octet-stream",
+            fileName: files[index]?.name,
+            size: files[index]?.size,
+          }));
           const payload: AttachmentMessagePayload = {
             text: text.trim() || undefined,
-            attachmentUrls,
+            attachments,
           };
           await privateMessagingRepository.sendAttachmentMessage(
             recipientPubkey,

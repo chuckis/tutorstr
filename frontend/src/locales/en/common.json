@@ -57,7 +57,10 @@
     "placeholder": "Write a private message...",
     "title": "Encrypted messages",
     "attach": "Attach file",
-    "loadMore": "Load {{count}} older messages"
+    "loadMore": "Load {{count}} older messages",
+    "filesSelected": "{{count}} file(s) selected",
+    "attachmentsSent": "Attachments sent",
+    "uploadFailed": "Upload failed"
   },
   "runtime": {
     "noRelaysConfigured": "No relays configured.",

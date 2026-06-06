@@ -11,6 +11,12 @@ type StudentDetailViewProps = {
   viewerRole: AccountRole;
   onBack: () => void;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
+  onSendMessageWithFiles: (
+    recipientPubkey: string,
+    text: string,
+    files: File[],
+    threadKey?: string
+  ) => void | Promise<void>;
   messagesByThread: Record<string, EncryptedMessage[]>;
   messageStatus: string;
 };
@@ -20,6 +26,7 @@ export function StudentDetailView({
   viewerRole,
   onBack,
   onSendMessage,
+  onSendMessageWithFiles,
   messagesByThread,
   messageStatus
 }: StudentDetailViewProps) {
@@ -55,6 +62,9 @@ export function StudentDetailView({
           <MessageComposer
             onSend={(text) =>
               onSendMessage(profile.pubkey, text, threadInfo.threadKey)
+            }
+            onSendWithFiles={(text, files) =>
+              onSendMessageWithFiles(profile.pubkey, text, files, threadInfo.threadKey)
             }
           />
           {messageStatus ? (

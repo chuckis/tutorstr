@@ -90,6 +90,7 @@ type AuthenticatedAppProps = {
 function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: AuthenticatedAppProps) {
   const { t } = useI18n();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus } = useBlossomConfig();
   const {
     navigation,
     relay,
@@ -111,8 +112,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     viewModel,
     requestsTabViewModel,
     stateLoading
-  } = useAppController(onLogout, viewerRole);
-  const { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus } = useBlossomConfig();
+  } = useAppController(onLogout, viewerRole, blossomUrl);
 
   const handleAvatarUpload = useCallback(async (file: File) => {
     try {
@@ -159,6 +159,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onRequestPublishedSlot={actions.requestPublishedSlot}
             messagesByThread={messagesState.byThread}
             onSendMessage={actions.sendEncryptedMessage}
+            onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             messageStatus={messageStatus}
             studentNpub={keypair.npub}
             studentPubkey={keypair.pubkey}
@@ -183,6 +184,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onRespondToRequest={requestActions.respondToRequestById}
             onCancelRequest={requestActions.cancelRequestById}
             onSendMessage={actions.sendEncryptedMessage}
+            onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             onViewProfile={() => {
               const sr = requestsTabViewModel.selectedRequest;
               if (sr) {
@@ -221,12 +223,15 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             publishStatus={lessonNoteState.publishStatus}
             shareStatus={lessonNoteState.shareStatus}
             sharedNotes={lessonNoteState.sharedNotes}
+            sharedNotesStatus={lessonNoteState.sharedNotesStatus}
+            lessonNoteError={lessonNoteState.lessonNoteError}
             onChangeLessonStatus={actions.changeLessonStatus}
             messagesByThread={messagesState.byThread}
             getUnreadCount={(threadKey) =>
               messageIndicators.getUnreadCount("lessons", threadKey)
             }
             onSendMessage={actions.sendEncryptedMessage}
+            onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             messageStatus={messageStatus}
             loading={stateLoading.lessons}
           />

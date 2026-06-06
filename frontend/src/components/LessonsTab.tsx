@@ -14,6 +14,7 @@ import { LessonNoteEditor } from "./LessonNoteEditor";
 import { MessageAttachmentPreview } from "./MessageAttachmentPreview";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
+type SharedNotesStatus = "idle" | "loading" | "empty" | "received" | "error";
 
 type LessonSegment = "upcoming" | "past";
 type LessonViewMode = "list" | "calendar";
@@ -45,6 +46,8 @@ type LessonsTabProps = {
   publishStatus?: ActionStatus;
   shareStatus?: ActionStatus;
   sharedNotes?: SharedNoteEntry[];
+  sharedNotesStatus?: SharedNotesStatus;
+  lessonNoteError?: string;
   onChangeLessonStatus: (
     lesson: Lesson,
     nextStatus: LessonStatus
@@ -52,6 +55,12 @@ type LessonsTabProps = {
   messagesByThread: Record<string, EncryptedMessage[]>;
   getUnreadCount: (threadKey: string) => number;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
+  onSendMessageWithFiles: (
+    recipientPubkey: string,
+    text: string,
+    files: File[],
+    threadKey?: string
+  ) => void | Promise<void>;
   messageStatus: string;
   loading: boolean;
 };
@@ -72,10 +81,13 @@ export function LessonsTab({
   publishStatus = "idle",
   shareStatus = "idle",
   sharedNotes = [],
+  sharedNotesStatus = "idle",
+  lessonNoteError = "",
   onChangeLessonStatus,
   messagesByThread,
   getUnreadCount,
   onSendMessage,
+  onSendMessageWithFiles,
   messageStatus,
   loading
 }: LessonsTabProps) {
@@ -88,6 +100,7 @@ export function LessonsTab({
       selectedLesson.tutorId === currentPubkey
         ? selectedLesson.studentId
         : selectedLesson.tutorId;
+    const lastSharedNote = sharedNotes[0];
 
     return (
       <DetailPageLayout
@@ -157,9 +170,30 @@ export function LessonsTab({
             shareStatus={shareStatus}
           />
 
-          {sharedNotes.length > 0 ? (
-            <div className="shared-notes">
-              <h4>{t("lessons.sharedNotes")}</h4>
+          <div className="shared-notes">
+            <h4>{t("lessons.sharedNotes")}</h4>
+            {lessonNoteError ? (
+              <p className="muted">{t(lessonNoteError)}</p>
+            ) : null}
+            {sharedNotesStatus === "loading" ? (
+              <p className="muted">{t("common.states.loading")}</p>
+            ) : sharedNotesStatus === "error" ? (
+              <p className="muted">{t("common.states.error")}</p>
+            ) : sharedNotes.length === 0 ? (
+              <p className="muted">{t("lessons.sharedNotesEmpty")}</p>
+            ) : (
+              <>
+                {lastSharedNote ? (
+                  <p className="muted">
+                    {t("lessons.lastSharedNote", {
+                      author:
+                        tutors[lastSharedNote.authorPubkey]?.profile.name ||
+                        toDisplayId(lastSharedNote.authorPubkey),
+                      time: formatDateTime(new Date(lastSharedNote.createdAt * 1000).toISOString()),
+                      count: lastSharedNote.attachments.length,
+                    })}
+                  </p>
+                ) : null}
               {sharedNotes.map((note) => (
                 <div key={note.id} className="shared-note-bubble">
                   <p>{note.content}</p>
@@ -171,8 +205,9 @@ export function LessonsTab({
                   <MessageAttachmentPreview attachments={note.attachments} />
                 </div>
               ))}
-            </div>
-          ) : null}
+              </>
+            )}
+          </div>
         </article>
         <div className="stack">
           <h3>{t("common.messages.title")}</h3>
@@ -182,6 +217,9 @@ export function LessonsTab({
           />
           <MessageComposer
             onSend={(text) => onSendMessage(counterpartyPubkey, text, threadInfo.threadKey)}
+            onSendWithFiles={(text, files) =>
+              onSendMessageWithFiles(counterpartyPubkey, text, files, threadInfo.threadKey)
+            }
           />
           {messageStatus ? <p className="muted">{messageStatus}</p> : null}
         </div>

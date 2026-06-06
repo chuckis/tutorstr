@@ -16,6 +16,15 @@ function parseMessageContent(content: string): { text: string; attachments: Mess
         attachments: parsed.attachments as MessageAttachment[],
       };
     }
+    if (parsed && typeof parsed === "object" && Array.isArray(parsed.attachmentUrls)) {
+      return {
+        text: parsed.text || "",
+        attachments: parsed.attachmentUrls.map((url: string) => ({
+          url,
+          mimeType: "application/octet-stream",
+        })),
+      };
+    }
   } catch {
     // not JSON — plain text message (backwards compat)
   }

@@ -1,20 +1,20 @@
 {
   "app": {
     "title": "Tutorstr",
-    "subtitle": "Тьютор-хаб на Nostr",
+    "subtitle": "Nostr хаб репетиторів",
     "loadingVault": "Завантаження сховища",
-    "checkingVault": "Перевіряємо, чи є на цьому пристрої збережений профіль Tutorstr.",
-    "authSessionNotReady": "Сесію автентифікації ще не підготовлено."
+    "checkingVault": "Перевірка збереженого профілю Tutorstr.",
+    "authSessionNotReady": "Сесія автентифікації не готова."
   },
   "nav": {
-    "primary": "Основна навігація",
+    "primary": "Головна",
     "discover": "Пошук",
     "requests": "Запити",
     "lessons": "Уроки",
-    "profile": "Дашборд"
+    "profile": "Профіль"
   },
   "share": {
-    "checkItOut": "Подивись на Tutorstr!"
+    "checkItOut": "Дивись на Tutorstr!"
   },
   "actions": {
     "share": "Поділитись",
@@ -26,17 +26,17 @@
     "cancel": "Скасувати",
     "details": "Деталі",
     "logout": "Вийти",
-    "sendMessage": "Надіслати повідомлення"
+    "sendMessage": "Надіслати"
   },
   "indicators": {
     "new": "Нове",
     "newCount": "{{count}} нових"
   },
   "states": {
-    "unnamedTutor": "Тьютор без імені",
+    "unnamedTutor": "Репетитор без імені",
     "unnamedStudent": "Студент без імені",
-    "noBioYet": "Опис ще не додано.",
-    "noBio": "Опис відсутній.",
+    "noBioYet": "Біо ще не вказано.",
+    "noBio": "Біо не вказано.",
     "notSet": "Не вказано",
     "unknown": "Невідомо",
     "loading": "Завантаження...",
@@ -57,28 +57,31 @@
     "placeholder": "Напишіть приватне повідомлення...",
     "title": "Зашифровані повідомлення",
     "attach": "Прикріпити файл",
-    "loadMore": "Завантажити {{count}} старіших повідомлень"
+    "loadMore": "Завантажити {{count}} старіших повідомлень",
+    "filesSelected": "Вибрано {{count}} файл(ів)",
+    "attachmentsSent": "Вкладення надіслано",
+    "uploadFailed": "Помилка завантаження"
   },
   "runtime": {
-    "noRelaysConfigured": "Не налаштовано жодного relay.",
+    "noRelaysConfigured": "Реле не налаштовано.",
     "authenticationRequired": "Потрібна автентифікація."
   },
   "status": {
     "pending": "Очікує",
-    "accepted": "Підтверджено",
+    "accepted": "Прийнято",
     "declined": "Відхилено",
     "cancelled": "Скасовано",
     "completed": "Завершено",
     "scheduled": "Заплановано"
   },
   "requestResolution": {
-    "slot_filled": "Слот зайняв інший студент",
-    "tutor_rejected": "Тьютор відхилив запит",
-    "duplicate_bid": "Дубльований запит",
-    "student_cancelled": "Студент скасував запит",
+    "slot_filled": "Зайнято іншим студентом",
+    "tutor_rejected": "Відхилено репетитором",
+    "duplicate_bid": "Повторний запит",
+    "student_cancelled": "Скасовано студентом",
     "accepted": "Слот отримано"
   },
   "validation": {
-    "requiredRelay": "Додайте принаймні один URL relay."
+    "requiredRelay": "Додайте хоча б один relay URL."
   }
 }

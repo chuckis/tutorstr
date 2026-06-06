@@ -1,65 +1,79 @@
 import { LessonNoteRepository } from "../../ports/lessonNoteRepository";
 import { LessonNote } from "../../domain/lessonNote";
-import { nostrClient } from "../../nostr/client";
+import { nostrClient, NostrEvent } from "../../nostr/client";
 import { TutorHubKind } from "../../nostr/kinds";
-import { getTagValue } from "../../utils/nostrTags";
+import { parseLessonNoteFromEvent, LESSON_NOTE_TYPE } from "./parseLessonNoteFromEvent";
 
-export const LESSON_NOTE_TYPE = "lesson_note";
-
-function parseLessonNoteFromEvent(
-  eventId: string,
-  createdAt: number,
-  authorPubkey: string,
-  plaintext: string
-): LessonNote | null {
-  try {
-    const parsed = JSON.parse(plaintext);
-    if (parsed?.type !== LESSON_NOTE_TYPE) {
-      return null;
-    }
-
-    return {
-      id: eventId,
-      lessonId: parsed.lessonId || "",
-      authorPubkey,
-      createdAt,
-      noteType: parsed.noteType || "tutor",
-      content: parsed.content || "",
-      attachments: parsed.attachments || [],
-    };
-  } catch {
-    return null;
-  }
-}
+export { parseLessonNoteFromEvent, LESSON_NOTE_TYPE };
 
 export function createNostrLessonNoteRepository(): LessonNoteRepository {
   return {
-    subscribeNotesForLesson(lessonId, pubkey, onNote) {
-      const sub = nostrClient.subscribe(
-        { kinds: [TutorHubKind.StudentProgress], authors: [pubkey], limit: 100 },
-        async (event) => {
-          const plaintext = await nostrClient.decryptContent(
-            event.pubkey,
-            event.content
-          );
-          if (!plaintext) {
-            return;
-          }
+    subscribeNotesForLesson(lessonId, pubkey, onNote, onReady) {
+      const seen = new Set<string>();
+      let incomingReady = false;
+      let ownBackupReady = false;
+      let readyNotified = false;
 
-          const note = parseLessonNoteFromEvent(
-            event.id,
-            event.created_at,
-            event.pubkey,
-            plaintext
-          );
+      const notifyReady = () => {
+        if (readyNotified || !incomingReady || !ownBackupReady) {
+          return;
+        }
+        readyNotified = true;
+        onReady?.();
+      };
 
-          if (note && note.lessonId === lessonId) {
-            onNote(note);
-          }
+      const handleEvent = async (event: NostrEvent) => {
+        if (seen.has(event.id)) {
+          return;
+        }
+
+        const plaintext = await nostrClient.decryptContent(
+          event.pubkey,
+          event.content
+        );
+        if (!plaintext) {
+          return;
+        }
+
+        const note = parseLessonNoteFromEvent(
+          event.id,
+          event.created_at,
+          event.pubkey,
+          plaintext
+        );
+
+        if (note && note.lessonId === lessonId) {
+          seen.add(event.id);
+          onNote(note);
+        }
+      };
+
+      const incoming = nostrClient.subscribe(
+        { kinds: [TutorHubKind.StudentProgress], "#p": [pubkey], limit: 100 },
+        handleEvent,
+        {
+          onEose: () => {
+            incomingReady = true;
+            notifyReady();
+          },
         }
       );
 
-      return () => sub();
+      const ownBackup = nostrClient.subscribe(
+        { kinds: [TutorHubKind.StudentProgress], authors: [pubkey], limit: 100 },
+        handleEvent,
+        {
+          onEose: () => {
+            ownBackupReady = true;
+            notifyReady();
+          },
+        }
+      );
+
+      return () => {
+        incoming();
+        ownBackup();
+      };
     },
 
     async publishNote(lessonId, note, recipientPubkey) {

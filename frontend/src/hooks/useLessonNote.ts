@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AccountRole } from "../domain/account";
 import { Lesson } from "../domain/lesson";
 import { LessonNote, LessonNoteType } from "../domain/lessonNote";
+import { SendLessonNote } from "../application/usecases/sendLessonNote";
+import { ShareLessonNote } from "../application/usecases/shareLessonNote";
 import { useRepo } from "./RepoContext";
 
 function loadLocalLessonNote(lessonId: string, viewerPubkey: string) {
@@ -13,51 +16,35 @@ function saveLocalLessonNote(lessonId: string, viewerPubkey: string, note: strin
 
 export function useLessonNote(
   viewerPubkey: string,
-  selectedLesson: Lesson | null
+  selectedLesson: Lesson | null,
+  viewerRole: AccountRole = "tutor"
 ) {
   const { lessonNoteRepository } = useRepo();
   const [lessonNote, setLessonNote] = useState("");
   const [nostrNotes, setNostrNotes] = useState<Record<string, LessonNote[]>>({});
   const [sharedNotes, setSharedNotes] = useState<LessonNote[]>([]);
+  const [sharedNotesStatus, setSharedNotesStatus] = useState<"idle" | "loading" | "empty" | "received" | "error">("idle");
+  const [lessonNoteError, setLessonNoteError] = useState("");
   const [migratedLessons, setMigratedLessons] = useState<Set<string>>(new Set());
   const [publishStatus, setPublishStatus] = useState<"idle" | "saving" | "published" | "error">("idle");
   const [shareStatus, setShareStatus] = useState<"idle" | "saving" | "shared" | "error">("idle");
   const cleanupRef = useRef<(() => void) | null>(null);
 
-  const noteType: LessonNoteType = "tutor";
+  const noteType: LessonNoteType = viewerRole === "tutor" ? "tutor" : "student";
 
   useEffect(() => {
     if (!selectedLesson) {
       setLessonNote("");
       setSharedNotes([]);
+      setSharedNotesStatus("idle");
+      setLessonNoteError("");
       return;
     }
 
+    setSharedNotesStatus("loading");
+    setLessonNoteError("");
     const localNote = loadLocalLessonNote(selectedLesson.id, viewerPubkey);
-
-    if (localNote) {
-      setLessonNote(localNote);
-    }
-
-    const lessonNotes = nostrNotes[selectedLesson.id] || [];
-    const ownNote = lessonNotes
-      .filter((n) => n.authorPubkey === viewerPubkey)
-      .sort((a, b) => b.createdAt - a.createdAt)[0];
-
-    if (ownNote) {
-      setLessonNote(ownNote.content);
-
-      if (localNote && !migratedLessons.has(selectedLesson.id)) {
-        saveLocalLessonNote(selectedLesson.id, viewerPubkey, ownNote.content);
-        setMigratedLessons((prev) => new Set(prev).add(selectedLesson.id));
-      }
-    }
-
-    const fromCounterparty = lessonNotes
-      .filter((n) => n.authorPubkey !== viewerPubkey)
-      .sort((a, b) => b.createdAt - a.createdAt);
-
-    setSharedNotes(fromCounterparty);
+    setLessonNote(localNote);
 
     const unsubscribe = lessonNoteRepository.subscribeNotesForLesson(
       selectedLesson.id,
@@ -74,6 +61,9 @@ export function useLessonNote(
             [note.lessonId]: [...existing, note],
           };
         });
+      },
+      () => {
+        setSharedNotesStatus((current) => current === "received" ? current : "empty");
       }
     );
 
@@ -85,7 +75,40 @@ export function useLessonNote(
         cleanupRef.current = null;
       }
     };
-  }, [selectedLesson, viewerPubkey, lessonNoteRepository, nostrNotes, migratedLessons]);
+  }, [selectedLesson, viewerPubkey, lessonNoteRepository]);
+
+  useEffect(() => {
+    if (!selectedLesson) {
+      return;
+    }
+
+    const localNote = loadLocalLessonNote(selectedLesson.id, viewerPubkey);
+    const lessonNotes = nostrNotes[selectedLesson.id] || [];
+    const ownNote = lessonNotes
+      .filter((note) => note.authorPubkey === viewerPubkey)
+      .sort((a, b) => b.createdAt - a.createdAt)[0];
+
+    if (ownNote) {
+      setLessonNote(ownNote.content);
+
+      if (localNote && !migratedLessons.has(selectedLesson.id)) {
+        saveLocalLessonNote(selectedLesson.id, viewerPubkey, ownNote.content);
+        setMigratedLessons((prev) => new Set(prev).add(selectedLesson.id));
+      }
+    }
+
+    const fromCounterparty = lessonNotes
+      .filter((note) => note.authorPubkey !== viewerPubkey)
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    setSharedNotes(fromCounterparty);
+    setSharedNotesStatus((current) => {
+      if (fromCounterparty.length > 0) {
+        return "received";
+      }
+      return current === "loading" ? current : "empty";
+    });
+  }, [selectedLesson, viewerPubkey, nostrNotes, migratedLessons]);
 
   const saveNoteLocally = useCallback(() => {
     if (!selectedLesson || !lessonNote.trim()) {
@@ -103,25 +126,22 @@ export function useLessonNote(
     setPublishStatus("saving");
 
     try {
-      const note: LessonNote = {
-        id: `${selectedLesson.id}:${viewerPubkey}:${Date.now()}`,
+      const sendLessonNote = new SendLessonNote(lessonNoteRepository);
+      await sendLessonNote.execute({
         lessonId: selectedLesson.id,
-        authorPubkey: viewerPubkey,
-        createdAt: Math.floor(Date.now() / 1000),
+        viewerPubkey,
         noteType,
         content: lessonNote,
-        attachments: [],
-      };
-
-      await lessonNoteRepository.publishNote(selectedLesson.id, note, viewerPubkey);
+      }, viewerRole);
       saveLocalLessonNote(selectedLesson.id, viewerPubkey, lessonNote);
       setPublishStatus("published");
     } catch {
+      setLessonNoteError("lessons.notePublishFailed");
       setPublishStatus("error");
     }
 
     setTimeout(() => setPublishStatus("idle"), 3000);
-  }, [selectedLesson, viewerPubkey, lessonNote, noteType, lessonNoteRepository]);
+  }, [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, lessonNoteRepository]);
 
   const shareNoteWithCounterparty = useCallback(async (counterpartyPubkey: string) => {
     if (!selectedLesson || !lessonNote.trim()) {
@@ -131,24 +151,22 @@ export function useLessonNote(
     setShareStatus("saving");
 
     try {
-      const note: LessonNote = {
-        id: `${selectedLesson.id}:${viewerPubkey}:${Date.now()}:shared`,
+      const shareLessonNote = new ShareLessonNote(lessonNoteRepository);
+      await shareLessonNote.execute({
         lessonId: selectedLesson.id,
-        authorPubkey: viewerPubkey,
-        createdAt: Math.floor(Date.now() / 1000),
+        viewerPubkey,
+        recipientPubkey: counterpartyPubkey,
         noteType,
         content: lessonNote,
-        attachments: [],
-      };
-
-      await lessonNoteRepository.publishNote(selectedLesson.id, note, counterpartyPubkey);
+      }, viewerRole);
       setShareStatus("shared");
     } catch {
+      setLessonNoteError("lessons.noteShareFailed");
       setShareStatus("error");
     }
 
     setTimeout(() => setShareStatus("idle"), 3000);
-  }, [selectedLesson, viewerPubkey, lessonNote, noteType, lessonNoteRepository]);
+  }, [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, lessonNoteRepository]);
 
   return {
     lessonNote,
@@ -159,5 +177,7 @@ export function useLessonNote(
     shareNoteWithCounterparty,
     shareStatus,
     sharedNotes,
+    sharedNotesStatus,
+    lessonNoteError,
   };
 }

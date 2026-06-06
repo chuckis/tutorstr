@@ -38,6 +38,14 @@ type UseAppActionsProps = {
   lessonRepository: LessonRepository;
   acceptBooking: AcceptBookingUseCase;
   sendMessage: (recipientPubkey: string, text: string, threadKey?: string) => Promise<void>;
+  sendMessageWithFiles: (
+    recipientPubkey: string,
+    text: string,
+    files: File[],
+    blossomUrl: string,
+    threadKey?: string
+  ) => Promise<void>;
+  blossomUrl: string;
   setDiscoverStatus: (value: string) => void;
   setMessageStatus: (value: string) => void;
   onLogout: () => void;
@@ -63,6 +71,8 @@ export function useAppActions({
   lessonRepository,
   acceptBooking,
   sendMessage,
+  sendMessageWithFiles,
+  blossomUrl,
   setDiscoverStatus,
   setMessageStatus,
   onLogout
@@ -178,6 +188,25 @@ export function useAppActions({
     }
   }
 
+  async function sendEncryptedMessageWithFiles(
+    recipientPubkey: string,
+    text: string,
+    files: File[],
+    threadKey?: string
+  ) {
+    setMessageStatus("");
+
+    try {
+      await sendMessageWithFiles(recipientPubkey, text, files, blossomUrl, threadKey);
+      setMessageStatus(t("common.messages.attachmentsSent"));
+    } catch (error) {
+      setMessageStatus(
+        toLocalizedErrorMessage(error, t) || t("common.messages.uploadFailed")
+      );
+      throw error;
+    }
+  }
+
   function logout() {
     onLogout();
   }
@@ -189,6 +218,7 @@ export function useAppActions({
     requestBooking,
     requestPublishedSlot,
     sendEncryptedMessage,
+    sendEncryptedMessageWithFiles,
     logout
   };
 }
