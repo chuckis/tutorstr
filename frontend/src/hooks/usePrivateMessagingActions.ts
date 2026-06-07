@@ -2,13 +2,15 @@ import { useCallback } from "react";
 import { ProgressEntry } from "../domain/progress";
 import { AttachmentMessagePayload } from "../ports/privateMessagingRepository";
 import { MessageAttachment } from "../domain/messaging";
+import { UploadResult } from "../ports/mediaUploadRepository";
 import { useRepo } from "./RepoContext";
 
-function toMessageAttachments(files: File[], urls: string[]): MessageAttachment[] {
-  return urls.map((url, index) => {
+function toMessageAttachments(files: File[], results: UploadResult[]): MessageAttachment[] {
+  return results.map((result, index) => {
     const file = files[index];
     return {
-      url,
+      url: result.url,
+      thumbnailUrl: result.thumbnailUrl,
       mimeType: file?.type || "application/octet-stream",
       fileName: file?.name,
       size: file?.size,
@@ -59,12 +61,12 @@ export function usePrivateMessagingActions() {
         throw new Error("profile.form.blossomServerUrl");
       }
 
-      const urls = await mediaUploadRepository.uploadMultiple(files, blossomUrl, signer);
+      const results = await mediaUploadRepository.uploadMultiple(files, blossomUrl, signer);
       await privateMessagingRepository.sendAttachmentMessage(
         recipientPubkey,
         {
           text: text.trim() || undefined,
-          attachments: toMessageAttachments(files, urls),
+          attachments: toMessageAttachments(files, results),
         },
         threadKey
       );

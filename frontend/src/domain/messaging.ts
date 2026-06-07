@@ -3,6 +3,7 @@ export type MessageAttachment = {
   mimeType: string;
   fileName?: string;
   size?: number;
+  thumbnailUrl?: string;
 };
 
 export type MessageThreadType = "dm" | "booking" | "lesson";

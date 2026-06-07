@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useRepo } from "./RepoContext";
 import { AttachmentMessagePayload } from "../ports/privateMessagingRepository";
 import { MessageAttachment } from "../domain/messaging";
+import { UploadResult } from "../ports/mediaUploadRepository";
 
 export type MessageComposerState = {
   text: string;
@@ -52,7 +53,7 @@ export function useMessageComposer(
       setIsSending(true);
 
       try {
-        let attachmentUrls: string[] = [];
+        let uploadResults: UploadResult[] = [];
 
         if (files.length > 0) {
           setIsUploading(true);
@@ -63,7 +64,7 @@ export function useMessageComposer(
             throw new Error("No signer available");
           }
 
-          attachmentUrls = await mediaUploadRepository.uploadMultiple(
+          uploadResults = await mediaUploadRepository.uploadMultiple(
             files,
             blossomUrl,
             signer
@@ -73,9 +74,10 @@ export function useMessageComposer(
           setIsUploading(false);
         }
 
-        if (attachmentUrls.length > 0) {
-          const attachments: MessageAttachment[] = attachmentUrls.map((url, index) => ({
-            url,
+        if (uploadResults.length > 0) {
+          const attachments: MessageAttachment[] = uploadResults.map((result, index) => ({
+            url: result.url,
+            thumbnailUrl: result.thumbnailUrl,
             mimeType: files[index]?.type || "application/octet-stream",
             fileName: files[index]?.name,
             size: files[index]?.size,

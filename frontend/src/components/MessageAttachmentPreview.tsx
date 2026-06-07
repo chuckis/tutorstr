@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { MessageAttachment } from "../hooks/hookTypes";
+import { ImageViewer } from "./ImageViewer";
 
 type MessageAttachmentPreviewProps = {
   attachments: MessageAttachment[];
@@ -9,33 +10,28 @@ function isImage(mimeType: string): boolean {
   return mimeType.startsWith("image/");
 }
 
-function AttachmentImage({ url, mimeType, fileName }: MessageAttachment) {
-  const [open, setOpen] = useState(false);
+function Thumbnail({ att, index, onClick }: {
+  att: MessageAttachment;
+  index: number;
+  onClick: (i: number) => void;
+}) {
+  const [failed, setFailed] = useState(false);
+  const src = !failed && att.thumbnailUrl ? att.thumbnailUrl : att.url;
 
   return (
-    <>
-      <button
-        type="button"
-        className="attachment-thumb"
-        onClick={() => setOpen(true)}
-        aria-label={fileName || "image attachment"}
-      >
-        <img src={url} alt={fileName || ""} loading="lazy" />
-      </button>
-      {open ? (
-        <div className="attachment-lightbox" onClick={() => setOpen(false)}>
-          <button
-            type="button"
-            className="lightbox-close"
-            onClick={() => setOpen(false)}
-            aria-label="Close"
-          >
-            ×
-          </button>
-          <img src={url} alt={fileName || ""} className="lightbox-image" />
-        </div>
-      ) : null}
-    </>
+    <button
+      type="button"
+      className="attachment-thumb"
+      onClick={() => onClick(index)}
+      aria-label={att.fileName || "image attachment"}
+    >
+      <img
+        src={src}
+        alt={att.fileName || ""}
+        loading="lazy"
+        onError={() => setFailed(true)}
+      />
+    </button>
   );
 }
 
@@ -64,6 +60,8 @@ function AttachmentFile({ url, mimeType, fileName, size }: MessageAttachment) {
 }
 
 export function MessageAttachmentPreview({ attachments }: MessageAttachmentPreviewProps) {
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
   if (attachments.length === 0) {
     return null;
   }
@@ -71,12 +69,18 @@ export function MessageAttachmentPreview({ attachments }: MessageAttachmentPrevi
   const images = attachments.filter((a) => isImage(a.mimeType));
   const files = attachments.filter((a) => !isImage(a.mimeType));
 
+  const viewerImages = images.map((a) => ({
+    url: a.url,
+    thumbnailUrl: a.thumbnailUrl,
+    fileName: a.fileName,
+  }));
+
   return (
     <div className="message-attachments">
       {images.length > 0 ? (
         <div className={`attachment-grid attachment-grid-${Math.min(images.length, 4)}`}>
-          {images.map((att) => (
-            <AttachmentImage key={att.url} {...att} />
+          {images.map((att, i) => (
+            <Thumbnail key={att.url} att={att} index={i} onClick={setViewerIndex} />
           ))}
         </div>
       ) : null}
@@ -86,6 +90,13 @@ export function MessageAttachmentPreview({ attachments }: MessageAttachmentPrevi
             <AttachmentFile key={att.url} {...att} />
           ))}
         </div>
+      ) : null}
+      {viewerIndex !== null ? (
+        <ImageViewer
+          images={viewerImages}
+          defaultIndex={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
       ) : null}
     </div>
   );
