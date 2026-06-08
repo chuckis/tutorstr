@@ -16,10 +16,29 @@ React hooks that wire application use cases, repositories, and UI state together
 |-------|-------|---------|
 | Controller | `useAppController`, `useAuthController`, `useAppNavigation`, `useAppViewModel` | App-wide state, navigation |
 | Profile | `useTutorProfile`, `useTutorDirectory`, `useTutorSchedule`, `useTutorSchedules` | Profile/schedule read/write |
-| Bookings | `useBookings`, `useBookingActions`, `useBookingRequestsForTutor`, `useMyBookingRequests`, `useBookingStatusesForUser` | Booking lifecycle |
+| Bookings | `useBookings`, `useBookingActions`, `useBookingRequestsForTutor`, `useMyBookingRequests`, `useBookingStatusesForUser`, `useBookingEventsRepository` | Booking lifecycle |
 | Lessons | `useLessons`, `useLessonNote`, `useLessonAgreementsForUser`, `useLessonAgreementEventsRepository`, `useLessonRepository` | Lesson lifecycle |
 | Messages | `usePrivateMessagingActions`, `usePrivateMessagingRepository`, `useEncryptedMessages`, `useMessageIndicators` | Encrypted DMs |
-| Other | `useRelays`, `useNostrKeypair`, `usePublicAllocatedSlots`, `useProgressEntries`, `useRequestsTabViewModel`, `useBookingEventsRepository` | Utilities |
+| Other | `useRelays`, `useNostrKeypair`, `usePublicAllocatedSlots`, `useProgressEntries`, `useRequestsTabViewModel`, `useBlossomConfig`, `useShare` | Utilities |
+
+### `useLessonNote`
+
+Orchestrates lesson note state for the selected lesson. Wires `SendLessonNote` and `ShareLessonNote` use cases, manages Nostr subscription, and returns:
+
+| Return value | Type | Description |
+|-------------|------|-------------|
+| `lessonNote` | `string` | Current editor content |
+| `setLessonNote` | `(v: string) => void` | Update editor content |
+| `saveNoteLocally` | `() => void` | Persist to localStorage |
+| `publishNote` | `() => Promise<void>` | Publish encrypted backup to self |
+| `shareNoteWithCounterparty` | `(pk: string) => Promise<void>` | Share with counterparty |
+| `publishStatus` | status enum | `"idle" \| "saving" \| "published" \| "error"` |
+| `shareStatus` | status enum | `"idle" \| "saving" \| "shared" \| "error"` |
+| `sharedNotes` | `LessonNote[]` | Notes from counterparty |
+| `sharedNotesStatus` | status enum | Loading/idle/empty/received/error |
+| `noteList` | `LessonNoteWithVisibility[]` | All notes merged with visibility chips |
+
+The `noteList` field merges local saved drafts, self-published notes, and counterparty notes into a single sorted list with per-entry `visibility: NoteVisibility[]` (`"saved"`, `"published"`, `"shared"`). This drives the `LessonNoteList` and `LessonNoteDetail` components.
 
 ## Dependency rules
 

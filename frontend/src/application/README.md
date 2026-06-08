@@ -5,25 +5,31 @@ Business workflows, identity management, and role enforcement. Depends on `domai
 ## Directories
 
 ### `usecases/` — Business workflows
+
 See [`usecases/README.md`](./usecases/README.md) for details. Key files:
 
 - `acceptBooking.ts` — Tutor accepts booking, creates lesson, rejects competitors
 - `createBookingRequest.ts` — Student creates a booking request
-- `cancelBooking.ts` — Role-gated cancellation
+- `cancelBooking.ts` — Role-gated cancellation (tutor and student branches)
 - `changeLessonStatus.ts` — Tutor completes/cancels lesson
 - `publishTutorSchedule.ts` — Tutor publishes schedule event
+- `sendLessonNote.ts` — Publish own lesson note as encrypted backup (role-gated)
+- `shareLessonNote.ts` — Share lesson note with counterparty (role-gated)
 - `buildRequestsTabViewModel.ts` — Requests tab view model
 
 ### `auth/` — Identity lifecycle
+
 - `createNewProfile.ts`, `importExistingKey.ts`, `unlockVault.ts`
 - `restoreStoredSession.ts`, `saveGeneratedProfile.ts`
 - `exportSecretKey.ts`, `logout.ts`
 
 ### `account/` — Role enforcement
+
 - `assertRole.ts` — Guards all role-restricted actions
 - `requestSegment.ts` — Forces `"outgoing"` for students
 
 ### `locale/`
+
 - `detectLocale.ts` — Browser locale detection
 
 ## Rules

@@ -9,12 +9,9 @@ Concrete implementations of the port interfaces. The only layer that touches loc
   - `webCryptoVaultCipher.ts`
   - `nostrKeyMaterial.ts`
 - `nostr/` — Nostr event mapping and relay I/O
-  - `nostrSignerManager.ts` — wraps `nostrClient.setSigner` / `getSignerSession`
-  - `profileEventRepository.ts` — subscribe/publish kind 30000
-  - `scheduleEventRepository.ts` — subscribe/publish kind 30001
-  - `publicLessonRepository.ts` — subscribe kind 30006
-  - `relayManager.ts` — wraps `nostrClient.setRelays`
   - See [`nostr/README.md`](./nostr/README.md) for full details
+- `media/` — Media upload
+  - `blossomBlobRepository.ts`
 - `localStorageLocalePreferenceRepository.ts` — Locale in localStorage
 
 ## Rules

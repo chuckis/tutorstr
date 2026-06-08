@@ -2,12 +2,13 @@
 
 Tutor Hub over Nostr: decentralized tutoring app where domain data lives in Nostr events.
 
-## Current State (April 2026)
+## Current State (June 2026)
 
 - Frontend MVP is active (`React + TypeScript + Vite`, PWA shell)
 - Relay workspace exists with custom Nostr relay server implementation in [THR](https://github.com/tutor-hub-2030/thr) submodule
-- Single keypair can act as both tutor and student depending on event context
-- `App.tsx` has been reduced to a thin shell/controller composition layer
+- **Roles are live** — every npub is bound to exactly one role (`tutor` / `student`). Stored in the local vault only — no Nostr channel carries the role. See `docs/plans/role_separation_tutor_student.md` for design notes.
+- Lesson notes with visibility chips (`saved` / `published` / `shared`) — notes list and detail views accessible from lesson detail
+- `App.tsx` is a thin shell/controller composition layer
 - Frontend refactor is in progress to decouple business logic from raw Nostr event structures
 
 ## Implemented Features
@@ -22,27 +23,42 @@ Tutor Hub over Nostr: decentralized tutoring app where domain data lives in Nost
 - Tutor discovery with subject filter and tutor detail view
 - Booking requests (`kind 30002`) and booking statuses (`kind 30003`)
 - Lesson agreements (`kind 30006`, addressable/replaceable by `d` tag)
-- Lesson status updates (`scheduled -> completed/cancelled`)
-- Local personal lesson notes (`lesson-note:<lessonId>:<viewerPubkey>`)
+- Lesson status updates (`scheduled` → `completed` / `cancelled`)
 - Encrypted private messages (`kind 4`, NIP-04) in tutor/request/lesson detail flows
 - Encrypted progress entries (`kind 30004`, NIP-04)
+- **Lesson notes** — inline editor with Save / Publish / Share actions, notes list with visibility chips, note detail view
 - Requests tab alert badge/highlight when new incoming request or message appears
 - Relay configuration in Profile tab (persisted in localStorage)
+
+## Roles
+
+Every npub is bound to exactly one role (`tutor` or `student`), stored in the local vault. The role is never published to Nostr in MVP.
+
+Role-aware UI behaviour:
+- `Requests`: students see outgoing only (incoming segment is hidden)
+- `Profile`: students have no ScheduleForm, no tutor metrics, no `subjects` / `hourlyRate` fields
+- `Discover`: student chat is read+write; for tutors the chat area collapses
+- `useTutorSchedule` and `bookingsState.incoming` are no-ops / empty for students
+- `useAppNavigation` forces `requestSegment = "outgoing"` for students
+
+Every new role-gated use-case calls `assertRole()` from `application/account/assertRole.ts` before side effects.
+
+See `docs/plans/role_separation_tutor_student.md` and `docs/spec.md` §4 for details.
 
 ## Frontend Architecture
 
 The frontend is moving toward a layered structure where Nostr is an implementation detail instead of the default shape of app logic.
 
-- `frontend/src/domain/` domain models such as `Booking` and `Lesson`
-- `frontend/src/ports/` repository interfaces for booking and lesson access
-- `frontend/src/adapters/nostr/` mapping between raw Nostr events and domain models
-- `frontend/src/application/usecases/` business use cases such as `AcceptBooking`
-- `frontend/src/hooks/` orchestration and UI-facing hooks (`useBookings`, `useLessons`, `useAppController`, etc.)
-- `frontend/src/components/` presentation components and tab screens
+- `frontend/src/domain/` — pure domain models (`Booking`, `Lesson`, `LessonNote`, etc.)
+- `frontend/src/ports/` — repository interfaces (abstract contracts)
+- `frontend/src/adapters/` — port implementations (localStorage, Web Crypto, Nostr)
+- `frontend/src/application/` — use cases, auth, role guards
+- `frontend/src/hooks/` — React orchestration hooks
+- `frontend/src/components/` — presentation components and tab screens
 
-This refactor is incremental: legacy Nostr hooks still exist, but new UI paths are being migrated onto domain-oriented hooks.
+Each layer directory has an agents-first README with key files and rules.
 
-> Dependency map: [`docs/diagrams/actual-dependency-map.mmd`](docs/diagrams/actual-dependency-map.mmd) — visual overview of module dependencies and current violations.  
+> Dependency map: [`docs/diagrams/actual-dependency-map.mmd`](docs/diagrams/actual-dependency-map.mmd) — visual overview of module dependencies and current violations.
 > Regenerate locally before pushing: `npm run depmap`
 
 ## Nostr Kinds Used
@@ -51,7 +67,7 @@ This refactor is incremental: legacy Nostr hooks still exist, but new UI paths a
 - `30001` Tutor Schedule
 - `30002` Booking Request
 - `30003` Booking Status
-- `30004` Student Progress Log (encrypted)
+- `30004` Student Progress Log / Lesson Note (encrypted, discriminated by JSON `type` field)
 - `30005` Tutor Blog Post (reserved)
 - `30006` Lesson Agreement
 - `4` Private Direct Message (encrypted)
@@ -59,7 +75,7 @@ This refactor is incremental: legacy Nostr hooks still exist, but new UI paths a
 ## Repository Structure
 
 - `frontend/` main app (implemented)
-- `relay/` submodule pointing to [THR](https://github.com/tutor-hub-2030/thr) - custom Nostr relay for Tutor Hub
+- `relay/` submodule pointing to [THR](https://github.com/tutor-hub-2030/thr) — custom Nostr relay for Tutor Hub
 - `docs/` specifications and event kind docs
 
 ## Run Locally
@@ -88,9 +104,8 @@ npm --workspace frontend run preview
 ```
 
 Notes:
-
 - Root `npm run dev` / `build` / `preview` proxy to the `frontend` workspace
-- `npm run test` currently prints `no tests yet`
+- `npm run test` runs all tests via vitest
 
 Optional env for default relays:
 

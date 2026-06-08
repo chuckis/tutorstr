@@ -28,53 +28,64 @@ In short: this directory is the boundary between transport data and domain data.
 Converts booking-related Nostr events into the internal `Booking` model.
 
 Responsibilities:
-
 - build a `Booking` from a `BookingRequestEvent`
 - optionally merge the latest `BookingStatusEvent`
 - normalize unknown or missing statuses to `pending`
 - convert internal booking status values back into Nostr-compatible values when publishing updates
 
-Current consumers:
-
-- [`bookingRepository.ts`](./bookingRepository.ts)
+Consumers: [`bookingRepository.ts`](./bookingRepository.ts), [`bookingEventsRepository.ts`](./bookingEventsRepository.ts)
 
 ### `lessonAdapter.ts`
 
 Converts lesson agreement events into the internal `Lesson` model.
 
 Responsibilities:
-
 - build a `Lesson` from a `LessonAgreementEvent`
 - map Nostr lesson status values to the app's domain status values
 - translate the domain value `canceled` back to Nostr's `cancelled` spelling when publishing
 
-Current consumers:
+Consumers: [`lessonRepository.ts`](./lessonRepository.ts)
 
-- [`lessonRepository.ts`](./lessonRepository.ts)
+### `parseLessonNoteFromEvent.ts`
 
-### Other repository adapters
+Parses decrypted kind-30004 JSON payloads into `LessonNote` domain objects.
+
+Responsibilities:
+- check the `type` discriminator field (`"lesson_note"`)
+- extract `lessonId`, `noteType`, `content`, `attachments`
+- return `null` for non-note payloads (e.g. progress entries using the same kind)
+
+Consumers: [`lessonNoteRepository.ts`](./lessonNoteRepository.ts)
+
+### Repository adapters
 
 | File | Port | Kind | Used by |
 |------|------|------|---------|
 | `nostrSignerManager.ts` | `SignerManager` | — | `useAuthController`, `useNostrKeypair` |
 | `profileEventRepository.ts` | `ProfileEventRepository` | 30000 | `useTutorProfile`, `useTutorDirectory` |
 | `scheduleEventRepository.ts` | `ScheduleEventRepository` | 30001 | `useTutorSchedule`, `useTutorSchedules` |
+| `bookingEventsRepository.ts` | `BookingEventsRepository` | 30002, 30003 | `useBookings`, `useBookingEventsRepository` |
+| `bookingRepository.ts` | `BookingRepository` | 30002, 30003 | `useBookings` |
+| `lessonNoteRepository.ts` | `LessonNoteRepository` | 30004 | `useLessonNote` |
+| `privateMessagingRepository.ts` | `PrivateMessagingRepository` | 30004, 4 | `useEncryptedMessages`, `usePrivateMessagingActions` |
+| `lessonAgreementEventsRepository.ts` | `LessonAgreementEventsRepository` | 30006 | `useLessonAgreementsForUser` |
+| `lessonRepository.ts` | `LessonRepository` | 30006 | `useLessons` |
 | `publicLessonRepository.ts` | `PublicLessonRepository` | 30006 | `usePublicAllocatedSlots` |
 | `relayManager.ts` | `RelayManager` | — | `useRelays` |
+| `blossomMediaRepository.ts` | `MediaUploadRepository` | — | `useBlossomConfig` |
+| `vaultNostrSigner.ts` | `NostrSigner` | — | `useAuthController` |
 
 ## Design rule
 
 Keep these files focused on data mapping only.
 
 Good fit for this directory:
-
 - renaming fields
 - merging multiple raw events into one domain object
 - enum/status normalization
 - transport-to-domain and domain-to-transport conversion
 
 Not a good fit for this directory:
-
 - relay access
 - event publishing/subscription logic
 - React state management
@@ -88,7 +99,6 @@ That logic belongs in hooks, services, repositories, or application use cases.
 Add a new file here when a new Nostr event kind needs to be translated into a domain model or when a domain model needs a dedicated conversion back into a Nostr payload.
 
 Examples:
-
 - tutor profile adapter
 - tutor schedule adapter
 - encrypted progress log adapter
