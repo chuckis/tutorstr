@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccountRole } from "../domain/account";
 import { Lesson } from "../domain/lesson";
-import { LessonNote, LessonNoteType } from "../domain/lessonNote";
+import { LessonNote, LessonNoteType, LessonNoteWithVisibility, NoteVisibility } from "../domain/lessonNote";
 import { SendLessonNote } from "../application/usecases/sendLessonNote";
 import { ShareLessonNote } from "../application/usecases/shareLessonNote";
 import { useRepo } from "./RepoContext";
@@ -110,6 +110,57 @@ export function useLessonNote(
     });
   }, [selectedLesson, viewerPubkey, nostrNotes, migratedLessons]);
 
+  const noteList = useMemo((): LessonNoteWithVisibility[] => {
+    if (!selectedLesson) {
+      return [];
+    }
+
+    const lessonId = selectedLesson.id;
+    const lessonNotes = nostrNotes[lessonId] || [];
+    const map = new Map<string, LessonNoteWithVisibility>();
+
+    const localContent = loadLocalLessonNote(lessonId, viewerPubkey);
+    if (localContent.trim()) {
+      map.set(`own:${localContent}`, {
+        id: `local:${lessonId}:${viewerPubkey}`,
+        lessonId,
+        authorPubkey: viewerPubkey,
+        createdAt: Date.now() / 1000,
+        noteType,
+        content: localContent,
+        attachments: [],
+        visibility: ["saved"],
+      });
+    }
+
+    for (const note of lessonNotes) {
+      if (note.authorPubkey === viewerPubkey) {
+        const key = `own:${note.content}`;
+        const existing = map.get(key);
+        if (existing) {
+          if (note.id.endsWith(":shared") && !existing.visibility.includes("shared")) {
+            existing.visibility.push("shared");
+          }
+          if (!note.id.endsWith(":shared") && !existing.visibility.includes("published")) {
+            existing.visibility.push("published");
+          }
+        } else {
+          const vis: NoteVisibility[] = note.id.endsWith(":shared")
+            ? ["published", "shared"]
+            : ["published"];
+          map.set(key, { ...note, visibility: vis });
+        }
+      } else {
+        const key = `counterparty:${note.id}`;
+        if (!map.has(key)) {
+          map.set(key, { ...note, visibility: ["shared"] });
+        }
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+  }, [selectedLesson, nostrNotes, viewerPubkey, noteType]);
+
   const saveNoteLocally = useCallback(() => {
     if (!selectedLesson || !lessonNote.trim()) {
       return;
@@ -179,5 +230,6 @@ export function useLessonNote(
     sharedNotes,
     sharedNotesStatus,
     lessonNoteError,
+    noteList,
   };
 }

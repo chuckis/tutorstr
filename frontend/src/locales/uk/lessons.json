@@ -34,5 +34,16 @@
     "weekNext": "Наступний тиждень",
     "weekToday": "Сьогодні",
     "emptyDay": "—"
-  }
+  },
+  "viewNotes": "Нотатки",
+  "notesList": "Нотатки уроку",
+  "notesEmpty": "Нотаток ще немає.",
+  "backToNotes": "Назад до нотаток",
+  "visibility": {
+    "saved": "Збережено",
+    "published": "Опубліковано",
+    "shared": "Поширено"
+  },
+  "noteDetail": "Нотатка",
+  "noteAuthorYou": "Ви"
 }

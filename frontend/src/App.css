@@ -2024,3 +2024,116 @@ button:active {
     padding-bottom: var(--space-12);
   }
 }
+
+/* ── Lesson Note List / Detail / Visibility chips ── */
+
+.note-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.note-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  cursor: pointer;
+  transition: box-shadow var(--motion), transform var(--motion);
+  border: 1px solid var(--color-border);
+}
+
+.note-card:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--color-shadow);
+}
+
+.note-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  font-size: 0.85rem;
+}
+
+.note-card-author {
+  font-weight: 700;
+}
+
+.note-card-content {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: var(--space-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.note-detail-meta {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.note-detail-meta p {
+  margin: var(--space-1) 0;
+}
+
+.note-detail-content {
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: var(--space-3) 0;
+}
+
+.visibility-chip {
+  font-size: 0.75rem !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.visibility-chip--saved {
+  background: var(--color-surface) !important;
+  color: var(--color-text-muted) !important;
+  border: 1px solid var(--color-border);
+}
+
+.visibility-chip--published {
+  background: var(--color-primary-strong) !important;
+  color: #fff !important;
+}
+
+.visibility-chip--shared {
+  background: var(--color-success) !important;
+  color: #fff !important;
+}
+
+.view-notes-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: var(--space-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: border-color var(--motion), color var(--motion);
+}
+
+.view-notes-link:hover {
+  border-color: var(--color-primary-strong);
+  color: var(--color-primary-strong);
+}
+

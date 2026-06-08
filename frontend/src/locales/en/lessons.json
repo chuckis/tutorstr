@@ -34,5 +34,16 @@
     "weekNext": "Next week",
     "weekToday": "Today",
     "emptyDay": "—"
-  }
+  },
+  "viewNotes": "View notes",
+  "notesList": "Lesson notes",
+  "notesEmpty": "No notes yet.",
+  "backToNotes": "Back to notes",
+  "visibility": {
+    "saved": "Saved",
+    "published": "Published",
+    "shared": "Shared"
+  },
+  "noteDetail": "Note",
+  "noteAuthorYou": "You"
 }

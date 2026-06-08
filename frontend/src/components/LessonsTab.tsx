@@ -4,6 +4,7 @@ import { Lesson, LessonStatus, lessonMessageThreadKey, EncryptedMessage } from "
 import { useI18n } from "../i18n/I18nProvider";
 import { UserProfileEvent, MessageAttachment } from "../hooks/hookTypes";
 import { AccountRole } from "../domain/account";
+import { LessonNoteWithVisibility } from "../domain/lessonNote";
 import { toDisplayId } from "../utils/display";
 import { DetailPageLayout } from "./DetailPageLayout";
 import { LessonsCalendar } from "./LessonsCalendar";
@@ -11,6 +12,8 @@ import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
 import { Spinner } from "./Spinner";
 import { LessonNoteEditor } from "./LessonNoteEditor";
+import { LessonNoteList } from "./LessonNoteList";
+import { LessonNoteDetail } from "./LessonNoteDetail";
 import { MessageAttachmentPreview } from "./MessageAttachmentPreview";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
@@ -18,6 +21,7 @@ type SharedNotesStatus = "idle" | "loading" | "empty" | "received" | "error";
 
 type LessonSegment = "upcoming" | "past";
 type LessonViewMode = "list" | "calendar";
+type NoteView = null | "list" | "detail";
 
 type SharedNoteEntry = {
   id: string;
@@ -48,6 +52,7 @@ type LessonsTabProps = {
   sharedNotes?: SharedNoteEntry[];
   sharedNotesStatus?: SharedNotesStatus;
   lessonNoteError?: string;
+  noteList?: LessonNoteWithVisibility[];
   onChangeLessonStatus: (
     lesson: Lesson,
     nextStatus: LessonStatus
@@ -83,6 +88,7 @@ export function LessonsTab({
   sharedNotes = [],
   sharedNotesStatus = "idle",
   lessonNoteError = "",
+  noteList = [],
   onChangeLessonStatus,
   messagesByThread,
   getUnreadCount,
@@ -93,6 +99,8 @@ export function LessonsTab({
 }: LessonsTabProps) {
   const { t, formatDateTime } = useI18n();
   const [viewMode, setViewMode] = useState<LessonViewMode>("list");
+  const [noteView, setNoteView] = useState<NoteView>(null);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
   if (selectedLesson) {
     const threadInfo = lessonMessageThreadKey(selectedLesson);
@@ -101,6 +109,42 @@ export function LessonsTab({
         ? selectedLesson.studentId
         : selectedLesson.tutorId;
     const lastSharedNote = sharedNotes[0];
+
+    const selectedNote = selectedNoteId
+      ? noteList.find((n) => n.id === selectedNoteId) ?? null
+      : null;
+
+    if (noteView === "list") {
+      return (
+        <LessonNoteList
+          notes={noteList}
+          onSelectNote={(noteId) => {
+            setSelectedNoteId(noteId);
+            setNoteView("detail");
+          }}
+          onBack={() => {
+            setNoteView(null);
+            setSelectedNoteId(null);
+          }}
+          tutors={tutors}
+          currentPubkey={currentPubkey}
+        />
+      );
+    }
+
+    if (noteView === "detail") {
+      return (
+        <LessonNoteDetail
+          note={selectedNote}
+          onBack={() => {
+            setNoteView("list");
+            setSelectedNoteId(null);
+          }}
+          tutors={tutors}
+          currentPubkey={currentPubkey}
+        />
+      );
+    }
 
     return (
       <DetailPageLayout
@@ -169,6 +213,17 @@ export function LessonsTab({
             publishStatus={publishStatus}
             shareStatus={shareStatus}
           />
+
+          <button
+            type="button"
+            className="view-notes-link"
+            onClick={() => {
+              setNoteView("list");
+              setSelectedNoteId(null);
+            }}
+          >
+            {t("lessons.viewNotes")}
+          </button>
 
           <div className="shared-notes">
             <h4>{t("lessons.sharedNotes")}</h4>

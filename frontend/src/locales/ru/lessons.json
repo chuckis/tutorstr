@@ -34,5 +34,16 @@
     "weekNext": "Следующая неделя",
     "weekToday": "Сегодня",
     "emptyDay": "—"
-  }
+  },
+  "viewNotes": "Заметки",
+  "notesList": "Заметки урока",
+  "notesEmpty": "Заметок пока нет.",
+  "backToNotes": "Назад к заметкам",
+  "visibility": {
+    "saved": "Сохранено",
+    "published": "Опубликовано",
+    "shared": "Отправлено"
+  },
+  "noteDetail": "Заметка",
+  "noteAuthorYou": "Вы"
 }

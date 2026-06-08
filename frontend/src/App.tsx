@@ -225,6 +225,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             sharedNotes={lessonNoteState.sharedNotes}
             sharedNotesStatus={lessonNoteState.sharedNotesStatus}
             lessonNoteError={lessonNoteState.lessonNoteError}
+            noteList={lessonNoteState.noteList}
             onChangeLessonStatus={actions.changeLessonStatus}
             messagesByThread={messagesState.byThread}
             getUnreadCount={(threadKey) =>
