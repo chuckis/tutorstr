@@ -96,3 +96,48 @@ describe("ShareLessonNote", () => {
     expect(repo.publishNote).not.toHaveBeenCalled();
   });
 });
+
+describe("ShareLessonNote with attachments", () => {
+  it("publishes a note with attachments to the recipient", async () => {
+    const repo = makeRepo();
+    const useCase = new ShareLessonNote(repo);
+    const attachments = [
+      { url: "https://cdn.example.com/image.png", mimeType: "image/png", fileName: "diagram.png", size: 2048 },
+    ];
+
+    await useCase.execute(
+      {
+        lessonId: "lesson-1",
+        viewerPubkey: "tutor-1",
+        recipientPubkey: "student-1",
+        noteType: "tutor",
+        content: "Check the diagram",
+        attachments,
+      },
+      "tutor"
+    );
+
+    expect(repo.publishNote).toHaveBeenCalledOnce();
+    const [, note] = (repo.publishNote as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(note.attachments).toEqual(attachments);
+  });
+
+  it("defaults to empty attachments when not provided", async () => {
+    const repo = makeRepo();
+    const useCase = new ShareLessonNote(repo);
+
+    await useCase.execute(
+      {
+        lessonId: "lesson-1",
+        viewerPubkey: "tutor-1",
+        recipientPubkey: "student-1",
+        noteType: "tutor",
+        content: "No files",
+      },
+      "tutor"
+    );
+
+    const [, note] = (repo.publishNote as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(note.attachments).toEqual([]);
+  });
+});

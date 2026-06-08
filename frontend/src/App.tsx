@@ -211,17 +211,19 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             tutors={directoryState.tutors}
             lessonNote={lessonNoteState.lessonNote}
             onLessonNoteChange={lessonNoteState.setLessonNote}
-            onSaveNoteLocally={lessonNoteState.saveNoteLocally}
-            onPublishNote={lessonNoteState.publishNote}
-            onShareNote={() => lessonNoteState.shareNoteWithCounterparty(
+            onSaveNoteLocally={(files?) => lessonNoteState.saveNoteLocally(files)}
+            onPublishNote={(files?) => lessonNoteState.publishNote(files)}
+            onShareNote={(files?) => lessonNoteState.shareNoteWithCounterparty(
               navigation.selectedLesson
                 ? (navigation.selectedLesson.tutorId === keypair.pubkey
                   ? navigation.selectedLesson.studentId
                   : navigation.selectedLesson.tutorId)
-                : ""
+                : "",
+              files
             )}
             publishStatus={lessonNoteState.publishStatus}
             shareStatus={lessonNoteState.shareStatus}
+            uploadProgress={lessonNoteState.uploadProgress}
             sharedNotes={lessonNoteState.sharedNotes}
             sharedNotesStatus={lessonNoteState.sharedNotesStatus}
             lessonNoteError={lessonNoteState.lessonNoteError}

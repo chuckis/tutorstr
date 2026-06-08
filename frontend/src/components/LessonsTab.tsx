@@ -17,6 +17,7 @@ import { LessonNoteDetail } from "./LessonNoteDetail";
 import { MessageAttachmentPreview } from "./MessageAttachmentPreview";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
+type UploadProgress = "idle" | "uploading" | "done" | "error";
 type SharedNotesStatus = "idle" | "loading" | "empty" | "received" | "error";
 
 type LessonSegment = "upcoming" | "past";
@@ -44,11 +45,12 @@ type LessonsTabProps = {
   tutors: Record<string, UserProfileEvent>;
   lessonNote: string;
   onLessonNoteChange: (value: string) => void;
-  onSaveNoteLocally: () => void;
-  onPublishNote: () => void;
-  onShareNote: () => void;
+  onSaveNoteLocally: (files?: File[]) => void;
+  onPublishNote: (files?: File[]) => void;
+  onShareNote: (files?: File[]) => void;
   publishStatus?: ActionStatus;
   shareStatus?: ActionStatus;
+  uploadProgress?: UploadProgress;
   sharedNotes?: SharedNoteEntry[];
   sharedNotesStatus?: SharedNotesStatus;
   lessonNoteError?: string;
@@ -85,6 +87,7 @@ export function LessonsTab({
   onShareNote,
   publishStatus = "idle",
   shareStatus = "idle",
+  uploadProgress = "idle",
   sharedNotes = [],
   sharedNotesStatus = "idle",
   lessonNoteError = "",
@@ -212,8 +215,10 @@ export function LessonsTab({
             onShare={onShareNote}
             publishStatus={publishStatus}
             shareStatus={shareStatus}
+            uploadProgress={uploadProgress}
           />
 
+          {lessonNoteError ? <p className="muted">{t(lessonNoteError)}</p> : null}
           <button
             type="button"
             className="view-notes-link"
@@ -227,9 +232,6 @@ export function LessonsTab({
 
           <div className="shared-notes">
             <h4>{t("lessons.sharedNotes")}</h4>
-            {lessonNoteError ? (
-              <p className="muted">{t(lessonNoteError)}</p>
-            ) : null}
             {sharedNotesStatus === "loading" ? (
               <p className="muted">{t("common.states.loading")}</p>
             ) : sharedNotesStatus === "error" ? (

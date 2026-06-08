@@ -57,7 +57,8 @@ export function useAppController(
   const lessonNoteState = useLessonNote(
     keypair.pubkey,
     navigation.selectedLesson,
-    viewerRole
+    viewerRole,
+    blossomUrl
   );
   const { sendMessage, sendMessageWithFiles } = usePrivateMessagingActions();
   const messageIndicators = useMessageIndicators(

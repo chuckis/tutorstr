@@ -2,24 +2,66 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccountRole } from "../domain/account";
 import { Lesson } from "../domain/lesson";
 import { LessonNote, LessonNoteType, LessonNoteWithVisibility, NoteVisibility } from "../domain/lessonNote";
+import { MessageAttachment } from "../domain/messaging";
 import { SendLessonNote } from "../application/usecases/sendLessonNote";
 import { ShareLessonNote } from "../application/usecases/shareLessonNote";
+import { UploadResult } from "../ports/mediaUploadRepository";
 import { useRepo } from "./RepoContext";
 
-function loadLocalLessonNote(lessonId: string, viewerPubkey: string) {
-  return localStorage.getItem(`lesson-note:${lessonId}:${viewerPubkey}`) || "";
+function toMessageAttachments(files: File[], results: UploadResult[]): MessageAttachment[] {
+  return results.map((result, index) => {
+    const file = files[index];
+    return {
+      url: result.url,
+      thumbnailUrl: result.thumbnailUrl,
+      mimeType: file?.type || "application/octet-stream",
+      fileName: file?.name,
+      size: file?.size,
+    };
+  });
 }
 
-function saveLocalLessonNote(lessonId: string, viewerPubkey: string, note: string) {
-  localStorage.setItem(`lesson-note:${lessonId}:${viewerPubkey}`, note);
+type StoredLessonNote = {
+  text: string;
+  attachments: MessageAttachment[];
+};
+
+function loadStoredLessonNote(lessonId: string, viewerPubkey: string): StoredLessonNote {
+  const raw = localStorage.getItem(`lesson-note:${lessonId}:${viewerPubkey}`);
+  if (!raw) return { text: "", attachments: [] };
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && "text" in parsed) {
+      return {
+        text: parsed.text ?? "",
+        attachments: parsed.attachments ?? [],
+      };
+    }
+  } catch {
+    // plain text legacy format
+  }
+  return { text: raw, attachments: [] };
+}
+
+function saveStoredLessonNote(
+  lessonId: string,
+  viewerPubkey: string,
+  data: StoredLessonNote
+) {
+  localStorage.setItem(
+    `lesson-note:${lessonId}:${viewerPubkey}`,
+    JSON.stringify(data)
+  );
 }
 
 export function useLessonNote(
   viewerPubkey: string,
   selectedLesson: Lesson | null,
-  viewerRole: AccountRole = "tutor"
+  viewerRole: AccountRole = "tutor",
+  blossomUrl: string = ""
 ) {
-  const { lessonNoteRepository } = useRepo();
+  const { lessonNoteRepository, mediaUploadRepository, signerManager } = useRepo();
   const [lessonNote, setLessonNote] = useState("");
   const [nostrNotes, setNostrNotes] = useState<Record<string, LessonNote[]>>({});
   const [sharedNotes, setSharedNotes] = useState<LessonNote[]>([]);
@@ -28,6 +70,9 @@ export function useLessonNote(
   const [migratedLessons, setMigratedLessons] = useState<Set<string>>(new Set());
   const [publishStatus, setPublishStatus] = useState<"idle" | "saving" | "published" | "error">("idle");
   const [shareStatus, setShareStatus] = useState<"idle" | "saving" | "shared" | "error">("idle");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<"idle" | "uploading" | "done" | "error">("idle");
+  const [noteAttachments, setNoteAttachments] = useState<MessageAttachment[]>([]);
   const cleanupRef = useRef<(() => void) | null>(null);
 
   const noteType: LessonNoteType = viewerRole === "tutor" ? "tutor" : "student";
@@ -38,13 +83,22 @@ export function useLessonNote(
       setSharedNotes([]);
       setSharedNotesStatus("idle");
       setLessonNoteError("");
+      setSelectedFiles([]);
+      setNoteAttachments([]);
+      setUploadProgress("idle");
       return;
     }
 
     setSharedNotesStatus("loading");
     setLessonNoteError("");
-    const localNote = loadLocalLessonNote(selectedLesson.id, viewerPubkey);
-    setLessonNote(localNote);
+    setSelectedFiles([]);
+    setNoteAttachments([]);
+    setUploadProgress("idle");
+    const stored = loadStoredLessonNote(selectedLesson.id, viewerPubkey);
+    setLessonNote(stored.text);
+    if (stored.attachments.length > 0) {
+      setNoteAttachments(stored.attachments);
+    }
 
     const unsubscribe = lessonNoteRepository.subscribeNotesForLesson(
       selectedLesson.id,
@@ -82,7 +136,7 @@ export function useLessonNote(
       return;
     }
 
-    const localNote = loadLocalLessonNote(selectedLesson.id, viewerPubkey);
+    const stored = loadStoredLessonNote(selectedLesson.id, viewerPubkey);
     const lessonNotes = nostrNotes[selectedLesson.id] || [];
     const ownNote = lessonNotes
       .filter((note) => note.authorPubkey === viewerPubkey)
@@ -91,8 +145,11 @@ export function useLessonNote(
     if (ownNote) {
       setLessonNote(ownNote.content);
 
-      if (localNote && !migratedLessons.has(selectedLesson.id)) {
-        saveLocalLessonNote(selectedLesson.id, viewerPubkey, ownNote.content);
+      if (stored.text && !migratedLessons.has(selectedLesson.id)) {
+        saveStoredLessonNote(selectedLesson.id, viewerPubkey, {
+          text: ownNote.content,
+          attachments: ownNote.attachments,
+        });
         setMigratedLessons((prev) => new Set(prev).add(selectedLesson.id));
       }
     }
@@ -119,16 +176,16 @@ export function useLessonNote(
     const lessonNotes = nostrNotes[lessonId] || [];
     const map = new Map<string, LessonNoteWithVisibility>();
 
-    const localContent = loadLocalLessonNote(lessonId, viewerPubkey);
-    if (localContent.trim()) {
-      map.set(`own:${localContent}`, {
+    const stored = loadStoredLessonNote(lessonId, viewerPubkey);
+    if (stored.text.trim()) {
+      map.set(`own:${stored.text}`, {
         id: `local:${lessonId}:${viewerPubkey}`,
         lessonId,
         authorPubkey: viewerPubkey,
         createdAt: Date.now() / 1000,
         noteType,
-        content: localContent,
-        attachments: [],
+        content: stored.text,
+        attachments: stored.attachments,
         visibility: ["saved"],
       });
     }
@@ -161,67 +218,135 @@ export function useLessonNote(
     return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
   }, [selectedLesson, nostrNotes, viewerPubkey, noteType]);
 
-  const saveNoteLocally = useCallback(() => {
-    if (!selectedLesson || !lessonNote.trim()) {
-      return;
-    }
+  const uploadFiles = useCallback(
+    async (files: File[]): Promise<MessageAttachment[]> => {
+      if (files.length === 0) return [];
 
-    saveLocalLessonNote(selectedLesson.id, viewerPubkey, lessonNote);
-  }, [selectedLesson, viewerPubkey, lessonNote]);
+      const signer = signerManager.getSigner();
+      if (!signer) {
+        throw new Error("common.runtime.authenticationRequired");
+      }
+      if (!blossomUrl) {
+        throw new Error("profile.form.blossomServerUrl");
+      }
 
-  const publishNote = useCallback(async () => {
-    if (!selectedLesson || !lessonNote.trim()) {
-      return;
-    }
+      setUploadProgress("uploading");
+      try {
+        const results = await mediaUploadRepository.uploadMultiple(files, blossomUrl, signer);
+        const attachments = toMessageAttachments(files, results);
+        setNoteAttachments((prev) => [...prev, ...attachments]);
+        setUploadProgress("done");
+        return attachments;
+      } catch {
+        setUploadProgress("error");
+        throw new Error("lessons.noteAttachmentUploadFailed");
+      }
+    },
+    [blossomUrl, mediaUploadRepository, signerManager]
+  );
 
-    setPublishStatus("saving");
+  const saveNoteLocally = useCallback(
+    async (files?: File[]) => {
+      if (!selectedLesson || !lessonNote.trim()) {
+        return;
+      }
 
-    try {
-      const sendLessonNote = new SendLessonNote(lessonNoteRepository);
-      await sendLessonNote.execute({
-        lessonId: selectedLesson.id,
-        viewerPubkey,
-        noteType,
-        content: lessonNote,
-      }, viewerRole);
-      saveLocalLessonNote(selectedLesson.id, viewerPubkey, lessonNote);
-      setPublishStatus("published");
-    } catch {
-      setLessonNoteError("lessons.notePublishFailed");
-      setPublishStatus("error");
-    }
+      let attachments = noteAttachments;
+      if (files && files.length > 0) {
+        attachments = await uploadFiles(files);
+      }
 
-    setTimeout(() => setPublishStatus("idle"), 3000);
-  }, [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, lessonNoteRepository]);
+      saveStoredLessonNote(selectedLesson.id, viewerPubkey, {
+        text: lessonNote,
+        attachments,
+      });
+    },
+    [selectedLesson, viewerPubkey, lessonNote, noteAttachments, uploadFiles]
+  );
 
-  const shareNoteWithCounterparty = useCallback(async (counterpartyPubkey: string) => {
-    if (!selectedLesson || !lessonNote.trim()) {
-      return;
-    }
+  const publishNote = useCallback(
+    async (files?: File[]) => {
+      if (!selectedLesson || !lessonNote.trim()) {
+        return;
+      }
 
-    setShareStatus("saving");
+      setPublishStatus("saving");
 
-    try {
-      const shareLessonNote = new ShareLessonNote(lessonNoteRepository);
-      await shareLessonNote.execute({
-        lessonId: selectedLesson.id,
-        viewerPubkey,
-        recipientPubkey: counterpartyPubkey,
-        noteType,
-        content: lessonNote,
-      }, viewerRole);
-      setShareStatus("shared");
-    } catch {
-      setLessonNoteError("lessons.noteShareFailed");
-      setShareStatus("error");
-    }
+      try {
+        let attachments = noteAttachments;
+        if (files && files.length > 0) {
+          attachments = await uploadFiles(files);
+        }
 
-    setTimeout(() => setShareStatus("idle"), 3000);
-  }, [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, lessonNoteRepository]);
+        const sendLessonNote = new SendLessonNote(lessonNoteRepository);
+        await sendLessonNote.execute({
+          lessonId: selectedLesson.id,
+          viewerPubkey,
+          noteType,
+          content: lessonNote,
+          attachments,
+        }, viewerRole);
+
+        saveStoredLessonNote(selectedLesson.id, viewerPubkey, {
+          text: lessonNote,
+          attachments,
+        });
+        setPublishStatus("published");
+      } catch {
+        setLessonNoteError("lessons.notePublishFailed");
+        setPublishStatus("error");
+      }
+
+      setTimeout(() => setPublishStatus("idle"), 3000);
+    },
+    [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, lessonNoteRepository, noteAttachments, uploadFiles]
+  );
+
+  const shareNoteWithCounterparty = useCallback(
+    async (counterpartyPubkey: string, files?: File[]) => {
+      if (!selectedLesson || !lessonNote.trim()) {
+        return;
+      }
+
+      setShareStatus("saving");
+
+      try {
+        let attachments = noteAttachments;
+        if (files && files.length > 0) {
+          attachments = await uploadFiles(files);
+        }
+
+        const shareLessonNote = new ShareLessonNote(lessonNoteRepository);
+        await shareLessonNote.execute({
+          lessonId: selectedLesson.id,
+          viewerPubkey,
+          recipientPubkey: counterpartyPubkey,
+          noteType,
+          content: lessonNote,
+          attachments,
+        }, viewerRole);
+        saveStoredLessonNote(selectedLesson.id, viewerPubkey, {
+          text: lessonNote,
+          attachments,
+        });
+        setShareStatus("shared");
+      } catch {
+        setLessonNoteError("lessons.noteShareFailed");
+        setShareStatus("error");
+      }
+
+      setTimeout(() => setShareStatus("idle"), 3000);
+    },
+    [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, lessonNoteRepository, noteAttachments, uploadFiles]
+  );
 
   return {
     lessonNote,
     setLessonNote,
+    selectedFiles,
+    setSelectedFiles,
+    uploadProgress,
+    noteAttachments,
     saveNoteLocally,
     publishNote,
     publishStatus,

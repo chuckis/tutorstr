@@ -90,3 +90,46 @@ describe("SendLessonNote", () => {
     expect(repo.publishNote).not.toHaveBeenCalled();
   });
 });
+
+describe("SendLessonNote with attachments", () => {
+  it("publishes a note with attachments", async () => {
+    const repo = makeRepo();
+    const useCase = new SendLessonNote(repo);
+    const attachments = [
+      { url: "https://cdn.example.com/file.pdf", mimeType: "application/pdf", fileName: "notes.pdf", size: 1024 },
+    ];
+
+    await useCase.execute(
+      {
+        lessonId: "lesson-1",
+        viewerPubkey: "tutor-1",
+        noteType: "tutor",
+        content: "Here is the file",
+        attachments,
+      },
+      "tutor"
+    );
+
+    expect(repo.publishNote).toHaveBeenCalledOnce();
+    const [, note] = (repo.publishNote as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(note.attachments).toEqual(attachments);
+  });
+
+  it("defaults to empty attachments when not provided", async () => {
+    const repo = makeRepo();
+    const useCase = new SendLessonNote(repo);
+
+    await useCase.execute(
+      {
+        lessonId: "lesson-1",
+        viewerPubkey: "tutor-1",
+        noteType: "tutor",
+        content: "No files",
+      },
+      "tutor"
+    );
+
+    const [, note] = (repo.publishNote as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(note.attachments).toEqual([]);
+  });
+});

@@ -2,12 +2,14 @@ import { AccountRole } from "../../domain/account";
 import { assertRole } from "../account/assertRole";
 import { LessonNote, LessonNoteType } from "../../domain/lessonNote";
 import { LessonNoteRepository } from "../../ports/lessonNoteRepository";
+import { MessageAttachment } from "../../domain/messaging";
 
 export type SendLessonNoteInput = {
   lessonId: string;
   viewerPubkey: string;
   noteType: LessonNoteType;
   content: string;
+  attachments?: MessageAttachment[];
 };
 
 export class SendLessonNote {
@@ -23,7 +25,7 @@ export class SendLessonNote {
       createdAt: Math.floor(Date.now() / 1000),
       noteType: input.noteType,
       content: input.content,
-      attachments: [],
+      attachments: input.attachments ?? [],
     };
 
     await this.lessonNoteRepository.publishNote(
