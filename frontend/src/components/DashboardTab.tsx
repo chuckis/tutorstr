@@ -1,5 +1,5 @@
 import { useI18n } from "../i18n/I18nProvider";
-import { AccountRole, Lesson, TutorSchedule } from "../hooks/hookTypes";
+import { AccountRole, Booking, Lesson, TutorSchedule } from "../hooks/hookTypes";
 import { UserProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
 import { Avatar } from "./Avatar";
@@ -17,6 +17,7 @@ type DashboardTabProps = {
   profileSubjects: string[];
   hourlyRate: number;
   schedule: TutorSchedule;
+  publishedSchedule: TutorSchedule;
   onScheduleChange: (schedule: TutorSchedule) => void;
   onPublishSchedule: () => void;
   scheduleStatus: string;
@@ -24,6 +25,8 @@ type DashboardTabProps = {
   role: AccountRole;
   mode?: DashboardMode;
   upcomingLessons?: Lesson[];
+  allLessons: Lesson[];
+  bookingsIncoming: Booking[];
   tutors?: Record<string, UserProfileEvent>;
   loading: boolean;
 };
@@ -41,6 +44,7 @@ export function DashboardTab({
   profileSubjects,
   hourlyRate,
   schedule,
+  publishedSchedule,
   onScheduleChange,
   onPublishSchedule,
   scheduleStatus,
@@ -49,6 +53,8 @@ export function DashboardTab({
   mode,
   loading,
   upcomingLessons = [],
+  allLessons = [],
+  bookingsIncoming = [],
   tutors = {}
 }: DashboardTabProps) {
   const { t, formatDateTime } = useI18n();
@@ -61,6 +67,9 @@ export function DashboardTab({
   const activeStatus = scheduleStatus || profileStatus || t("profile.statusIdle");
 
   const previewLessons = upcomingLessons.slice(0, 3);
+
+  const completedLessons = allLessons.filter((l) => l.status === "completed").length;
+  const totalLessons = allLessons.length;
 
   if (loading) {
     return (
@@ -112,7 +121,7 @@ export function DashboardTab({
                   </div>
                   <div className="dashboard-metric-card">
                     <span>{t("profile.metricSchedule")}</span>
-                    <strong>{schedule.slots.length || 0}</strong>
+                    <strong>{publishedSchedule.slots.length || 0}</strong>
                   </div>
                   <div className="dashboard-metric-card">
                     <span>{t("profile.metricRate")}</span>
@@ -152,16 +161,19 @@ export function DashboardTab({
                 </div>
               </div>
 
-              <div className="dashboard-identity-strip">
-                <div>
-                  <p className="muted">{t("profile.npubLabel")}</p>
-                  <p className="identity-value">{npub}</p>
+              <details className="dashboard-identity-spoiler">
+                <summary>{t("profile.advanced")}</summary>
+                <div className="dashboard-identity-strip">
+                  <div>
+                    <p className="muted">{t("profile.npubLabel")}</p>
+                    <p className="identity-value">{npub}</p>
+                  </div>
+                  <div>
+                    <p className="muted">{t("profile.pubkeyHex")}</p>
+                    <p className="identity-value">{pubkey}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="muted">{t("profile.pubkeyHex")}</p>
-                  <p className="identity-value">{pubkey}</p>
-                </div>
-              </div>
+              </details>
             </article>
           ) : (
             <article className="panel dashboard-status-board">
@@ -193,18 +205,43 @@ export function DashboardTab({
                 <p className="muted">{t("profile.student.upcomingEmpty")}</p>
               )}
 
-              <div className="dashboard-identity-strip">
-                <div>
-                  <p className="muted">{t("profile.npubLabel")}</p>
-                  <p className="identity-value">{npub}</p>
+              <details className="dashboard-identity-spoiler">
+                <summary>{t("profile.advanced")}</summary>
+                <div className="dashboard-identity-strip">
+                  <div>
+                    <p className="muted">{t("profile.npubLabel")}</p>
+                    <p className="identity-value">{npub}</p>
+                  </div>
+                  <div>
+                    <p className="muted">{t("profile.pubkeyHex")}</p>
+                    <p className="identity-value">{pubkey}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="muted">{t("profile.pubkeyHex")}</p>
-                  <p className="identity-value">{pubkey}</p>
+              </details>
+            </article>
+          )}
+
+          {isTutor ? (
+            <article className="panel dashboard-stats-panel">
+              <div className="dashboard-section-heading">
+                <h3>{t("profile.statsSection")}</h3>
+              </div>
+              <div className="dashboard-metrics">
+                <div className="dashboard-metric-card">
+                  <span>{t("profile.statsPublishedSlots")}</span>
+                  <strong>{publishedSchedule.slots.length || 0}</strong>
+                </div>
+                <div className="dashboard-metric-card">
+                  <span>{t("profile.statsCompletedLessons")}</span>
+                  <strong>{completedLessons}</strong>
+                </div>
+                <div className="dashboard-metric-card">
+                  <span>{t("profile.statsTotalLessons")}</span>
+                  <strong>{totalLessons}</strong>
                 </div>
               </div>
             </article>
-          )}
+          ) : null}
 
           {isTutor ? (
             <article className="panel dashboard-schedule-panel">

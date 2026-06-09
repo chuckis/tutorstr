@@ -94,5 +94,9 @@
     "publicProfile": "Снимок публичного профиля",
     "upcomingTitle": "Мои предстоящие уроки",
     "upcomingEmpty": "Предстоящих уроков пока нет — найдите репетитора, чтобы записаться на первое занятие."
-  }
+  },
+  "statsSection": "Статистика",
+  "statsPublishedSlots": "Опубликовано слотов",
+  "statsCompletedLessons": "Завершено уроков",
+  "statsTotalLessons": "Всего уроков"
 }

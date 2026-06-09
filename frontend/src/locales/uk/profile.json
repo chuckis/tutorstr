@@ -94,5 +94,9 @@
     "publicProfile": "Знімок публічного профілю",
     "upcomingTitle": "Мої найближчі уроки",
     "upcomingEmpty": "Найближчих уроків поки немає — знайдіть тьютора, щоб записатися на перше заняття."
-  }
+  },
+  "statsSection": "Статистика",
+  "statsPublishedSlots": "Опубліковано слотів",
+  "statsCompletedLessons": "Завершено уроків",
+  "statsTotalLessons": "Всього уроків"
 }

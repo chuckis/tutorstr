@@ -52,19 +52,7 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
     <form className="schedule-form" onSubmit={handleSubmit}>
       <div className="schedule-header">
         <h3>{t("schedule.availability")}</h3>
-        <span className="muted">{schedule.timezone}</span>
       </div>
-
-      <label>
-        {t("schedule.timezone")}
-        <input
-          value={schedule.timezone}
-          onChange={(event) =>
-            onChange({ ...schedule, timezone: event.target.value })
-          }
-          placeholder={t("schedule.timezonePlaceholder")}
-        />
-      </label>
 
       <div className="slot-row">
         <label>

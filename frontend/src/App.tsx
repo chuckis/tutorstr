@@ -253,12 +253,15 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             hourlyRate={profileState.profile.hourlyRate}
             loading={stateLoading.profile}
             schedule={scheduleState.schedule}
+            publishedSchedule={scheduleState.publishedSchedule}
             onScheduleChange={scheduleState.setSchedule}
             onPublishSchedule={() => scheduleState.publishSchedule(scheduleState.schedule)}
             scheduleStatus={scheduleState.status}
             profileStatus={profileState.status}
             role={viewerRole}
             upcomingLessons={lessonsState.lessonBuckets.upcoming}
+            allLessons={lessonsState.lessons}
+            bookingsIncoming={bookingsState.incoming}
             tutors={directoryState.tutors}
           />
         ) : null}

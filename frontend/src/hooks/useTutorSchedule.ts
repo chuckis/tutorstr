@@ -16,11 +16,41 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
 }
 
 const LOAD_TIMEOUT = 8000;
+const SCHEDULE_KEY_PREFIX = "tutorhub:schedule:";
+const COUNT_KEY_PREFIX = "tutorhub:schedule:count:";
+
+function loadPublishedCount(pubkey: string): number {
+  try {
+    return Number(localStorage.getItem(COUNT_KEY_PREFIX + pubkey)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function savePublishedCount(pubkey: string, count: number) {
+  try {
+    localStorage.setItem(COUNT_KEY_PREFIX + pubkey, String(count));
+  } catch {
+    // ignore
+  }
+}
 
 export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
   const { t } = useI18n();
   const { scheduleEventRepository } = useRepo();
-  const [schedule, setSchedule] = useState<TutorSchedule>(emptySchedule);
+  const [draftSchedule, setDraftSchedule] = useState<TutorSchedule>(emptySchedule);
+  const [publishedSchedule, setPublishedSchedule] = useState<TutorSchedule>(() => {
+    try {
+      const stored = localStorage.getItem(SCHEDULE_KEY_PREFIX + pubkey);
+      if (stored) return normalizeSchedule(JSON.parse(stored));
+    } catch {
+      // ignore
+    }
+    return emptySchedule;
+  });
+  const [publishedSlotsCount, setPublishedSlotsCount] = useState<number>(
+    () => loadPublishedCount(pubkey)
+  );
   const [status, setStatus] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -32,16 +62,6 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
 
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), LOAD_TIMEOUT);
-    const scheduleStorageKey = `tutorhub:schedule:${pubkey}`;
-    const stored = localStorage.getItem(scheduleStorageKey);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as TutorSchedule;
-        setSchedule(normalizeSchedule(parsed));
-      } catch {
-        // ignore invalid cache
-      }
-    }
 
     const unsubscribe = scheduleEventRepository.subscribe(
       pubkey,
@@ -50,8 +70,11 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
           const parsed = normalizeSchedule(
             JSON.parse(event.content) as TutorSchedule
           );
-          setSchedule(parsed);
-          localStorage.setItem(scheduleStorageKey, JSON.stringify(parsed));
+          setPublishedSchedule(parsed);
+          const count = parsed.slots.length;
+          setPublishedSlotsCount(count);
+          savePublishedCount(pubkey, count);
+          localStorage.setItem(SCHEDULE_KEY_PREFIX + pubkey, JSON.stringify(parsed));
           setLoading(false);
           clearTimeout(timer);
         } catch {
@@ -76,10 +99,6 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
           JSON.stringify(payload),
           tags
         );
-        localStorage.setItem(
-          `tutorhub:schedule:${pubkey}`,
-          JSON.stringify(payload)
-        );
       }),
     [pubkey, scheduleEventRepository]
   );
@@ -93,6 +112,13 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
 
     try {
       await publishUseCase.execute(nextSchedule, viewerRole);
+      const count = nextSchedule.slots.length;
+      setPublishedSlotsCount(count);
+      savePublishedCount(pubkey, count);
+      const payload = normalizeSchedule(nextSchedule);
+      setPublishedSchedule(payload);
+      localStorage.setItem(SCHEDULE_KEY_PREFIX + pubkey, JSON.stringify(payload));
+      setDraftSchedule(emptySchedule);
       setStatus(t("schedule.publish"));
     } catch (error) {
       setStatus(
@@ -102,10 +128,12 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
   }
 
   return {
-    schedule,
-    setSchedule,
+    schedule: draftSchedule,
+    setSchedule: setDraftSchedule,
+    publishedSchedule,
+    publishedSlotsCount,
     status,
     loading,
-    publishSchedule
+    publishSchedule,
   };
 }
