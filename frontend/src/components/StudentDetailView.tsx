@@ -54,24 +54,6 @@ export function StudentDetailView({
         </div>
         <p>{profile.profile.bio || t("common.states.noBioYet")}</p>
       </article>
-
-      {viewerRole === "tutor" ? (
-        <article className="panel">
-          <h3>{t("discover.messageStudent")}</h3>
-          <MessageThread messages={chatMessages} />
-          <MessageComposer
-            onSend={(text) =>
-              onSendMessage(profile.pubkey, text, threadInfo.threadKey)
-            }
-            onSendWithFiles={(text, files) =>
-              onSendMessageWithFiles(profile.pubkey, text, files, threadInfo.threadKey)
-            }
-          />
-          {messageStatus ? (
-            <p className="muted">{messageStatus}</p>
-          ) : null}
-        </article>
-      ) : null}
     </DetailPageLayout>
   );
 }
