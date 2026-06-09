@@ -86,7 +86,8 @@ export function DiscoverTab({
 
   function getSlotState(tutorPubkey: string, slot: TimeSlot) {
     const slotBidKey = makeSlotBidKey(tutorPubkey, studentPubkey, slot);
-    if (activeBidBySlotAndStudent[slotBidKey]) {
+    const activeBid = activeBidBySlotAndStudent[slotBidKey];
+    if (activeBid && activeBid.status === "pending") {
       return "requested";
     }
 
@@ -174,7 +175,13 @@ export function DiscoverTab({
             {(() => {
               const futureSlots =
                 schedules[selectedTutor.pubkey]?.schedule.slots.filter(
-                  (s) => !isSlotInPast(s)
+                  (s) => {
+                    if (isSlotInPast(s)) return false;
+                    const key = makeSlotAllocationKey(selectedTutor.pubkey, s);
+                    const occ = winnerByAllocationKey[key];
+                    if (occ && occ.studentId === studentPubkey) return false;
+                    return true;
+                  }
                 ) ?? [];
               return futureSlots.length > 0 ? (
                 <ul className="slot-list">
@@ -240,9 +247,9 @@ export function DiscoverTab({
             <MessageThread messages={announcements} />
           </article>
         ) : null}
-
+        {/* вот это тут надо ли */}
         {isStudent ? (
-          <BookingRequestForm
+          <BookingRequestForm 
             tutorPubkey={selectedTutor.pubkey}
             schedule={schedules[selectedTutor.pubkey]}
             studentNpub={studentNpub}
