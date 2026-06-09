@@ -9,6 +9,7 @@ import { useBookings } from "./useBookings";
 import { useEncryptedMessages } from "./useEncryptedMessages";
 import { useLessons } from "./useLessons";
 import { useLessonNote } from "./useLessonNote";
+import { useNewArrivalIndicator } from "./useNewArrivalIndicator";
 import { useNostrKeypair } from "./useNostrKeypair";
 import { usePrivateMessagingActions } from "./usePrivateMessagingActions";
 import { usePublicAllocatedSlots } from "./usePublicAllocatedSlots";
@@ -89,6 +90,30 @@ export function useAppController(
     lessonsState.lessons,
     viewerRole
   );
+
+  const newRequestIndicator = useNewArrivalIndicator(
+    keypair.pubkey,
+    "requests",
+    viewerRole === "tutor" ? requestsForBadge : []
+  );
+
+  const newLessonIndicator = useNewArrivalIndicator(
+    keypair.pubkey,
+    "lessons",
+    viewerRole === "student" ? lessonsState.lessons : []
+  );
+
+  useEffect(() => {
+    if (navigation.activeTab === "requests") {
+      newRequestIndicator.markAllSeen();
+    }
+  }, [navigation.activeTab]);
+
+  useEffect(() => {
+    if (navigation.activeTab === "lessons") {
+      newLessonIndicator.markAllSeen();
+    }
+  }, [navigation.activeTab]);
 
   useEffect(() => {
     if (!navigation.selectedRequest) {
@@ -224,6 +249,8 @@ export function useAppController(
     },
     viewModel,
     requestsTabViewModel,
-    publishBookingRequest
+    publishBookingRequest,
+    requestsUnreadCount: messageIndicators.requestUnreadCount + newRequestIndicator.newCount,
+    lessonsUnreadCount: messageIndicators.lessonUnreadCount + newLessonIndicator.newCount
   };
 }

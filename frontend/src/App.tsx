@@ -111,7 +111,9 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     requestActions,
     viewModel,
     requestsTabViewModel,
-    stateLoading
+    stateLoading,
+    requestsUnreadCount,
+    lessonsUnreadCount
   } = useAppController(onLogout, viewerRole, blossomUrl);
 
   const handleAvatarUpload = useCallback(async (file: File) => {
@@ -282,8 +284,8 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
       {!navigation.detailActive ? (
         <BottomNav
           activeTab={navigation.activeTab}
-          requestsUnreadCount={messageIndicators.requestUnreadCount}
-          lessonsUnreadCount={messageIndicators.lessonUnreadCount}
+          requestsUnreadCount={requestsUnreadCount}
+          lessonsUnreadCount={lessonsUnreadCount}
           onSelectTab={navigation.setActiveTab}
         />
       ) : null}
