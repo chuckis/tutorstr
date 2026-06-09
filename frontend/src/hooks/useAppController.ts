@@ -21,6 +21,20 @@ import { useTutorSchedules } from "./useTutorSchedules";
 import { useRelays } from "./useRelays";
 import { useI18n } from "../i18n/I18nProvider";
 
+function isRequestVisibleForBadge(
+  request: { id: string; status: string },
+  statusEvents: Record<string, { created_at: number }>,
+  nowSec: number
+): boolean {
+  if (request.status === "accepted") return false;
+  if (request.status === "rejected") {
+    const ev = statusEvents[request.id];
+    if (!ev) return false;
+    if (nowSec - ev.created_at > 86400) return false;
+  }
+  return true;
+}
+
 export function useAppController(
   onLogout: () => void,
   viewerRole: AccountRole,
@@ -61,10 +75,17 @@ export function useAppController(
     blossomUrl
   );
   const { sendMessage, sendMessageWithFiles } = usePrivateMessagingActions();
+
+  const requestsForBadge = useMemo(() => {
+    const source = viewerRole === "student" ? bookingsState.outgoing : bookingsState.incoming;
+    const now = Math.floor(Date.now() / 1000);
+    return source.filter((r) => isRequestVisibleForBadge(r, bookingsState.statuses, now));
+  }, [bookingsState.incoming, bookingsState.outgoing, bookingsState.statuses, viewerRole]);
+
   const messageIndicators = useMessageIndicators(
     keypair.pubkey,
     messagesState.messages,
-    viewerRole === "student" ? bookingsState.outgoing : bookingsState.incoming,
+    requestsForBadge,
     lessonsState.lessons,
     viewerRole
   );

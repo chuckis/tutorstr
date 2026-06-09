@@ -70,6 +70,7 @@ type BuildRequestsTabViewModelParams = {
   statusEvents: Record<string, BookingStatusEvent>;
   counterpartyProfiles: Record<string, UserProfileEvent>;
   viewerRole: AccountRole;
+  currentTimeSeconds?: number;
 };
 
 function requestStatusLabel(status: Booking["status"]) {
@@ -221,6 +222,22 @@ function buildSelectedRequestViewModel(
   };
 }
 
+function isRequestVisible(
+  request: Booking,
+  statusEvents: Record<string, BookingStatusEvent>,
+  nowSec: number
+): boolean {
+  if (request.status === "accepted") return false;
+
+  if (request.status === "rejected") {
+    const statusEvent = statusEvents[request.id];
+    if (!statusEvent) return false;
+    if (nowSec - statusEvent.created_at > 86400) return false;
+  }
+
+  return true;
+}
+
 export function buildRequestsTabViewModel({
   requestItems,
   requestSegment,
@@ -232,7 +249,8 @@ export function buildRequestsTabViewModel({
   requestTimestamps,
   statusEvents,
   counterpartyProfiles,
-  viewerRole
+  viewerRole,
+  currentTimeSeconds
 }: BuildRequestsTabViewModelParams): RequestsTabViewModel {
   const selectedRequestViewModel = selectedRequest
     ? buildSelectedRequestViewModel(selectedRequest, {
@@ -246,9 +264,15 @@ export function buildRequestsTabViewModel({
       })
     : null;
 
+  const now = currentTimeSeconds ?? Math.floor(Date.now() / 1000);
+
+  const visibleItems = requestItems.filter(
+    (request) => isRequestVisible(request, statusEvents, now)
+  );
+
   const incomingGroups =
     requestSegment === "incoming"
-      ? groupIncomingRequests(requestItems).map((group) => {
+      ? groupIncomingRequests(visibleItems).map((group) => {
           const slot = group[0];
           const threadKeys = group.map((request) => requestMessageThreadKey(request).threadKey);
           const requests = group.map((request) =>
@@ -276,7 +300,7 @@ export function buildRequestsTabViewModel({
 
   const outgoingRequests =
     requestSegment === "outgoing"
-      ? [...requestItems]
+      ? [...visibleItems]
           .sort(
             (a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt)
           )
@@ -295,6 +319,6 @@ export function buildRequestsTabViewModel({
     selectedRequest: selectedRequestViewModel,
     incomingGroups,
     outgoingRequests,
-    isEmpty: requestItems.length === 0
+    isEmpty: visibleItems.length === 0
   };
 }
