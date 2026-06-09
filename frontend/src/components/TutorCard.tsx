@@ -19,6 +19,10 @@ export function TutorCard({ entry, onSelect }: TutorCardProps) {
   const displayName = entry.profile.name || toDisplayId(entry.pubkey);
   const idLabel = toDisplayId(entry.pubkey);
   const mode = entry.profile.availabilityMode;
+  const profile = entry.profile;
+  const scheduleInfo = [profile.workHours, profile.timezone]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <button
@@ -48,6 +52,9 @@ export function TutorCard({ entry, onSelect }: TutorCardProps) {
           <span>{t("discover.noSubjects")}</span>
         )}
       </div>
+      {scheduleInfo ? (
+        <p className="tutor-card-schedule">{scheduleInfo}</p>
+      ) : null}
     </button>
   );
 }

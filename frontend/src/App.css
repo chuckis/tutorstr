@@ -714,6 +714,14 @@ p {
   white-space: nowrap;
 }
 
+
+.tutor-card-schedule {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-3);
+}
+
 .tutor-card-bio {
   color: var(--color-muted);
   font-size: 0.9rem;

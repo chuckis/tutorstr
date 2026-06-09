@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AccountRole, UserProfile, AvailabilityMode, AVAILABILITY_MODES } from "../hooks/hookTypes";
+import { COMMON_TIMEZONES } from "../domain/profile";
 import { useI18n } from "../i18n/I18nProvider";
 import { parseList } from "../utils/normalize";
 
@@ -144,6 +145,44 @@ export function ProfileForm({
               </option>
             ))}
           </select>
+        </label>
+      ) : null}
+
+      {showTutorFields ? (
+        <label>
+          {t("profile.form.timezone")}
+          <select
+            value={profile.timezone ?? ""}
+            onChange={(event) =>
+              onChange({
+                ...profile,
+                timezone: event.target.value || undefined
+              })
+            }
+          >
+            <option value="">{t("profile.form.timezonePlaceholder")}</option>
+            {COMMON_TIMEZONES.map((tz) => (
+              <option key={tz} value={tz}>
+                {tz}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+
+      {showTutorFields ? (
+        <label>
+          {t("profile.form.workHours")}
+          <input
+            value={profile.workHours ?? ""}
+            onChange={(event) =>
+              onChange({
+                ...profile,
+                workHours: event.target.value || undefined
+              })
+            }
+            placeholder={t("profile.form.workHoursPlaceholder")}
+          />
         </label>
       ) : null}
 

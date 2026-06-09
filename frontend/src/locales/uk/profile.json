@@ -58,7 +58,11 @@
     "notSpecified": "Не вказано",
     "remote": "Дистанційно",
     "offline": "Очно",
-    "hybrid": "Змішано"
+    "hybrid": "Змішано",
+    "timezone": "Часовий пояс",
+    "timezonePlaceholder": "Виберіть часовий пояс",
+    "workHours": "Робочі години",
+    "workHoursPlaceholder": "напр. 09:00-18:00"
   },
   "drawer": {
     "settings": "Налаштування",

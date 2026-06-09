@@ -58,7 +58,11 @@
     "notSpecified": "Not specified",
     "remote": "Remote",
     "offline": "Offline",
-    "hybrid": "Hybrid"
+    "hybrid": "Hybrid",
+    "timezone": "Timezone",
+    "timezonePlaceholder": "Select timezone",
+    "workHours": "Working hours",
+    "workHoursPlaceholder": "e.g. 09:00-18:00"
   },
   "drawer": {
     "settings": "Settings",

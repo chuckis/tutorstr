@@ -9,7 +9,9 @@ export const emptyProfile: UserProfile = {
   hourlyRate: 0,
   avatarUrl: "",
   availabilityMode: undefined,
-  role: undefined
+  role: undefined,
+  timezone: undefined,
+  workHours: undefined
 };
 
 export const emptySchedule: TutorSchedule = {
@@ -28,7 +30,9 @@ export function normalizeProfile(input: Record<string, unknown> | null | undefin
     hourlyRate: typeof input?.hourlyRate === "number" ? input.hourlyRate : 0,
     avatarUrl: typeof input?.avatarUrl === "string" ? input.avatarUrl : typeof input?.picture === "string" ? input.picture : "",
     availabilityMode: typeof rawMode === "string" && isAvailabilityMode(rawMode) ? rawMode : undefined,
-    role: typeof rawRole === "string" && isRole(rawRole) ? rawRole : undefined
+    role: typeof rawRole === "string" && isRole(rawRole) ? rawRole : undefined,
+    timezone: typeof input?.timezone === "string" ? input.timezone : undefined,
+    workHours: typeof input?.workHours === "string" ? input.workHours : undefined
   };
 }
 

@@ -164,6 +164,11 @@ export function DiscoverTab({
                 })
               : t("common.states.notSet")}
           </p>
+          {(() => {
+            const schedParts = [selectedTutor.profile.workHours, selectedTutor.profile.timezone].filter(Boolean);
+            const schedInfo = schedParts.join(" \u00b7 ");
+            return schedInfo ? <p className="tutor-card-schedule">{schedInfo}</p> : null;
+          })()}
           <div className="stack">
             <h3>{t("discover.publishedSlots")}</h3>
             {(() => {

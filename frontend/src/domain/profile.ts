@@ -14,6 +14,25 @@ export function isRole(value: string): value is Role {
   return ROLES.includes(value as Role);
 }
 
+export const COMMON_TIMEZONES = [
+  "UTC",
+  "Europe/London",
+  "Europe/Berlin",
+  "Europe/Paris",
+  "Europe/Kyiv",
+  "Europe/Moscow",
+  "Asia/Dubai",
+  "Asia/Tokyo",
+  "Asia/Shanghai",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Sao_Paulo",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+];
+
 export type UserProfile = {
   name: string;
   bio: string;
@@ -23,6 +42,8 @@ export type UserProfile = {
   avatarUrl: string;
   availabilityMode?: AvailabilityMode;
   role?: Role;
+  timezone?: string;
+  workHours?: string;
 };
 
 export function hasRoleTag(tags: string[][], role: "tutor" | "student"): boolean {
