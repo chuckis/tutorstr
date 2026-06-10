@@ -64,7 +64,7 @@ export class NostrClient {
     } else {
       this.relays = [...relays];
     }
-    this.pool = new SimplePool();
+    this.pool = new SimplePool({ enableReconnect: true });
   }
 
   getRelays() {
