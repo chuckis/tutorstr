@@ -61,6 +61,7 @@ type LessonsTabProps = {
   ) => Promise<void>;
   messagesByThread: Record<string, EncryptedMessage[]>;
   getUnreadCount: (threadKey: string) => number;
+  isNewLesson: (lessonId: string) => boolean;
   onSendMessage: (recipientPubkey: string, text: string, threadKey?: string) => void;
   onSendMessageWithFiles: (
     recipientPubkey: string,
@@ -95,6 +96,7 @@ export function LessonsTab({
   onChangeLessonStatus,
   messagesByThread,
   getUnreadCount,
+  isNewLesson,
   onSendMessage,
   onSendMessageWithFiles,
   messageStatus,
@@ -354,11 +356,13 @@ export function LessonsTab({
                 const name =
                   tutors[counterparty]?.profile.name || toDisplayId(counterparty);
                 const unreadCount = getUnreadCount(lessonMessageThreadKey(lesson).threadKey);
+                const isNewArrival = isNewLesson(lesson.id);
+                const showHighlight = unreadCount > 0 || isNewArrival;
 
                 return (
                   <li
                     key={lesson.id}
-                    className={`lesson-card ${unreadCount > 0 ? "has-unread" : ""}`.trim()}
+                    className={`lesson-card ${showHighlight ? "has-unread" : ""}`.trim()}
                     onClick={() => onSelectLesson(lesson)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
@@ -374,11 +378,13 @@ export function LessonsTab({
                     </div>
                     <div>{formatDateTime(lesson.scheduledAt)}</div>
                     <div>{name}</div>
-                    {unreadCount > 0 ? (
+                    {showHighlight ? (
                       <span className="inline-indicator">
-                        {unreadCount === 1
-                          ? t("common.indicators.new")
-                          : t("common.indicators.newCount", { count: unreadCount })}
+                        {unreadCount > 0
+                          ? unreadCount === 1
+                            ? t("common.indicators.new")
+                            : t("common.indicators.newCount", { count: unreadCount })
+                          : t("common.indicators.new")}
                       </span>
                     ) : null}
                     <span className={`status-pill status-${lesson.status}`}>

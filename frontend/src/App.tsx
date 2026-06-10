@@ -115,7 +115,8 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     requestsTabViewModel,
     stateLoading,
     requestsUnreadCount,
-    lessonsUnreadCount
+    lessonsUnreadCount,
+    isNewLesson
   } = useAppController(onLogout, viewerRole, blossomUrl);
 
   const handleAvatarUpload = useCallback(async (file: File) => {
@@ -237,6 +238,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             getUnreadCount={(threadKey) =>
               messageIndicators.getUnreadCount("lessons", threadKey)
             }
+            isNewLesson={isNewLesson}
             onSendMessage={actions.sendEncryptedMessage}
             onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             messageStatus={messageStatus}

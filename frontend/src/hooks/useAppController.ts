@@ -251,6 +251,7 @@ export function useAppController(
     requestsTabViewModel,
     publishBookingRequest,
     requestsUnreadCount: messageIndicators.requestUnreadCount + newRequestIndicator.newCount,
-    lessonsUnreadCount: messageIndicators.lessonUnreadCount + newLessonIndicator.newCount
+    lessonsUnreadCount: messageIndicators.lessonUnreadCount + newLessonIndicator.newCount,
+    isNewLesson: (lessonId: string) => newLessonIndicator.isNew(lessonId)
   };
 }

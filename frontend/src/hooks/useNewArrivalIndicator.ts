@@ -34,11 +34,16 @@ export function useNewArrivalIndicator<T extends { id: string }>(
     [items, seenIds]
   );
 
+  const isNew = useCallback(
+    (id: string) => !seenIds.has(id),
+    [seenIds]
+  );
+
   const markAllSeen = useCallback(() => {
     const updated = new Set(items.map((item) => item.id));
     setSeenIds(updated);
     persistSeenIds(surface, userId, updated);
   }, [items, surface, userId]);
 
-  return { newCount, markAllSeen };
+  return { newCount, isNew, markAllSeen };
 }
