@@ -69,7 +69,8 @@
     "profile": "Profile",
     "faq": "FAQ",
     "about": "About",
-    "back": "Back"
+    "back": "Back",
+    "darkMode": "Dark Mode"
   },
   "faq": {
     "dataStorage_q": "How is my data stored?",

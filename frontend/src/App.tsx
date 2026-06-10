@@ -13,6 +13,7 @@ import { useAppController } from "./hooks/useAppController";
 import { useBlossomConfig } from "./hooks/useBlossomConfig";
 import { RepoProvider } from "./hooks/RepoContext";
 import { useI18n } from "./i18n/I18nProvider";
+import { useTheme } from "./theme/ThemeProvider";
 import { AccountRole } from "./domain/account";
 import { AuthSession } from "./domain/auth";
 import { authVaultRepository } from "./adapters/auth/localStorageVaultRepository";
@@ -89,6 +90,7 @@ type AuthenticatedAppProps = {
 
 function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: AuthenticatedAppProps) {
   const { t } = useI18n();
+  const { theme, toggleTheme } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus } = useBlossomConfig();
   const {
@@ -282,6 +284,8 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
         blossomUrl={blossomUrl}
         onBlossomUrlChange={setBlossomUrl}
         uploadStatus={uploadStatus}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {!navigation.detailActive ? (

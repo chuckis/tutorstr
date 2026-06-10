@@ -1,4 +1,4 @@
-import { X, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Settings, User, HelpCircle, Info, ChevronRight } from "lucide-react";
+import { X, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Settings, User, HelpCircle, Info, ChevronRight, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
@@ -9,6 +9,7 @@ import { ProfileForm } from "./ProfileForm";
 import { RelayConfig } from "./RelayConfig";
 import { SettingsFAQ } from "./SettingsFAQ";
 import { SettingsAbout } from "./SettingsAbout";
+import { Theme } from "../domain/theme";
 
 type DrawerSection = "menu" | "settings" | "profile" | "faq" | "about";
 
@@ -27,6 +28,8 @@ type DashboardSettingsDrawerProps = {
   blossomUrl: string;
   onBlossomUrlChange: (url: string) => void;
   uploadStatus?: UploadStatus;
+  theme: Theme;
+  onToggleTheme: () => void;
 };
 
 const MENU_ITEMS: { section: DrawerSection; icon: React.ReactNode; labelKey: string }[] = [
@@ -50,7 +53,9 @@ export function DashboardSettingsDrawer({
   onAvatarUpload,
   blossomUrl,
   onBlossomUrlChange,
-  uploadStatus
+  uploadStatus,
+  theme,
+  onToggleTheme
 }: DashboardSettingsDrawerProps) {
   const { t } = useI18n();
   const [activeSection, setActiveSection] = useState<DrawerSection>("menu");
@@ -235,20 +240,38 @@ export function DashboardSettingsDrawer({
 
       default:
         return (
-          <nav className="settings-menu-list">
-            {MENU_ITEMS.map((item) => (
-              <button
-                key={item.section}
-                type="button"
-                className="settings-menu-item"
-                onClick={() => navigateTo(item.section)}
-              >
-                <span className="settings-menu-item-icon">{item.icon}</span>
-                <span className="settings-menu-item-label">{t(item.labelKey)}</span>
-                <ChevronRight size={16} className="settings-menu-item-chevron" />
-              </button>
-            ))}
-          </nav>
+          <>
+            <nav className="settings-menu-list">
+              {MENU_ITEMS.map((item) => (
+                <button
+                  key={item.section}
+                  type="button"
+                  className="settings-menu-item"
+                  onClick={() => navigateTo(item.section)}
+                >
+                  <span className="settings-menu-item-icon">{item.icon}</span>
+                  <span className="settings-menu-item-label">{t(item.labelKey)}</span>
+                  <ChevronRight size={16} className="settings-menu-item-chevron" />
+                </button>
+              ))}
+            </nav>
+
+            <div className="toggle-row">
+              <span className="toggle-row-label">
+                {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
+                {" "}{t("profile.drawer.darkMode")}
+              </span>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={theme === "dark"}
+                  onChange={onToggleTheme}
+                  aria-label={t("profile.drawer.darkMode")}
+                />
+                <span className="toggle__slider" />
+              </label>
+            </div>
+          </>
         );
     }
   }

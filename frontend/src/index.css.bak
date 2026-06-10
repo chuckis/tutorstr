@@ -1,9 +1,10 @@
 :root {
+  color-scheme: light;
   font-family: "Space Grotesk", "Segoe UI", sans-serif;
   line-height: 1.45;
   font-weight: 400;
-  color: var(--color-text);
-  background: var(--color-bg);
+  color: #1d1d1f;
+  background: #ffffff;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -21,7 +22,7 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-bg);
+  background: #ffffff;
 }
 
 p {
