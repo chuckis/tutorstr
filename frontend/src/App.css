@@ -412,7 +412,7 @@
   gap: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--color-glass);
 }
 
 .dashboard-drawer-shell {
@@ -433,7 +433,7 @@
   inset: 0;
   opacity: 0;
   border-radius: 0;
-  background: rgba(18, 30, 24, 0.38);
+  background: var(--color-backdrop);
   transition: opacity var(--motion);
 }
 
@@ -447,7 +447,7 @@
   height: 100dvh;
   overflow-y: auto;
   background: var(--color-bg);
-  box-shadow: -18px 0 40px rgba(15, 31, 22, 0.16);
+  box-shadow: var(--color-drawer-shadow);
   padding: var(--space-4);
   display: grid;
   gap: var(--space-4);
@@ -1085,7 +1085,7 @@ button:active {
 .secret-value {
   padding: var(--space-3);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.76);
+  background: var(--color-glass);
 }
 
 .warning-text {
@@ -1561,7 +1561,7 @@ button:active {
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-2);
   padding: var(--space-2) var(--space-2) calc(var(--space-2) + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--color-glass-strong);
   box-shadow: 0 -1px 0 0 var(--color-border);
 }
 
@@ -1789,7 +1789,7 @@ button:active {
   display: grid;
   place-items: center;
   background: rgba(0, 0, 0, 0.45);
-  color: #ffffff;
+  color: var(--color-text-inverse);
   opacity: 0;
   transition: opacity var(--motion);
   border-radius: 50%;
@@ -2102,7 +2102,7 @@ button:active {
     z-index: 10;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--color-glass-strong);
   }
 
   .request-action-bar .primary-action {
@@ -2199,12 +2199,12 @@ button:active {
 
 .visibility-chip--published {
   background: var(--color-primary-strong) !important;
-  color: #fff !important;
+  color: var(--color-text-inverse) !important;
 }
 
 .visibility-chip--shared {
   background: var(--color-success) !important;
-  color: #fff !important;
+  color: var(--color-text-inverse) !important;
 }
 
 .view-notes-link {
