@@ -38,11 +38,14 @@ export function RequestDetailsView({
 }: RequestDetailsViewProps) {
   const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
 
+  const requestSubtitle = `${selectedRequest.counterpartyProfile?.profile.name || t("common.states.unknown")} · ${formatLocalizedDateTime(selectedRequest.request.scheduledAt)}`;
+
   return (
     <DetailPageLayout
       backLabel={t("requests.backToRequests")}
       onBack={onBack}
       title={t("requests.detailsTitle")}
+      subtitle={requestSubtitle}
     >
       <CounterpartyCard
         profile={selectedRequest.counterpartyProfile}

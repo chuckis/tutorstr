@@ -111,6 +111,8 @@ export function LessonsTab({
       selectedLesson.tutorId === currentPubkey
         ? selectedLesson.studentId
         : selectedLesson.tutorId;
+    const counterpartyLabel = tutors[counterpartyPubkey]?.profile.name || toDisplayId(counterpartyPubkey, t("common.states.unknown"));
+    const lessonSubtitle = `${counterpartyLabel} · ${formatDateTime(selectedLesson.scheduledAt)}`;
     const lastSharedNote = sharedNotes[0];
 
     const selectedNote = selectedNoteId
@@ -154,6 +156,7 @@ export function LessonsTab({
         backLabel={t("lessons.backToLessons")}
         onBack={() => onSelectLesson(null)}
         title={selectedLesson.subject || t("lessons.defaultTitle")}
+        subtitle={lessonSubtitle}
       >
         <article className="panel">
           <div className="lesson-header-row">

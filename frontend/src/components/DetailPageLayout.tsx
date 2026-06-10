@@ -5,6 +5,7 @@ type DetailPageLayoutProps = {
   backLabel: string;
   onBack: () => void;
   title?: string;
+  subtitle?: string;
   children: ReactNode;
   rightActions?: ReactNode;
 };
@@ -13,6 +14,7 @@ export function DetailPageLayout({
   backLabel,
   onBack,
   title,
+  subtitle,
   children,
   rightActions
 }: DetailPageLayoutProps) {
@@ -30,7 +32,10 @@ export function DetailPageLayout({
           </button>
         </div>
         {title ? (
-          <h2 className="detail-title">{title}</h2>
+          <div className="detail-title-block">
+            <h2 className="detail-title">{title}</h2>
+            {subtitle ? <p className="detail-subtitle">{subtitle}</p> : null}
+          </div>
         ) : (
           <div className="detail-title-spacer" />
         )}
