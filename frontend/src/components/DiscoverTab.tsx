@@ -16,10 +16,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { isProfileEmpty } from "../utils/normalize";
 import { isSlotInPast } from "../domain/TimeSlot";
 import { Avatar } from "./Avatar";
-import { BookingRequestForm } from "./BookingRequestForm";
 import { FilterBar } from "./FilterBar";
-import { MessageComposer } from "./MessageComposer";
-import { MessageThread } from "./MessageThread";
 import { DetailPageLayout } from "./DetailPageLayout";
 import { Spinner } from "./Spinner";
 import { StudentDetailView } from "./StudentDetailView";
@@ -71,11 +68,9 @@ export function DiscoverTab({
   onSendMessage,
   onSendMessageWithFiles,
   messageStatus,
-  studentNpub,
   studentPubkey,
   activeBidBySlotAndStudent,
   winnerByAllocationKey,
-  onBookingRequest,
   role,
   loading,
   tutorAnnouncements = {}
@@ -225,38 +220,6 @@ export function DiscoverTab({
           </div>
         </article>
 
-        {isStudent ? (
-          <article className="panel">
-            <h3>{t("discover.studentChat")}</h3>
-            <MessageThread messages={chatMessages} />
-            <MessageComposer
-              onSend={(text) =>
-                onSendMessage(selectedTutor.pubkey, text, threadInfo.threadKey)
-              }
-              onSendWithFiles={(text, files) =>
-                onSendMessageWithFiles(selectedTutor.pubkey, text, files, threadInfo.threadKey)
-              }
-            />
-            {messageStatus ? (
-              <p className="muted">{messageStatus}</p>
-            ) : null}
-          </article>
-        ) : announcements.length > 0 ? (
-          <article className="panel">
-            <h3>{t("discover.tutorAnnouncements")}</h3>
-            <MessageThread messages={announcements} />
-          </article>
-        ) : null}
-        {/* вот это тут надо ли */}
-        {isStudent ? (
-          <BookingRequestForm 
-            tutorPubkey={selectedTutor.pubkey}
-            schedule={schedules[selectedTutor.pubkey]}
-            studentNpub={studentNpub}
-            getSlotState={(slot) => getSlotState(selectedTutor.pubkey, slot)}
-            onSubmit={(payload) => onBookingRequest(selectedTutor.pubkey, payload)}
-          />
-        ) : null}
       </DetailPageLayout>
     );
   }

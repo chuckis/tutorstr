@@ -84,7 +84,6 @@ export function DashboardTab({
       <div className="dashboard-shell">
         <article className="panel dashboard-hero">
           <div className="dashboard-hero-copy">
-            <p className="dashboard-eyebrow">{t("common.nav.profile")}</p>
             <div className="dashboard-hero-profile">
               <Avatar url={profileAvatarUrl} role={role} size="lg" />
               <div>
@@ -101,16 +100,12 @@ export function DashboardTab({
 
         <div className="dashboard-grid">
           <article className="panel dashboard-overview">
-            <div className="dashboard-section-heading">
-              <h3>
-                {isTutor
-                  ? t("profile.publicProfile")
-                  : t("profile.student.publicProfile")}
-              </h3>
-              <span className="dashboard-status-pill">{activeStatus}</span>
+            <div className="dashboard-bio-section">
+              {/* <div className="dashboard-section-heading">
+                <h3>{t("profile.bio")}</h3>
+              </div> */}
+              <p className="dashboard-profile-summary">{profileSummary}</p>
             </div>
-
-            <p className="dashboard-profile-summary">{profileSummary}</p>
 
             {isTutor ? (
               <>
@@ -145,22 +140,46 @@ export function DashboardTab({
           </article>
 
           {isTutor ? (
-            <article className="panel dashboard-status-board">
+            <article className="panel dashboard-stats-panel">
               <div className="dashboard-section-heading">
-                <h3>{t("profile.dashboardStatusTitle")}</h3>
+                <h3>{t("profile.statsSection")}</h3>
               </div>
-
-              <div className="dashboard-status-cards">
-                <div className="dashboard-status-card">
-                  <span>{t("profile.profileCardTitle")}</span>
-                  <strong>{profileStatusLabel}</strong>
+              <div className="dashboard-metrics">
+                <div className="dashboard-metric-card">
+                  <span>{t("profile.statsPublishedSlots")}</span>
+                  <strong>{publishedSchedule.slots.length || 0}</strong>
                 </div>
-                <div className="dashboard-status-card">
-                  <span>{t("profile.scheduleCardTitle")}</span>
-                  <strong>{scheduleStatusLabel}</strong>
+                <div className="dashboard-metric-card">
+                  <span>{t("profile.statsCompletedLessons")}</span>
+                  <strong>{completedLessons}</strong>
+                </div>
+                <div className="dashboard-metric-card">
+                  <span>{t("profile.statsTotalLessons")}</span>
+                  <strong>{totalLessons}</strong>
                 </div>
               </div>
+            </article>
+          ) : null}
 
+          {isTutor ? (
+            <article className="panel dashboard-schedule-panel">
+              <div className="dashboard-section-heading">
+                <h3>{t("profile.scheduleWorkspaceTitle")}</h3>
+                <span className="muted">
+                  {t("profile.scheduleWorkspaceHint")}
+                </span>
+              </div>
+              <ScheduleForm
+                schedule={schedule}
+                onChange={onScheduleChange}
+                onSubmit={onPublishSchedule}
+              />
+            </article>
+          ) : null}
+
+          {isTutor ? (
+            <article className="panel dashboard-status-board">
+          
               <details className="dashboard-identity-spoiler">
                 <summary>{t("profile.advanced")}</summary>
                 <div className="dashboard-identity-strip">
@@ -220,44 +239,6 @@ export function DashboardTab({
               </details>
             </article>
           )}
-
-          {isTutor ? (
-            <article className="panel dashboard-stats-panel">
-              <div className="dashboard-section-heading">
-                <h3>{t("profile.statsSection")}</h3>
-              </div>
-              <div className="dashboard-metrics">
-                <div className="dashboard-metric-card">
-                  <span>{t("profile.statsPublishedSlots")}</span>
-                  <strong>{publishedSchedule.slots.length || 0}</strong>
-                </div>
-                <div className="dashboard-metric-card">
-                  <span>{t("profile.statsCompletedLessons")}</span>
-                  <strong>{completedLessons}</strong>
-                </div>
-                <div className="dashboard-metric-card">
-                  <span>{t("profile.statsTotalLessons")}</span>
-                  <strong>{totalLessons}</strong>
-                </div>
-              </div>
-            </article>
-          ) : null}
-
-          {isTutor ? (
-            <article className="panel dashboard-schedule-panel">
-              <div className="dashboard-section-heading">
-                <h3>{t("profile.scheduleWorkspaceTitle")}</h3>
-                <span className="muted">
-                  {t("profile.scheduleWorkspaceHint")}
-                </span>
-              </div>
-              <ScheduleForm
-                schedule={schedule}
-                onChange={onScheduleChange}
-                onSubmit={onPublishSchedule}
-              />
-            </article>
-          ) : null}
         </div>
       </div>
     </section>

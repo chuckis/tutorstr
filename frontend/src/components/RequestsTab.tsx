@@ -5,13 +5,9 @@ import {
   RequestSegment,
   RequestsTabViewModel,
   SelectedRequest,
-  SelectedRequestViewModel
 } from "../hooks/useRequestsTabViewModel";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage } from "../hooks/hookTypes";
-import { DetailPageLayout } from "./DetailPageLayout";
-import { MessageComposer } from "./MessageComposer";
-import { MessageThread } from "./MessageThread";
 import { RequestCard } from "./RequestCard";
 import { RequestDetailsView } from "./RequestDetailsView";
 import { Spinner } from "./Spinner";

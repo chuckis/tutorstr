@@ -185,6 +185,13 @@ export function MessageComposer({
       ) : null}
 
       <div className="composer-input-row">
+        <textarea
+          rows={2}
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          placeholder={t("common.messages.placeholder")}
+          disabled={isUploading}
+        />
         <button
           type="button"
           className="composer-attach-btn"
@@ -194,13 +201,6 @@ export function MessageComposer({
         >
           +
         </button>
-        <textarea
-          rows={2}
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder={t("common.messages.placeholder")}
-          disabled={isUploading}
-        />
         <button type="submit" disabled={!hasContent || isUploading || !canSendFiles}>
           {isUploading
             ? t("common.states.uploading")

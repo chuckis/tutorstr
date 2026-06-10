@@ -3,8 +3,6 @@ import { fallbackDirectMessageThreadKey } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { Avatar } from "./Avatar";
 import { DetailPageLayout } from "./DetailPageLayout";
-import { MessageComposer } from "./MessageComposer";
-import { MessageThread } from "./MessageThread";
 
 type StudentDetailViewProps = {
   profile: UserProfileEvent;

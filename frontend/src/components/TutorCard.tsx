@@ -34,7 +34,6 @@ export function TutorCard({ entry, onSelect }: TutorCardProps) {
         <Avatar url={entry.profile.avatarUrl} role="tutor" size="md" />
         <div className="tutor-card-header-info">
           <h3>{displayName}</h3>
-          <span className="tutor-card-id">{idLabel}</span>
         </div>
         {mode ? (
           <span className="tutor-card-mode">{t(MODE_LABEL_KEY[mode])}</span>
