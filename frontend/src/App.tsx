@@ -166,14 +166,12 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onSendMessage={actions.sendEncryptedMessage}
             onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             messageStatus={messageStatus}
-            studentNpub={keypair.npub}
             studentPubkey={keypair.pubkey}
             activeBidBySlotAndStudent={bookingsState.activeBidBySlotAndStudent}
             winnerByAllocationKey={{
               ...publicAllocationState.allocatedSlotsByKey,
               ...bookingsState.winnerByAllocationKey
             }}
-            onBookingRequest={actions.requestBooking}
             role={viewerRole}
             loading={stateLoading.discover}
           />

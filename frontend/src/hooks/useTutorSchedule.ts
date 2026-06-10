@@ -93,15 +93,25 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
     () =>
       new PublishTutorSchedule(async (nextSchedule) => {
         const tags: string[][] = [["t", "role:tutor"]];
-        const payload = normalizeSchedule(nextSchedule);
         await scheduleEventRepository.publish(
           pubkey,
-          JSON.stringify(payload),
+          JSON.stringify(nextSchedule),
           tags
         );
       }),
     [pubkey, scheduleEventRepository]
   );
+
+  function mergeSchedules(published: TutorSchedule, draft: TutorSchedule): TutorSchedule {
+    const draftKeys = new Set(draft.slots.map((s) => `${s.start}|${s.end}`));
+    return normalizeSchedule({
+      timezone: draft.timezone || published.timezone,
+      slots: [
+        ...published.slots.filter((s) => !draftKeys.has(`${s.start}|${s.end}`)),
+        ...draft.slots
+      ]
+    });
+  }
 
   async function publishSchedule(nextSchedule: TutorSchedule) {
     if (viewerRole !== "tutor") {
@@ -111,13 +121,13 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
     setStatus(t("schedule.publish"));
 
     try {
-      await publishUseCase.execute(nextSchedule, viewerRole);
-      const count = nextSchedule.slots.length;
+      const merged = mergeSchedules(publishedSchedule, nextSchedule);
+      await publishUseCase.execute(merged, viewerRole);
+      const count = merged.slots.length;
       setPublishedSlotsCount(count);
       savePublishedCount(pubkey, count);
-      const payload = normalizeSchedule(nextSchedule);
-      setPublishedSchedule(payload);
-      localStorage.setItem(SCHEDULE_KEY_PREFIX + pubkey, JSON.stringify(payload));
+      setPublishedSchedule(merged);
+      localStorage.setItem(SCHEDULE_KEY_PREFIX + pubkey, JSON.stringify(merged));
       setDraftSchedule(emptySchedule);
       setStatus(t("schedule.publish"));
     } catch (error) {

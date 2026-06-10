@@ -1,13 +1,11 @@
 import {
   Booking,
   AccountRole,
-  BookingRequest,
   EncryptedMessage,
   UserProfile,
   SlotOccupancy,
   TimeSlot,
   TutorDirectoryQuery,
-  fallbackDirectMessageThreadKey,
   makeSlotAllocationKey,
   makeSlotBidKey
 } from "../hooks/hookTypes";
@@ -41,17 +39,11 @@ type DiscoverTabProps = {
     threadKey?: string
   ) => void | Promise<void>;
   messageStatus: string;
-  studentNpub: string;
   studentPubkey: string;
   activeBidBySlotAndStudent: Record<string, Booking>;
   winnerByAllocationKey: Record<string, SlotOccupancy>;
-  onBookingRequest: (
-    tutorPubkey: string,
-    payload: Omit<BookingRequest, "bookingId">
-  ) => void;
   role: AccountRole;
   loading: boolean;
-  tutorAnnouncements?: Record<string, EncryptedMessage[]>;
 };
 
 export function DiscoverTab({
@@ -73,7 +65,6 @@ export function DiscoverTab({
   winnerByAllocationKey,
   role,
   loading,
-  tutorAnnouncements = {}
 }: DiscoverTabProps) {
   const { t, formatDateTime, formatNumber } = useI18n();
   const isNewcomerProfile = isProfileEmpty(profile);
@@ -120,12 +111,6 @@ export function DiscoverTab({
         />
       );
     }
-
-    const threadInfo = fallbackDirectMessageThreadKey(selectedTutor.pubkey);
-    const chatMessages = isStudent
-      ? messagesByThread[threadInfo.threadKey] || []
-      : [];
-    const announcements = tutorAnnouncements[selectedTutor.pubkey] || [];
 
     return (
       <DetailPageLayout
