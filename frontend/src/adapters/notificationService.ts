@@ -12,10 +12,23 @@ export class NotificationManager implements NotificationService {
   private _soundEnabled = true;
   private shownKeys = new Set<string>();
   private dedupCleanupTimer: ReturnType<typeof setTimeout> | null = null;
+  private _audioCtx: AudioContext | null = null;
+  private _audioInitialized = false;
 
   constructor(
     private showToast: (entry: Omit<ToastEntry, "id">) => string,
   ) {}
+
+  initAudio(): void {
+    if (this._audioInitialized) return;
+    this._audioInitialized = true;
+
+    try {
+      this._audioCtx = new AudioContext();
+    } catch {
+      // Audio not available
+    }
+  }
 
   notify(message: string, type: NotificationType = "info", options?: NotificationOptions): void {
     const dedupKey = options?.dedupKey ?? `${type}:${message}`;
@@ -61,18 +74,27 @@ export class NotificationManager implements NotificationService {
   playSound(): void {
     if (!this._soundEnabled) return;
 
+    if (!this._audioCtx) {
+      this.initAudio();
+    }
+
+    if (!this._audioCtx) return;
+
     try {
-      const ctx = new AudioContext();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      if (this._audioCtx.state === "suspended") {
+        this._audioCtx.resume().catch(() => {});
+      }
+
+      const osc = this._audioCtx.createOscillator();
+      const gain = this._audioCtx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(660, ctx.currentTime);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.frequency.setValueAtTime(660, this._audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.3, this._audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this._audioCtx.currentTime + 0.2);
       osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.2);
+      gain.connect(this._audioCtx.destination);
+      osc.start(this._audioCtx.currentTime);
+      osc.stop(this._audioCtx.currentTime + 0.2);
     } catch {
       // Audio not available — silent fallback
     }

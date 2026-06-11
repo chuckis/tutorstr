@@ -116,9 +116,9 @@ export function useAppActions({
     );
 
     if (nextStatus === "completed") {
-      notification?.success(translate("notifications.lessonCompleted"));
+      notification?.success(translate("common.notifications.lessonCompleted"));
     } else if (nextStatus === "canceled") {
-      notification?.info(translate("notifications.lessonCancelled"));
+      notification?.info(translate("common.notifications.lessonCancelled"));
     }
   }
 
