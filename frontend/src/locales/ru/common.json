@@ -83,5 +83,16 @@
   },
   "validation": {
     "requiredRelay": "Добавьте хотя бы один relay URL."
+  },
+  "notifications": {
+    "newRequest": "Новая заявка на урок",
+    "newMessage": "Новое сообщение",
+    "lessonConfirmed": "Урок подтверждён",
+    "bookingAccepted": "Заявка принята",
+    "bookingRejected": "Заявка отклонена",
+    "bookingCancelled": "Заявка отменена",
+    "lessonCompleted": "Урок завершён",
+    "lessonCancelled": "Урок отменён",
+    "view": "Открыть"
   }
 }

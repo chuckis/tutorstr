@@ -83,5 +83,16 @@
   },
   "validation": {
     "requiredRelay": "Add at least one relay URL."
+  },
+  "notifications": {
+    "newRequest": "New booking request",
+    "newMessage": "New message",
+    "lessonConfirmed": "Lesson confirmed",
+    "bookingAccepted": "Booking accepted",
+    "bookingRejected": "Booking rejected",
+    "bookingCancelled": "Booking cancelled",
+    "lessonCompleted": "Lesson completed",
+    "lessonCancelled": "Lesson cancelled",
+    "view": "View"
   }
 }

@@ -6,6 +6,7 @@ import { makeSlotAllocationKey, makeSlotBidKey } from "../domain/slotAllocation"
 import { Lesson, LessonStatus } from "../domain/lesson";
 import { BookingRepository } from "../ports/bookingRepository";
 import { LessonRepository } from "../ports/lessonRepository";
+import { NotificationService } from "../ports/notificationService";
 import { useI18n } from "../i18n/I18nProvider";
 import { ChangeLessonStatus } from "../application/usecases/changeLessonStatus";
 import { CancelBooking } from "../application/usecases/cancelBooking";
@@ -49,6 +50,8 @@ type UseAppActionsProps = {
   setDiscoverStatus: (value: string) => void;
   setMessageStatus: (value: string) => void;
   onLogout: () => void;
+  notification?: NotificationService;
+  t?: (key: string) => string;
 };
 
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
@@ -75,9 +78,12 @@ export function useAppActions({
   blossomUrl,
   setDiscoverStatus,
   setMessageStatus,
-  onLogout
+  onLogout,
+  notification,
+  t,
 }: UseAppActionsProps) {
-  const { t } = useI18n();
+  const { t: defaultT } = useI18n();
+  const translate = t ?? defaultT;
 
   const changeLessonStatusUseCase = new ChangeLessonStatus(
     lessonRepository,
@@ -108,6 +114,12 @@ export function useAppActions({
       viewerRole,
       studentPubkey
     );
+
+    if (nextStatus === "completed") {
+      notification?.success(translate("notifications.lessonCompleted"));
+    } else if (nextStatus === "canceled") {
+      notification?.info(translate("notifications.lessonCancelled"));
+    }
   }
 
   async function cancelRequestFromStudent(request: Booking) {
@@ -137,12 +149,12 @@ export function useAppActions({
     const winner = winnerByAllocationKey[slotAllocationKey];
 
     if (existingBid) {
-      setDiscoverStatus(t("discover.activeRequestHint"));
+      setDiscoverStatus(translate("discover.activeRequestHint"));
       return;
     }
 
     if (winner && winner.studentId !== studentPubkey) {
-      setDiscoverStatus(t("discover.unavailable"));
+      setDiscoverStatus(translate("discover.unavailable"));
       return;
     }
 
@@ -156,10 +168,10 @@ export function useAppActions({
         bookingRequestPayload,
         viewerRole
       );
-      setDiscoverStatus(t("discover.sendRequest"));
+      setDiscoverStatus(translate("discover.sendRequest"));
     } catch (error) {
       setDiscoverStatus(
-        toLocalizedErrorMessage(error, t) || t("discover.sendRequest")
+        toLocalizedErrorMessage(error, translate) || translate("discover.sendRequest")
       );
     }
   }
@@ -183,7 +195,7 @@ export function useAppActions({
       await sendMessage(recipientPubkey, text, threadKey);
     } catch (error) {
       setMessageStatus(
-        toLocalizedErrorMessage(error, t) || t("common.buttons.sendMessage")
+        toLocalizedErrorMessage(error, translate) || translate("common.buttons.sendMessage")
       );
     }
   }
@@ -198,10 +210,10 @@ export function useAppActions({
 
     try {
       await sendMessageWithFiles(recipientPubkey, text, files, blossomUrl, threadKey);
-      setMessageStatus(t("common.messages.attachmentsSent"));
+      setMessageStatus(translate("common.messages.attachmentsSent"));
     } catch (error) {
       setMessageStatus(
-        toLocalizedErrorMessage(error, t) || t("common.messages.uploadFailed")
+        toLocalizedErrorMessage(error, translate) || translate("common.messages.uploadFailed")
       );
       throw error;
     }

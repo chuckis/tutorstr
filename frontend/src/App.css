@@ -2877,6 +2877,51 @@ button:active {
   opacity: 1;
 }
 
+.ui-toast__action {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  min-height: auto;
+  min-width: auto;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--motion);
+}
+
+.ui-toast__action:hover {
+  opacity: 0.8;
+}
+
+.toast-container .ui-toast {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  animation: ui-toast-in 250ms ease-out;
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.toast-container > * {
+  pointer-events: auto;
+}
+
 /* =============================================
    UI Kit — Modal
    ============================================= */

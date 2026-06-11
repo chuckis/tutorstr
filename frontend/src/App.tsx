@@ -12,6 +12,7 @@ import { useAuthController } from "./hooks/useAuthController";
 import { useAppController } from "./hooks/useAppController";
 import { useBlossomConfig } from "./hooks/useBlossomConfig";
 import { RepoProvider } from "./hooks/RepoContext";
+import { NotificationProvider } from "./hooks/NotificationContext";
 import { useI18n } from "./i18n/I18nProvider";
 import { useTheme } from "./theme/ThemeProvider";
 import { UIKitPage } from "./components/UIKitPage";
@@ -74,11 +75,13 @@ export default function App() {
 
   return (
     <RepoProvider>
-      <AuthenticatedApp
-        viewerRole={auth.role ?? "tutor"}
-        onLogout={auth.actions.logout}
-        onRevealSecret={auth.actions.revealSecret}
-      />
+      <NotificationProvider>
+        <AuthenticatedApp
+          viewerRole={auth.role ?? "tutor"}
+          onLogout={auth.actions.logout}
+          onRevealSecret={auth.actions.revealSecret}
+        />
+      </NotificationProvider>
     </RepoProvider>
   );
 }
@@ -302,4 +305,3 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     </main>
   );
 }
-

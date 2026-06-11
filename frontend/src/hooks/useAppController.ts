@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AccountRole } from "../domain/account";
 import { lessonMessageThreadKey, requestMessageThreadKey } from "../domain/messageThread";
 import { useAppActions } from "./useAppActions";
@@ -21,6 +21,8 @@ import { useTutorSchedule } from "./useTutorSchedule";
 import { useTutorSchedules } from "./useTutorSchedules";
 import { useRelays } from "./useRelays";
 import { useI18n } from "../i18n/I18nProvider";
+import { useNotification } from "./NotificationContext";
+import { BookingStatusPayload } from "../ports/bookingEventsRepository";
 
 function isRequestVisibleForBadge(
   request: { id: string; status: string },
@@ -42,6 +44,7 @@ export function useAppController(
   blossomUrl: string
 ) {
   const { t } = useI18n();
+  const notification = useNotification();
   const navigation = useAppNavigation(viewerRole);
   const [discoverStatus, setDiscoverStatus] = useState("");
   const [messageStatus, setMessageStatus] = useState("");
@@ -137,6 +140,91 @@ export function useAppController(
     );
   }, [messageIndicators, navigation.selectedLesson]);
 
+  // ── Notification: new incoming booking request (tutor) ──
+  const prevRequestTs = useRef(0);
+  useEffect(() => {
+    if (viewerRole !== "tutor") return;
+    const ts = bookingsState.latestIncomingRequestTs;
+    if (prevRequestTs.current > 0 && ts > prevRequestTs.current) {
+      notification.info(t("notifications.newRequest"), {
+        dedupKey: `new-request:${ts}`,
+        action: {
+          label: t("notifications.view"),
+          onClick: () => navigation.setActiveTab("requests"),
+        },
+      });
+    }
+    prevRequestTs.current = ts;
+  }, [bookingsState.latestIncomingRequestTs, viewerRole, navigation, notification, t]);
+
+  // ── Notification: new message ──
+  const prevMsgCount = useRef(0);
+  const prevMsgIds = useRef(new Set<string>());
+  useEffect(() => {
+    const messages = messagesState.messages;
+    const currentIds = new Set(messages.map((m) => m.id));
+    if (prevMsgCount.current > 0) {
+      for (const msg of messages) {
+        if (
+          !prevMsgIds.current.has(msg.id) &&
+          msg.counterparty !== keypair.pubkey
+        ) {
+          notification.info(t("notifications.newMessage"), {
+            dedupKey: `msg:${msg.id}`,
+          });
+        }
+      }
+    }
+    prevMsgCount.current = messages.length;
+    prevMsgIds.current = currentIds;
+  }, [messagesState.messages, keypair.pubkey, notification, t]);
+
+  // ── Notification: booking status change ──
+  const prevStatusKeys = useRef(new Set<string>());
+  useEffect(() => {
+    const currentKeys = new Set(bookingsState.statusesList.map((s) => s.id));
+    if (prevStatusKeys.current.size > 0) {
+      for (const statusEvent of bookingsState.statusesList) {
+        if (prevStatusKeys.current.has(statusEvent.id)) continue;
+
+        const status: BookingStatusPayload = statusEvent.status;
+        const booking = [...bookingsState.incoming, ...bookingsState.outgoing].find(
+          (b) => b.id === status.bookingId
+        );
+        if (!booking) continue;
+
+        const isOwnOutgoing =
+          viewerRole === "student" &&
+          bookingsState.outgoing.some((b) => b.id === booking.id);
+
+        if (status.status === "accepted") {
+          if (isOwnOutgoing) {
+            notification.success(t("notifications.lessonConfirmed"), {
+              dedupKey: `status:accepted:${statusEvent.id}`,
+              action: {
+                label: t("notifications.view"),
+                onClick: () => {
+                  navigation.setActiveTab("lessons");
+                },
+              },
+            });
+          } else {
+            notification.success(t("notifications.bookingAccepted"), {
+              dedupKey: `status:accepted:${statusEvent.id}`,
+            });
+          }
+        } else if (status.status === "rejected") {
+          if (isOwnOutgoing) {
+            notification.warning(t("notifications.bookingRejected"), {
+              dedupKey: `status:rejected:${statusEvent.id}`,
+            });
+          }
+        }
+      }
+    }
+    prevStatusKeys.current = currentKeys;
+  }, [bookingsState.statusesList, bookingsState.incoming, bookingsState.outgoing, viewerRole, navigation, notification, t]);
+
   const visibleIncoming =
     viewerRole === "student" ? [] : bookingsState.incoming;
 
@@ -166,7 +254,9 @@ export function useAppController(
     blossomUrl,
     setDiscoverStatus,
     setMessageStatus,
-    onLogout
+    onLogout,
+    notification,
+    t,
   });
 
   const viewModel = useAppViewModel({
@@ -213,6 +303,17 @@ export function useAppController(
     }
 
     await actions.respondToBooking(request, nextStatus);
+
+    if (nextStatus === "accepted") {
+      notification.success(t("notifications.lessonConfirmed"), {
+        action: {
+          label: t("notifications.view"),
+          onClick: () => navigation.setActiveTab("lessons"),
+        },
+      });
+    } else {
+      notification.info(t("notifications.bookingRejected"));
+    }
   }
 
   async function cancelRequestById(requestId: string) {
@@ -223,6 +324,7 @@ export function useAppController(
     }
 
     await actions.cancelRequestFromStudent(request);
+    notification.info(t("notifications.bookingCancelled"));
   }
 
   return {
