@@ -146,10 +146,10 @@ export function useAppController(
     if (viewerRole !== "tutor") return;
     const ts = bookingsState.latestIncomingRequestTs;
     if (prevRequestTs.current > 0 && ts > prevRequestTs.current) {
-      notification.info(t("notifications.newRequest"), {
+      notification.info(t("common.notifications.newRequest"), {
         dedupKey: `new-request:${ts}`,
         action: {
-          label: t("notifications.view"),
+          label: t("common.notifications.view"),
           onClick: () => navigation.setActiveTab("requests"),
         },
       });
@@ -169,7 +169,7 @@ export function useAppController(
           !prevMsgIds.current.has(msg.id) &&
           msg.counterparty !== keypair.pubkey
         ) {
-          notification.info(t("notifications.newMessage"), {
+          notification.info(t("common.notifications.newMessage"), {
             dedupKey: `msg:${msg.id}`,
           });
         }
@@ -199,23 +199,23 @@ export function useAppController(
 
         if (status.status === "accepted") {
           if (isOwnOutgoing) {
-            notification.success(t("notifications.lessonConfirmed"), {
+            notification.success(t("common.notifications.lessonConfirmed"), {
               dedupKey: `status:accepted:${statusEvent.id}`,
               action: {
-                label: t("notifications.view"),
+                label: t("common.notifications.view"),
                 onClick: () => {
                   navigation.setActiveTab("lessons");
                 },
               },
             });
           } else {
-            notification.success(t("notifications.bookingAccepted"), {
+            notification.success(t("common.notifications.bookingAccepted"), {
               dedupKey: `status:accepted:${statusEvent.id}`,
             });
           }
         } else if (status.status === "rejected") {
           if (isOwnOutgoing) {
-            notification.warning(t("notifications.bookingRejected"), {
+            notification.warning(t("common.notifications.bookingRejected"), {
               dedupKey: `status:rejected:${statusEvent.id}`,
             });
           }
@@ -305,14 +305,14 @@ export function useAppController(
     await actions.respondToBooking(request, nextStatus);
 
     if (nextStatus === "accepted") {
-      notification.success(t("notifications.lessonConfirmed"), {
+      notification.success(t("common.notifications.lessonConfirmed"), {
         action: {
-          label: t("notifications.view"),
+          label: t("common.notifications.view"),
           onClick: () => navigation.setActiveTab("lessons"),
         },
       });
     } else {
-      notification.info(t("notifications.bookingRejected"));
+      notification.info(t("common.notifications.bookingRejected"));
     }
   }
 
@@ -324,7 +324,7 @@ export function useAppController(
     }
 
     await actions.cancelRequestFromStudent(request);
-    notification.info(t("notifications.bookingCancelled"));
+    notification.info(t("common.notifications.bookingCancelled"));
   }
 
   return {
