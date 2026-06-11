@@ -2,6 +2,7 @@ import { nip19 } from "nostr-tools";
 import { useI18n } from "../i18n/I18nProvider";
 import { UserProfileEvent, AvailabilityMode } from "../hooks/hookTypes";
 import { Avatar } from "./Avatar";
+import { Card } from "./ui/Card";
 
 type TutorCardProps = {
   entry: UserProfileEvent;
@@ -25,11 +26,7 @@ export function TutorCard({ entry, onSelect }: TutorCardProps) {
     .join(" · ");
 
   return (
-    <button
-      type="button"
-      className="tutor-card"
-      onClick={() => onSelect(entry)}
-    >
+    <Card hoverable padding="md" onClick={() => onSelect(entry)}>
       <div className="tutor-card-header">
         <Avatar url={entry.profile.avatarUrl} role="tutor" size="md" />
         <div className="tutor-card-header-info">
@@ -54,7 +51,7 @@ export function TutorCard({ entry, onSelect }: TutorCardProps) {
       {scheduleInfo ? (
         <p className="tutor-card-schedule">{scheduleInfo}</p>
       ) : null}
-    </button>
+    </Card>
   );
 }
 

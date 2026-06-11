@@ -3,6 +3,10 @@ import { AccountRole, UserProfile, AvailabilityMode, AVAILABILITY_MODES } from "
 import { COMMON_TIMEZONES } from "../domain/profile";
 import { useI18n } from "../i18n/I18nProvider";
 import { parseList } from "../utils/normalize";
+import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
+import { Textarea } from "./ui/Textarea";
+import { Select } from "./ui/Select";
 
 type ProfileFormMode = "tutor" | "student";
 
@@ -60,144 +64,122 @@ export function ProfileForm({
         onSubmit(nextProfile);
       }}
     >
-      <label>
-        {t("profile.form.name")}
-        <input
-          value={profile.name}
-          onChange={(event) =>
-            onChange({ ...profile, name: event.target.value })
-          }
-          placeholder={t("profile.form.namePlaceholder")}
-        />
-      </label>
+      <Input
+        label={t("profile.form.name")}
+        value={profile.name}
+        onChange={(event) =>
+          onChange({ ...profile, name: event.target.value })
+        }
+        placeholder={t("profile.form.namePlaceholder")}
+      />
 
-      <label>
-        {t("profile.form.bio")}
-        <textarea
-          value={profile.bio}
-          onChange={(event) =>
-            onChange({ ...profile, bio: event.target.value })
-          }
-          rows={4}
-          placeholder={t("profile.form.bioPlaceholder")}
-        />
-      </label>
+      <Textarea
+        label={t("profile.form.bio")}
+        value={profile.bio}
+        onChange={(event) =>
+          onChange({ ...profile, bio: event.target.value })
+        }
+        rows={4}
+        placeholder={t("profile.form.bioPlaceholder")}
+      />
 
       {showTutorFields ? (
-        <label>
-          {t("profile.form.subjects")}
-          <input
-            value={subjectsInput}
-            onChange={(event) => {
-              setSubjectsInput(event.target.value);
-            }}
-            onBlur={(event) => commitListField("subjects", event.target.value)}
-            placeholder={t("profile.form.subjectsPlaceholder")}
-          />
-        </label>
-      ) : null}
-
-      <label>
-        {t("profile.form.languages")}
-        <input
-          value={languagesInput}
+        <Input
+          label={t("profile.form.subjects")}
+          value={subjectsInput}
           onChange={(event) => {
-            setLanguagesInput(event.target.value);
+            setSubjectsInput(event.target.value);
           }}
-          onBlur={(event) => commitListField("languages", event.target.value)}
-          placeholder={t("profile.form.languagesPlaceholder")}
+          onBlur={(event) => commitListField("subjects", event.target.value)}
+          placeholder={t("profile.form.subjectsPlaceholder")}
         />
-      </label>
-
-      {showTutorFields ? (
-        <label>
-          {t("profile.form.hourlyRate")}
-          <input
-            type="number"
-            min="0"
-            value={profile.hourlyRate}
-            onChange={(event) =>
-              onChange({
-                ...profile,
-                hourlyRate: Number(event.target.value)
-              })
-            }
-          />
-        </label>
       ) : null}
 
-      {showTutorFields ? (
-        <label>
-          {t("profile.form.availabilityMode")}
-          <select
-            value={profile.availabilityMode ?? ""}
-            onChange={(event) =>
-              onChange({
-                ...profile,
-                availabilityMode: (event.target.value || undefined) as AvailabilityMode | undefined
-              })
-            }
-          >
-            <option value="">{t("profile.form.notSpecified")}</option>
-            {AVAILABILITY_MODES.map((mode) => (
-              <option key={mode} value={mode}>
-                {t(`profile.form.${mode}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
+      <Input
+        label={t("profile.form.languages")}
+        value={languagesInput}
+        onChange={(event) => {
+          setLanguagesInput(event.target.value);
+        }}
+        onBlur={(event) => commitListField("languages", event.target.value)}
+        placeholder={t("profile.form.languagesPlaceholder")}
+      />
 
       {showTutorFields ? (
-        <label>
-          {t("profile.form.timezone")}
-          <select
-            value={profile.timezone ?? ""}
-            onChange={(event) =>
-              onChange({
-                ...profile,
-                timezone: event.target.value || undefined
-              })
-            }
-          >
-            <option value="">{t("profile.form.timezonePlaceholder")}</option>
-            {COMMON_TIMEZONES.map((tz) => (
-              <option key={tz} value={tz}>
-                {tz}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-
-      {showTutorFields ? (
-        <label>
-          {t("profile.form.workHours")}
-          <input
-            value={profile.workHours ?? ""}
-            onChange={(event) =>
-              onChange({
-                ...profile,
-                workHours: event.target.value || undefined
-              })
-            }
-            placeholder={t("profile.form.workHoursPlaceholder")}
-          />
-        </label>
-      ) : null}
-
-      <label>
-        {t("profile.form.avatarUrl")}
-        <input
-          value={profile.avatarUrl}
+        <Input
+          label={t("profile.form.hourlyRate")}
+          type="number"
+          min="0"
+          value={profile.hourlyRate}
           onChange={(event) =>
-            onChange({ ...profile, avatarUrl: event.target.value })
+            onChange({
+              ...profile,
+              hourlyRate: Number(event.target.value)
+            })
           }
-          placeholder={t("profile.form.avatarPlaceholder")}
         />
-      </label>
+      ) : null}
 
-      <button type="submit">{t("profile.form.publish")}</button>
+      {showTutorFields ? (
+        <Select
+          label={t("profile.form.availabilityMode")}
+          value={profile.availabilityMode ?? ""}
+          onChange={(event) =>
+            onChange({
+              ...profile,
+              availabilityMode: (event.target.value || undefined) as AvailabilityMode | undefined
+            })
+          }
+          placeholder={t("profile.form.notSpecified")}
+          options={AVAILABILITY_MODES.map((mode) => ({
+            value: mode,
+            label: t(`profile.form.${mode}`)
+          }))}
+        />
+      ) : null}
+
+      {showTutorFields ? (
+        <Select
+          label={t("profile.form.timezone")}
+          value={profile.timezone ?? ""}
+          onChange={(event) =>
+            onChange({
+              ...profile,
+              timezone: event.target.value || undefined
+            })
+          }
+          placeholder={t("profile.form.timezonePlaceholder")}
+          options={COMMON_TIMEZONES.map((tz) => ({
+            value: tz,
+            label: tz
+          }))}
+        />
+      ) : null}
+
+      {showTutorFields ? (
+        <Input
+          label={t("profile.form.workHours")}
+          value={profile.workHours ?? ""}
+          onChange={(event) =>
+            onChange({
+              ...profile,
+              workHours: event.target.value || undefined
+            })
+          }
+          placeholder={t("profile.form.workHoursPlaceholder")}
+        />
+      ) : null}
+
+      <Input
+        label={t("profile.form.avatarUrl")}
+        value={profile.avatarUrl}
+        onChange={(event) =>
+          onChange({ ...profile, avatarUrl: event.target.value })
+        }
+        placeholder={t("profile.form.avatarPlaceholder")}
+      />
+
+      <Button variant="primary" type="submit">{t("profile.form.publish")}</Button>
     </form>
   );
 }

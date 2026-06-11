@@ -2,6 +2,9 @@ import { Lesson, LessonStatus } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { UserProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
+import { Button } from "./ui/Button";
+import { LessonCard } from "./ui/LessonCard";
+import { EmptyState } from "./ui/EmptyState";
 
 type LessonAgreementsPanelProps = {
   title: string;
@@ -31,7 +34,7 @@ export function LessonAgreementsPanel({
     <div className="requests-panel">
       <h3>{title}</h3>
       {agreements.length === 0 ? (
-        <p className="muted">{t("lessons.empty")}</p>
+        <EmptyState description={t("lessons.empty")} />
       ) : (
         <ul className="lesson-list">
           {agreements.map((agreement) => {
@@ -46,7 +49,7 @@ export function LessonAgreementsPanel({
             const actions = nextStatuses(agreement.status);
 
             return (
-              <li key={agreement.id} className="lesson-card">
+              <LessonCard key={agreement.id} onClick={() => {}}>
                 <div>
                   <strong>{agreement.subject || t("lessons.defaultTitle")}</strong>
                 </div>
@@ -70,21 +73,19 @@ export function LessonAgreementsPanel({
                   {canUpdate && onStatusChange && actions.length > 0 ? (
                     <div className="action-buttons">
                       {actions.map((status) => (
-                        <button
-                          type="button"
+                        <Button
                           key={status}
-                          className={status === "canceled" ? "ghost-action" : ""}
-                          onClick={() => onStatusChange(agreement, status)}
-                        >
+                          variant={status === "canceled" ? "ghost" : "primary"}
+                          onClick={() => onStatusChange(agreement, status)}>
                           {status === "completed"
                             ? t("lessons.markCompleted")
                             : t("lessons.cancel")}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   ) : null}
                 </div>
-              </li>
+              </LessonCard>
             );
           })}
         </ul>

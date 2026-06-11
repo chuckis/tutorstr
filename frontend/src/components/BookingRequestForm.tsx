@@ -3,6 +3,10 @@ import { useI18n } from "../i18n/I18nProvider";
 import { BookingRequest } from "../hooks/hookTypes";
 import { TutorScheduleEvent } from "../hooks/hookTypes";
 import { addMinutesToDateTimeLocal } from "../utils/dateTimeLocal";
+import { Button } from "./ui/Button";
+import { Select } from "./ui/Select";
+import { Input } from "./ui/Input";
+import { Textarea } from "./ui/Textarea";
 
 const emptySlot = { start: "", end: "" };
 
@@ -65,76 +69,60 @@ export function BookingRequestForm({
     <form className="booking-form" onSubmit={handleSubmit}>
       <h3>{t("discover.requestLesson")}</h3>
       {availableSlots.length ? (
-        <label>
-          {t("discover.selectSlot")}
-          <select
-            value={selectedSlot}
-            onChange={(event) => setSelectedSlot(event.target.value)}
-          >
-            <option value="">{t("discover.customTime")}</option>
-            {availableSlots.map((slot, index) => (
-              <option
-                key={`${slot.start}-${index}`}
-                value={`${slot.start}|${slot.end}`}
-                disabled={getSlotState?.(slot) !== "available"}
-              >
-                {formatDateTime(slot.start)} → {formatDateTime(slot.end)}
-                {getSlotState?.(slot) === "requested"
-                  ? ` (${t("discover.requested")})`
-                  : getSlotState?.(slot) === "unavailable"
-                    ? ` (${t("discover.unavailable")})`
-                    : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label={t("discover.selectSlot")}
+          value={selectedSlot}
+          onChange={(event) => setSelectedSlot(event.target.value)}
+          placeholder={t("discover.customTime")}
+          options={availableSlots.map((slot, index) => {
+            const state = getSlotState?.(slot);
+            let label = `${formatDateTime(slot.start)} → ${formatDateTime(slot.end)}`;
+            if (state === "requested") label += ` (${t("discover.requested")})`;
+            if (state === "unavailable") label += ` (${t("discover.unavailable")})`;
+            return { value: `${slot.start}|${slot.end}`, label };
+          })}
+        />
       ) : null}
 
       {!selectedSlot ? (
         <div className="slot-row">
-          <label>
-            {t("discover.start")}
-            <input
-              type="datetime-local"
-              value={customSlot.start}
-              onChange={(event) =>
-                setCustomSlot({
-                  start: event.target.value,
-                  end: addMinutesToDateTimeLocal(event.target.value, 60)
-                })
-              }
-            />
-          </label>
-          <label>
-            {t("discover.end")}
-            <input
-              type="datetime-local"
-              value={customSlot.end}
-              onChange={(event) =>
-                setCustomSlot({ ...customSlot, end: event.target.value })
-              }
-            />
-          </label>
+          <Input
+            label={t("discover.start")}
+            type="datetime-local"
+            value={customSlot.start}
+            onChange={(event) =>
+              setCustomSlot({
+                start: event.target.value,
+                end: addMinutesToDateTimeLocal(event.target.value, 60)
+              })
+            }
+          />
+          <Input
+            label={t("discover.end")}
+            type="datetime-local"
+            value={customSlot.end}
+            onChange={(event) =>
+              setCustomSlot({ ...customSlot, end: event.target.value })
+            }
+          />
         </div>
       ) : null}
 
-      <label>
-        {t("discover.message")}
-        <textarea
-          rows={3}
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          placeholder={t("discover.messagePlaceholder")}
-        />
-      </label>
+      <Textarea
+        label={t("discover.message")}
+        rows={3}
+        value={message}
+        onChange={(event) => setMessage(event.target.value)}
+        placeholder={t("discover.messagePlaceholder")}
+      />
 
-      <button type="submit" disabled={isSubmitBlocked}>
+      <Button variant="primary" type="submit" disabled={isSubmitBlocked}>
         {selectedSlotState === "requested"
           ? t("discover.alreadyRequested")
           : selectedSlotState === "unavailable"
             ? t("discover.unavailable")
             : t("discover.sendRequest")}
-      </button>
+      </Button>
       <p className="muted">{t("discover.sentTo", { value: `${tutorPubkey.slice(0, 12)}…` })}</p>
       {selectedSlotState === "requested" ? (
         <p className="muted">{t("discover.activeRequestHint")}</p>

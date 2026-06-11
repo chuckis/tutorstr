@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { buildWeekDays, getWeekRangeLabel, isSameLocalDay } from "../utils/calendar";
 import { Lesson } from "../hooks/hookTypes";
+import { Button } from "./ui/Button";
 
 type LessonsCalendarProps = {
   lessons: Lesson[];
@@ -87,32 +88,22 @@ export function LessonsCalendar({
   return (
     <section className="lessons-calendar" aria-label={t("lessons.calendar.title")}>
       <div className="lessons-calendar-toolbar">
-        <button
-          type="button"
-          className="ghost-action icon-only-button"
-          aria-label={t("lessons.calendar.weekPrev")}
-          onClick={() => shiftWeek(-7)}
-        >
+        <Button variant="ghost" className="ui-btn--icon-only" aria-label={t("lessons.calendar.weekPrev")} onClick={() => shiftWeek(-7)}>
           <ChevronLeft size={18} aria-hidden="true" />
-        </button>
+        </Button>
         <div className="lessons-calendar-range" aria-live="polite">
           {weekLabel}
         </div>
-        <button
+        <Button variant="ghost"
           type="button"
           className="lessons-calendar-today"
           onClick={goToToday}
         >
           {t("lessons.calendar.weekToday")}
-        </button>
-        <button
-          type="button"
-          className="ghost-action icon-only-button"
-          aria-label={t("lessons.calendar.weekNext")}
-          onClick={() => shiftWeek(7)}
-        >
+        </Button>
+        <Button variant="ghost" className="ui-btn--icon-only" aria-label={t("lessons.calendar.weekNext")} onClick={() => shiftWeek(7)}>
           <ChevronRight size={18} aria-hidden="true" />
-        </button>
+        </Button>
       </div>
 
       <div className="lessons-calendar-grid">
@@ -142,7 +133,7 @@ export function LessonsCalendar({
                   dayLessons.map((lesson) => {
                     const title = lesson.subject || t("lessons.defaultTitle");
                     return (
-                      <button
+                      <Button variant="ghost"
                         key={lesson.id}
                         type="button"
                         className="lessons-calendar-lesson"
@@ -154,7 +145,7 @@ export function LessonsCalendar({
                         <span className="lessons-calendar-lesson-title">
                           {title}
                         </span>
-                      </button>
+                      </Button>
                     );
                   })
                 )}

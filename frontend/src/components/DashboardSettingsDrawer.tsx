@@ -10,6 +10,9 @@ import { RelayConfig } from "./RelayConfig";
 import { SettingsFAQ } from "./SettingsFAQ";
 import { SettingsAbout } from "./SettingsAbout";
 import { Theme } from "../domain/theme";
+import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
+import { Toggle } from "./ui/Toggle";
 
 type DrawerSection = "menu" | "settings" | "profile" | "faq" | "about";
 
@@ -97,23 +100,13 @@ export function DashboardSettingsDrawer({
       const sectionLabel = MENU_ITEMS.find((m) => m.section === activeSection)?.labelKey;
       return (
         <div className="dashboard-drawer-header dashboard-drawer-header--sub">
-          <button
-            type="button"
-            className="ghost-action icon-only-button settings-back-button"
-            aria-label={t("profile.drawer.back")}
-            onClick={handleBack}
-          >
+          <Button variant="ghost" className="ui-btn--icon-only settings-back-button" aria-label={t("profile.drawer.back")} onClick={handleBack}>
             <ArrowLeft size={18} aria-hidden="true" />
-          </button>
+          </Button>
           <h2 id="dashboard-settings-title">{sectionLabel ? t(sectionLabel) : ""}</h2>
-          <button
-            type="button"
-            className="ghost-action icon-only-button"
-            aria-label={t("profile.closeSettings")}
-            onClick={handleClose}
-          >
+          <Button variant="ghost" className="ui-btn--icon-only" aria-label={t("profile.closeSettings")} onClick={handleClose}>
             <X size={18} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       );
     }
@@ -121,14 +114,9 @@ export function DashboardSettingsDrawer({
     return (
       <div className="dashboard-drawer-header">
         <h2 id="dashboard-settings-title">{t("profile.drawer.settings")}</h2>
-        <button
-          type="button"
-          className="ghost-action icon-only-button"
-          aria-label={t("profile.closeSettings")}
-          onClick={handleClose}
-        >
-          <X size={18} aria-hidden="true" />
-        </button>
+        <Button variant="ghost" className="ui-btn--icon-only" aria-label={t("profile.closeSettings")} onClick={handleClose}>
+            <X size={18} aria-hidden="true" />
+          </Button>
       </div>
     );
   }
@@ -189,14 +177,12 @@ export function DashboardSettingsDrawer({
           <>
             <article className="panel">
               <h3>{t("profile.form.blossomServerUrl")}</h3>
-              <label className="filter">
-                <input
-                  type="url"
-                  value={blossomUrl}
-                  onChange={(event) => onBlossomUrlChange(event.target.value)}
-                  placeholder="https://blossom.example.com"
-                />
-              </label>
+              <Input
+                type="url"
+                value={blossomUrl}
+                onChange={(event) => onBlossomUrlChange(event.target.value)}
+                placeholder="https://blossom.example.com"
+              />
               <p className="muted">{t("profile.form.blossomHint")}</p>
             </article>
 
@@ -209,15 +195,13 @@ export function DashboardSettingsDrawer({
 
             <article className="panel dashboard-session-panel">
               <h3>{t("profile.session")}</h3>
-              <label className="filter">
-                {t("profile.revealPassword")}
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  value={revealPassphrase}
-                  onChange={(event) => setRevealPassphrase(event.target.value)}
-                />
-              </label>
+              <Input
+                label={t("profile.revealPassword")}
+                type="password"
+                autoComplete="current-password"
+                value={revealPassphrase}
+                onChange={(event) => setRevealPassphrase(event.target.value)}
+              />
               <button type="button" onClick={handleRevealSecret}>
                 {t("profile.revealButton")}
               </button>
@@ -225,9 +209,9 @@ export function DashboardSettingsDrawer({
                 <p className="identity-value">{revealedSecret}</p>
               ) : null}
               {revealError ? <p className="muted">{revealError}</p> : null}
-              <button type="button" className="ghost-action" onClick={onLogout}>
-                {t("common.buttons.logout")}
-              </button>
+              <Button variant="ghost" onClick={onLogout}>
+              {t("common.buttons.logout")}
+            </Button>
             </article>
           </>
         );
@@ -243,7 +227,7 @@ export function DashboardSettingsDrawer({
           <>
             <nav className="settings-menu-list">
               {MENU_ITEMS.map((item) => (
-                <button
+                <Button variant="ghost"
                   key={item.section}
                   type="button"
                   className="settings-menu-item"
@@ -252,7 +236,7 @@ export function DashboardSettingsDrawer({
                   <span className="settings-menu-item-icon">{item.icon}</span>
                   <span className="settings-menu-item-label">{t(item.labelKey)}</span>
                   <ChevronRight size={16} className="settings-menu-item-chevron" />
-                </button>
+                </Button>
               ))}
             </nav>
 
@@ -261,15 +245,11 @@ export function DashboardSettingsDrawer({
                 {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
                 {" "}{t("profile.drawer.darkMode")}
               </span>
-              <label className="toggle">
-                <input
-                  type="checkbox"
-                  checked={theme === "dark"}
-                  onChange={onToggleTheme}
-                  aria-label={t("profile.drawer.darkMode")}
-                />
-                <span className="toggle__slider" />
-              </label>
+              <Toggle
+                checked={theme === "dark"}
+                onChange={onToggleTheme}
+                aria-label={t("profile.drawer.darkMode")}
+              />
             </div>
           </>
         );

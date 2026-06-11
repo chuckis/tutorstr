@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
+import { Button } from "./ui/Button";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
 
@@ -130,7 +131,7 @@ export function LessonNoteEditor({
                 <span className="chip-icon">FILE</span>
               )}
               <span className="chip-name">{entry.file.name}</span>
-              <button
+              <Button variant="ghost" size="sm"
                 type="button"
                 className="chip-remove"
                 onClick={() => removeFile(index)}
@@ -138,7 +139,7 @@ export function LessonNoteEditor({
                 aria-label={t("common.actions.remove")}
               >
                 ×
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -151,7 +152,7 @@ export function LessonNoteEditor({
       ) : null}
 
       <div className="lesson-note-actions">
-        <button
+        <Button variant="ghost" size="sm"
           type="button"
           className="composer-attach-btn"
           onClick={() => fileInputRef.current?.click()}
@@ -159,7 +160,7 @@ export function LessonNoteEditor({
           aria-label={t("common.messages.attach")}
         >
           +
-        </button>
+        </Button>
         <input
           ref={fileInputRef}
           type="file"
@@ -169,27 +170,27 @@ export function LessonNoteEditor({
           onChange={handleFileSelect}
           hidden
         />
-        <button
+        <Button variant="ghost" size="sm"
           type="button"
           onClick={handleSave}
           disabled={isEmpty || isBusy}
         >
           {t("lessons.saveLocally")}
-        </button>
-        <button
+        </Button>
+        <Button variant="ghost" size="sm"
           type="button"
           onClick={handlePublish}
           disabled={isEmpty || isBusy}
         >
           {statusLabel(publishStatus, t("lessons.publish"), t("common.states.saving"), t("lessons.published"), t)}
-        </button>
-        <button
+        </Button>
+        <Button variant="ghost" size="sm"
           type="button"
           onClick={handleShare}
           disabled={isEmpty || isBusy}
         >
           {statusLabel(shareStatus, t("common.actions.share"), t("common.states.saving"), t("lessons.shared"), t)}
-        </button>
+        </Button>
       </div>
     </div>
   );

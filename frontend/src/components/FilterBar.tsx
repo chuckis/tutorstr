@@ -6,6 +6,11 @@ import {
   AVAILABILITY_MODES
 } from "../hooks/hookTypes";
 
+import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
+import { Select } from "./ui/Select";
+import { Toggle } from "./ui/Toggle";
+
 type FilterBarProps = {
   query: TutorDirectoryQuery;
   onChange: (next: TutorDirectoryQuery) => void;
@@ -36,7 +41,7 @@ export function FilterBar({ query, onChange }: FilterBarProps) {
 
   return (
     <div className="filter-bar">
-      <button
+      <Button variant="ghost"
         type="button"
         className="filter-bar__toggle"
         onClick={() => setOpen(!open)}
@@ -47,73 +52,51 @@ export function FilterBar({ query, onChange }: FilterBarProps) {
           {badge}
         </span>
         <span className="filter-bar__chevron">{open ? "▲" : "▼"}</span>
-      </button>
+      </Button>
 
       {open && (
         <div className="filter-bar__body">
-          <label className="filter">
-            {t("discover.subjectLabel")}
-            <input
-              value={query.subject ?? ""}
-              onChange={(e) => set("subject", e.target.value)}
-              placeholder={t("discover.subjectPlaceholder")}
-            />
-          </label>
+          <Input
+            label={t("discover.subjectLabel")}
+            value={query.subject ?? ""}
+            onChange={(e) => set("subject", e.target.value)}
+            placeholder={t("discover.subjectPlaceholder")}
+          />
 
-          <label className="filter">
-            {t("discover.languageLabel")}
-            <input
-              value={query.language ?? ""}
-              onChange={(e) => set("language", e.target.value)}
-              placeholder={t("discover.languagePlaceholder")}
-            />
-          </label>
+          <Input
+            label={t("discover.languageLabel")}
+            value={query.language ?? ""}
+            onChange={(e) => set("language", e.target.value)}
+            placeholder={t("discover.languagePlaceholder")}
+          />
 
-          <label className="filter">
-            {t("discover.locationModeLabel")}
-            <select
-              value={query.locationMode ?? ""}
-              onChange={(e) =>
-                set(
-                  "locationMode",
-                  (e.target.value || undefined) as AvailabilityMode | undefined
-                )
-              }
-            >
-              <option value="">{t("discover.any")}</option>
-              {AVAILABILITY_MODES.map((mode) => (
-                <option key={mode} value={mode}>
-                  {t(`discover.${mode}`)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Select
+            label={t("discover.locationModeLabel")}
+            value={query.locationMode ?? ""}
+            onChange={(e) =>
+              set(
+                "locationMode",
+                (e.target.value || undefined) as AvailabilityMode | undefined
+              )
+            }
+            placeholder={t("discover.any")}
+            options={AVAILABILITY_MODES.map((mode) => ({
+              value: mode,
+              label: t(`discover.${mode}`)
+            }))}
+          />
 
-          <label className="toggle-row">
-            <span>{t("discover.availableNow")}</span>
-            <span className="toggle">
-              <input
-                type="checkbox"
-                role="switch"
-                checked={query.availableNow ?? false}
-                onChange={(e) => set("availableNow", e.target.checked)}
-              />
-              <span className="toggle__slider" />
-            </span>
-          </label>
+          <Toggle
+            label={t("discover.availableNow")}
+            checked={query.availableNow ?? false}
+            onChange={(e) => set("availableNow", e.target.checked)}
+          />
 
-          <label className="toggle-row">
-            <span>{t("discover.freeSlotsThisWeek")}</span>
-            <span className="toggle">
-              <input
-                type="checkbox"
-                role="switch"
-                checked={query.hasFreeSlotsThisWeek ?? false}
-                onChange={(e) => set("hasFreeSlotsThisWeek", e.target.checked)}
-              />
-              <span className="toggle__slider" />
-            </span>
-          </label>
+          <Toggle
+            label={t("discover.freeSlotsThisWeek")}
+            checked={query.hasFreeSlotsThisWeek ?? false}
+            onChange={(e) => set("hasFreeSlotsThisWeek", e.target.checked)}
+          />
         </div>
       )}
     </div>

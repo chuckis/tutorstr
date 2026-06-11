@@ -1,5 +1,6 @@
 import { BookOpen, Compass, Inbox, LayoutDashboard } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
+import { Button } from "./ui/Button";
 
 type MainTab = "discover" | "requests" | "lessons" | "profile";
 
@@ -47,7 +48,7 @@ export function BottomNav({
   return (
     <nav className="bottom-nav" aria-label={t("common.nav.primary")}>
       {navItems.map(({ tab, label, icon: Icon, badge }) => (
-        <button
+        <Button variant="ghost"
           key={tab}
           type="button"
           aria-label={label}
@@ -63,7 +64,7 @@ export function BottomNav({
             ) : null}
           </span>
           <span className="sr-only">{label}</span>
-        </button>
+        </Button>
       ))}
     </nav>
   );

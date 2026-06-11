@@ -5,6 +5,8 @@ import { toDisplayId } from "../utils/display";
 import { Avatar } from "./Avatar";
 import { ScheduleForm } from "./ScheduleForm";
 import { Spinner } from "./Spinner";
+import { Card } from "./ui/Card";
+import { LessonCard } from "./ui/LessonCard";
 
 type DashboardMode = "tutor" | "student";
 
@@ -101,31 +103,25 @@ export function DashboardTab({
         <div className="dashboard-grid">
           <article className="panel dashboard-overview">
             <div className="dashboard-bio-section">
-              {/* <div className="dashboard-section-heading">
-                <h3>{t("profile.bio")}</h3>
-              </div> */}
               <p className="dashboard-profile-summary">{profileSummary}</p>
             </div>
 
             {isTutor ? (
               <>
                 <div className="dashboard-metrics">
-                  <div className="dashboard-metric-card">
-                    <span>{t("profile.metricSubjects")}</span>
-                    <strong>{profileSubjects.length || 0}</strong>
-                  </div>
-                  <div className="dashboard-metric-card">
-                    <span>{t("profile.metricSchedule")}</span>
-                    <strong>{publishedSchedule.slots.length || 0}</strong>
-                  </div>
-                  <div className="dashboard-metric-card">
-                    <span>{t("profile.metricRate")}</span>
-                    <strong>
+                  <Card padding="md">
+                    <span>{t("profile.metricSubjects")} <strong>{profileSubjects.length || 0}</strong></span>
+                  </Card>
+                  <Card padding="md">
+                    <span>{t("profile.metricSchedule")} <strong>{publishedSchedule.slots.length || 0}</strong></span>
+                  </Card>
+                  <Card padding="md">
+                    <span>{t("profile.metricRate")} <strong>
                       {hourlyRate
                         ? `$${hourlyRate}`
                         : t("common.states.notSet")}
-                    </strong>
-                  </div>
+                    </strong></span>
+                  </Card>
                 </div>
 
                 {profileSubjects.length > 0 ? (
@@ -145,18 +141,15 @@ export function DashboardTab({
                 <h3>{t("profile.statsSection")}</h3>
               </div>
               <div className="dashboard-metrics">
-                <div className="dashboard-metric-card">
-                  <span>{t("profile.statsPublishedSlots")}</span>
-                  <strong>{publishedSchedule.slots.length || 0}</strong>
-                </div>
-                <div className="dashboard-metric-card">
-                  <span>{t("profile.statsCompletedLessons")}</span>
-                  <strong>{completedLessons}</strong>
-                </div>
-                <div className="dashboard-metric-card">
-                  <span>{t("profile.statsTotalLessons")}</span>
-                  <strong>{totalLessons}</strong>
-                </div>
+                <Card padding="md">
+                  <span>{t("profile.statsPublishedSlots")} <strong>{publishedSchedule.slots.length || 0}</strong></span>
+                </Card>
+                <Card padding="md">
+                  <span>{t("profile.statsCompletedLessons")} <strong>{completedLessons}</strong></span>
+                </Card>
+                <Card padding="md">
+                  <span>{t("profile.statsTotalLessons")} <strong>{totalLessons}</strong></span>
+                </Card>
               </div>
             </article>
           ) : null}
@@ -208,7 +201,7 @@ export function DashboardTab({
                       toDisplayId(lesson.tutorId, t("common.states.unknown"));
 
                     return (
-                      <li key={lesson.id} className="lesson-card">
+                      <LessonCard key={lesson.id} onClick={() => {}}>
                         <div>
                           <strong>
                             {lesson.subject || t("lessons.defaultTitle")}
@@ -216,7 +209,7 @@ export function DashboardTab({
                         </div>
                         <div>{formatDateTime(lesson.scheduledAt)}</div>
                         <div className="muted">{counterpartyLabel}</div>
-                      </li>
+                      </LessonCard>
                     );
                   })}
                 </ul>

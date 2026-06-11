@@ -1,5 +1,6 @@
 import { Compass, LayoutDashboard } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
+import { Button } from "./ui/Button";
 
 type TabsProps = {
   active: "directory" | "profile";
@@ -11,7 +12,7 @@ export function Tabs({ active, onChange }: TabsProps) {
 
   return (
     <div className="tabs">
-      <button
+      <Button variant="ghost"
         type="button"
         aria-label={t("common.nav.discover")}
         className={active === "directory" ? "active" : ""}
@@ -19,8 +20,8 @@ export function Tabs({ active, onChange }: TabsProps) {
       >
         <Compass size={18} aria-hidden="true" />
         <span className="sr-only">{t("common.nav.discover")}</span>
-      </button>
-      <button
+      </Button>
+      <Button variant="ghost"
         type="button"
         aria-label={t("common.nav.profile")}
         className={active === "profile" ? "active" : ""}
@@ -28,7 +29,7 @@ export function Tabs({ active, onChange }: TabsProps) {
       >
         <LayoutDashboard size={18} aria-hidden="true" />
         <span className="sr-only">{t("common.nav.profile")}</span>
-      </button>
+      </Button>
     </div>
   );
 }

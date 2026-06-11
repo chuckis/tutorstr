@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { ProgressEntry } from "../hooks/hookTypes";
+import { Button } from "./ui/Button";
 
 const emptyEntry: ProgressEntry = {
   topic: "",
@@ -72,7 +73,7 @@ export function ProgressEntryForm({ onSubmit }: ProgressEntryFormProps) {
           placeholder={t("progress.bookingIdPlaceholder")}
         />
       </label>
-      <button type="submit">{t("progress.send")}</button>
+      <Button variant="primary" type="submit">{t("progress.send")}</Button>
     </form>
   );
 }

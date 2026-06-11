@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MessageAttachment } from "../hooks/hookTypes";
 import { ImageViewer } from "./ImageViewer";
+import { Button } from "./ui/Button";
 
 type MessageAttachmentPreviewProps = {
   attachments: MessageAttachment[];
@@ -19,7 +20,7 @@ function Thumbnail({ att, index, onClick }: {
   const src = !failed && att.thumbnailUrl ? att.thumbnailUrl : att.url;
 
   return (
-    <button
+    <Button variant="ghost"
       type="button"
       className="attachment-thumb"
       onClick={() => onClick(index)}
@@ -31,7 +32,7 @@ function Thumbnail({ att, index, onClick }: {
         loading="lazy"
         onError={() => setFailed(true)}
       />
-    </button>
+    </Button>
   );
 }
 

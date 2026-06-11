@@ -1,5 +1,6 @@
 import { AppLocale, SUPPORTED_LOCALES } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
+import { Button } from "./ui/Button";
 
 type RelayConfigProps = {
   relayInput: string;
@@ -40,9 +41,9 @@ export function RelayConfig({
           onChange={(event) => onRelayInputChange(event.target.value)}
         />
       </label>
-      <button type="button" onClick={onUpdateRelays}>
+      <Button variant="primary" type="button" onClick={onUpdateRelays}>
         {t("profile.saveRelays")}
-      </button>
+      </Button>
       {relayStatus ? <p className="muted">{relayStatus}</p> : null}
     </article>
   );

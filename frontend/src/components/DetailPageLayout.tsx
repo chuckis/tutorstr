@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
+import { Button } from "./ui/Button";
 
 type DetailPageLayoutProps = {
   backLabel: string;
@@ -22,14 +23,14 @@ export function DetailPageLayout({
     <div className="detail-page">
       <header className="detail-topbar">
         <div className="detail-topbar-left">
-          <button
+          <Button variant="ghost"
             type="button"
             className="detail-back-button"
             onClick={onBack}
           >
             <ArrowLeft size={18} aria-hidden="true" />
             {/* <span>{backLabel}</span> */}
-          </button>
+          </Button>
         </div>
         {title ? (
           <div className="detail-title-block">

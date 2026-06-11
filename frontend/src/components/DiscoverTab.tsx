@@ -19,6 +19,8 @@ import { DetailPageLayout } from "./DetailPageLayout";
 import { Spinner } from "./Spinner";
 import { StudentDetailView } from "./StudentDetailView";
 import { TutorCard } from "./TutorCard";
+import { Button } from "./ui/Button";
+import { EmptyState } from "./ui/EmptyState";
 
 type DiscoverTabProps = {
   selectedTutor: UserProfileEvent | null;
@@ -179,7 +181,7 @@ export function DiscoverTab({
                             {" -> "}
                             {formatDateTime(slot.end)}
                           </span>
-                          <button
+                          <Button variant="primary"
                             type="button"
                             disabled={
                               slotState !== "available" || !isStudent
@@ -189,7 +191,7 @@ export function DiscoverTab({
                             }
                           >
                             {getSlotActionLabel(slotState)}
-                          </button>
+                          </Button>
                         </div>
                       </li>
                     );
@@ -229,7 +231,7 @@ export function DiscoverTab({
         ) : (
           <div className="card-grid">
             {filteredTutors.length === 0 ? (
-              <p className="muted">{t("discover.noTutors")}</p>
+              <EmptyState description={t("discover.noTutors")} />
             ) : (
               filteredTutors.map((entry) => (
                 <TutorCard

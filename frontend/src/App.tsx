@@ -14,6 +14,7 @@ import { useBlossomConfig } from "./hooks/useBlossomConfig";
 import { RepoProvider } from "./hooks/RepoContext";
 import { useI18n } from "./i18n/I18nProvider";
 import { useTheme } from "./theme/ThemeProvider";
+import { UIKitPage } from "./components/UIKitPage";
 import { AccountRole } from "./domain/account";
 import { AuthSession } from "./domain/auth";
 import { authVaultRepository } from "./adapters/auth/localStorageVaultRepository";
@@ -90,6 +91,7 @@ type AuthenticatedAppProps = {
 
 function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: AuthenticatedAppProps) {
   const { t } = useI18n();
+  const [showUIKit] = useState(() => typeof window !== 'undefined' && window.location.hash === '#ui-kit');
   const { theme, toggleTheme } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus } = useBlossomConfig();
@@ -127,6 +129,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     }
   }, [uploadAvatar, profileState.profile, profileState.setProfile]);
 
+  if (showUIKit) return <UIKitPage />;
   return (
     <main className="app-shell">
       {!navigation.detailActive ? (
@@ -299,3 +302,4 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     </main>
   );
 }
+

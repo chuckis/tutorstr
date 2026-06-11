@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
+import { Button } from "./ui/Button";
 
 const FAQ_IDS = [
   "dataStorage",
@@ -21,7 +22,7 @@ export function SettingsFAQ() {
         const isOpen = openIndex === index;
         return (
           <div key={id} className="settings-faq-item">
-            <button
+            <Button variant="ghost"
               type="button"
               className="settings-faq-question"
               onClick={() => setOpenIndex(isOpen ? null : index)}
@@ -31,7 +32,7 @@ export function SettingsFAQ() {
                 size={16}
                 className={`settings-faq-chevron ${isOpen ? "open" : ""}`}
               />
-            </button>
+            </Button>
             {isOpen ? (
               <p className="settings-faq-answer">{t(`profile.faq.${id}_a`)}</p>
             ) : null}

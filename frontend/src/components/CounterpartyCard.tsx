@@ -1,6 +1,8 @@
 import { UserProfileEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { Avatar } from "./Avatar";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
 
 type CounterpartyCardProps = {
   profile?: UserProfileEvent;
@@ -17,19 +19,19 @@ export function CounterpartyCard({
 
   if (!profile) {
     return (
-      <div className="counterparty-card">
+      <Card padding="sm" variant="elevated">
         <div className="counterparty-card-header">
           <Avatar role={role} size="md" />
           <div>
             <strong>{t("common.states.unknown")}</strong>
           </div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="counterparty-card">
+    <Card padding="sm" variant="elevated">
       <div className="counterparty-card-header">
         <Avatar
           url={profile.profile.avatarUrl}
@@ -53,14 +55,10 @@ export function CounterpartyCard({
         </div>
       ) : null}
       {onViewProfile ? (
-        <button
-          type="button"
-          className="ghost-action"
-          onClick={onViewProfile}
-        >
+        <Button variant="ghost" onClick={onViewProfile}>
           {t("requests.viewProfile")}
-        </button>
+        </Button>
       ) : null}
-    </div>
+    </Card>
   );
 }

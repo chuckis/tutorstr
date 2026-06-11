@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { Button } from "./ui/Button";
 
 type ImageEntry = {
   url: string;
@@ -74,24 +75,24 @@ export function ImageViewer({ images, defaultIndex, onClose }: ImageViewerProps)
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <button
+      <Button variant="ghost"
         type="button"
         className="viewer-close"
         onClick={onClose}
         aria-label="Close"
       >
         ×
-      </button>
+      </Button>
 
       {images.length > 1 && index > 0 && (
-        <button
+        <Button variant="ghost"
           type="button"
           className="viewer-nav viewer-nav-prev"
           onClick={prev}
           aria-label="Previous"
         >
           ‹
-        </button>
+        </Button>
       )}
 
       <img
@@ -109,14 +110,14 @@ export function ImageViewer({ images, defaultIndex, onClose }: ImageViewerProps)
       />
 
       {images.length > 1 && index < images.length - 1 && (
-        <button
+        <Button variant="ghost"
           type="button"
           className="viewer-nav viewer-nav-next"
           onClick={next}
           aria-label="Next"
         >
           ›
-        </button>
+        </Button>
       )}
 
       {images.length > 1 && (

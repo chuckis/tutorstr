@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import { EncryptedMessage } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { MessageAttachmentPreview } from "./MessageAttachmentPreview";
+import { Button } from "./ui/Button";
 
 const PAGE_SIZE = 20;
 
@@ -36,13 +37,13 @@ export function MessageThread({ messages, currentPubkey }: MessageThreadProps) {
   return (
     <div className="message-thread" ref={containerRef}>
       {hasMore ? (
-        <button
+        <Button variant="ghost"
           type="button"
           className="load-more"
           onClick={loadMore}
         >
           {t("common.messages.loadMore", { count: messages.length - visibleCount })}
-        </button>
+        </Button>
       ) : null}
       {visibleMessages.map((message) => {
         const isOwn = message.pubkey === currentPubkey;

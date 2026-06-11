@@ -15,6 +15,9 @@ import { LessonNoteEditor } from "./LessonNoteEditor";
 import { LessonNoteList } from "./LessonNoteList";
 import { LessonNoteDetail } from "./LessonNoteDetail";
 import { MessageAttachmentPreview } from "./MessageAttachmentPreview";
+import { Button } from "./ui/Button";
+import { LessonCard } from "./ui/LessonCard";
+import { EmptyState } from "./ui/EmptyState";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
 type UploadProgress = "idle" | "uploading" | "done" | "error";
@@ -198,17 +201,13 @@ export function LessonsTab({
               >
                 {t("lessons.markCompleted")}
               </button>
-              <button
-                type="button"
-                className="ghost-action"
-                onClick={() =>
+              <Button variant="ghost" onClick={() =>
                   onChangeLessonStatus(selectedLesson, "canceled").then(() =>
                     onSelectLesson(null)
                   )
-                }
-              >
+                }>
                 {t("lessons.cancel")}
-              </button>
+              </Button>
             </div>
           ) : null}
 
@@ -297,7 +296,7 @@ export function LessonsTab({
     <section className="tab-panel lessons-tab">
       <div className="stack">
         <div className="segmented">
-          <button
+          <Button variant="ghost"
             type="button"
             aria-label={t("lessons.upcoming")}
             className={lessonSegment === "upcoming" ? "active" : ""}
@@ -305,8 +304,8 @@ export function LessonsTab({
           >
             <CalendarClock size={18} aria-hidden="true" />
             <span className="sr-only">{t("lessons.upcoming")}</span>
-          </button>
-          <button
+          </Button>
+          <Button variant="ghost"
             type="button"
             aria-label={t("lessons.past")}
             className={lessonSegment === "past" ? "active" : ""}
@@ -314,11 +313,11 @@ export function LessonsTab({
           >
             <History size={18} aria-hidden="true" />
             <span className="sr-only">{t("lessons.past")}</span>
-          </button>
+          </Button>
         </div>
         {lessonSegment === "upcoming" ? (
           <div className="lessons-view-toggle" role="group" aria-label={t("lessons.viewMode.list")}>
-            <button
+            <Button variant="ghost"
               type="button"
               aria-label={t("lessons.viewMode.list")}
               aria-pressed={viewMode === "list"}
@@ -326,8 +325,8 @@ export function LessonsTab({
               onClick={() => setViewMode("list")}
             >
               <List size={14} aria-hidden="true" />
-            </button>
-            <button
+            </Button>
+            <Button variant="ghost"
               type="button"
               aria-label={t("lessons.viewMode.calendar")}
               aria-pressed={viewMode === "calendar"}
@@ -335,7 +334,7 @@ export function LessonsTab({
               onClick={() => setViewMode("calendar")}
             >
               <CalendarRange size={14} aria-hidden="true" />
-            </button>
+            </Button>
           </div>
         ) : null}
         {loading && lessons.length === 0 ? (
@@ -360,18 +359,10 @@ export function LessonsTab({
                 const showHighlight = unreadCount > 0 || isNewArrival;
 
                 return (
-                  <li
+                  <LessonCard
                     key={lesson.id}
-                    className={`lesson-card ${showHighlight ? "has-unread" : ""}`.trim()}
+                    className={showHighlight ? "has-unread" : ""}
                     onClick={() => onSelectLesson(lesson)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        onSelectLesson(lesson);
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
                   >
                     <div>
                       <strong>{lesson.subject || t("lessons.defaultTitle")}</strong>
@@ -390,12 +381,12 @@ export function LessonsTab({
                     <span className={`status-pill status-${lesson.status}`}>
                       {t(`common.status.${lesson.status}`)} 
                     </span>
-                  </li>
+                  </LessonCard>
                 );
               })}
             </ul>
             {lessons.length === 0 ? (
-              <p className="muted">{t("lessons.empty")}</p>
+              <EmptyState description={t("lessons.empty")} />
             ) : null}
           </>
         )}

@@ -2,6 +2,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { useShare } from "../hooks/useShare";
 import { Lesson } from "../domain/lesson";
 import { AccountRole } from "../domain/account";
+import { Button } from "./ui/Button";
 
 type ShareButtonProps = {
   lesson: Lesson;
@@ -38,14 +39,8 @@ export function ShareButton({
   };
 
   return (
-    <button
-      type="button"
-      className={`share-button ${className}`.trim()}
-      onClick={handleShare}
-      disabled={!noteContent.trim()}
-      aria-label={t("common.actions.share")}
-    >
+    <Button className={`share-button ${className}`.trim()} onClick={handleShare} disabled={!noteContent.trim()} aria-label={t("common.actions.share")}>
       {t("common.actions.share")}
-    </button>
+    </Button>
   );
 }

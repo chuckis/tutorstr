@@ -11,6 +11,8 @@ import { EncryptedMessage } from "../hooks/hookTypes";
 import { RequestCard } from "./RequestCard";
 import { RequestDetailsView } from "./RequestDetailsView";
 import { Spinner } from "./Spinner";
+import { Button } from "./ui/Button";
+import { EmptyState } from "./ui/EmptyState";
 
 type RequestsTabProps = {
   viewModel: RequestsTabViewModel;
@@ -108,26 +110,18 @@ function RequestItemCard({
                 </button>
               ) : null}
               {item.canDecline ? (
-                <button
-                  type="button"
-                  className="ghost-action"
-                  onClick={() => onRespondToRequest(item.id, "rejected")}
-                >
+                <Button variant="ghost" onClick={() => onRespondToRequest(item.id, "rejected")}>
                   {t("requests.decline")}
-                </button>
+                </Button>
               ) : null}
             </div>
           ) : null}
           {item.canCancel ? (
-            <button
-              type="button"
-              className="ghost-action"
-              onClick={() => onCancelRequest(item.id)}
-            >
+            <Button variant="ghost" onClick={() => onCancelRequest(item.id)}>
               {variant === "outgoing"
                 ? t("common.buttons.cancel")
                 : t("requests.cancelRequest")}
-            </button>
+            </Button>
           ) : null}
         </>
       }
@@ -280,7 +274,7 @@ export function RequestsTab({
         <h2 className="sr-only">{t("requests.outgoing")}</h2>
       ) : (
         <div className="segmented">
-          <button
+          <Button variant="ghost"
             type="button"
             aria-label={t("requests.incoming")}
             className={requestSegment === "incoming" ? "active" : ""}
@@ -291,8 +285,8 @@ export function RequestsTab({
           >
             <Inbox size={18} aria-hidden="true" />
             <span className="sr-only">{t("requests.incoming")}</span>
-          </button>
-          <button
+          </Button>
+          <Button variant="ghost"
             type="button"
             aria-label={t("requests.outgoing")}
             className={requestSegment === "outgoing" ? "active" : ""}
@@ -303,18 +297,18 @@ export function RequestsTab({
           >
             <Send size={18} aria-hidden="true" />
             <span className="sr-only">{t("requests.outgoing")}</span>
-          </button>
+          </Button>
         </div>
       )}
 
       {viewModel.isEmpty && loading ? (
         <Spinner label={t("common.states.loading")} />
       ) : viewModel.isEmpty ? (
-        <p className="muted">
-          {isStudent
+        <EmptyState
+          description={isStudent
             ? t("requests.student.empty")
             : t("requests.empty")}
-        </p>
+        />
       ) : requestSegment === "incoming" && !isStudent ? (
         <IncomingRequestGroups
           groups={viewModel.incomingGroups}

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, DragEvent } from "react";
 import { useI18n } from "../i18n/I18nProvider";
+import { Button } from "./ui/Button";
 
 type FilePreview = {
   file: File;
@@ -158,7 +159,7 @@ export function MessageComposer({
                 <span className="chip-icon">FILE</span>
               )}
               <span className="chip-name">{entry.file.name}</span>
-              <button
+              <Button variant="ghost" size="sm"
                 type="button"
                 className="chip-remove"
                 onClick={() => removeFile(index)}
@@ -166,7 +167,7 @@ export function MessageComposer({
                 aria-label={t("common.actions.remove")}
               >
                 ×
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -192,7 +193,7 @@ export function MessageComposer({
           placeholder={t("common.messages.placeholder")}
           disabled={isUploading}
         />
-        <button
+        <Button variant="ghost" size="sm"
           type="button"
           className="composer-attach-btn"
           onClick={() => fileInputRef.current?.click()}
@@ -200,12 +201,12 @@ export function MessageComposer({
           aria-label={t("common.messages.attach")}
         >
           +
-        </button>
-        <button type="submit" disabled={!hasContent || isUploading || !canSendFiles}>
+        </Button>
+        <Button variant="primary" type="submit" disabled={!hasContent || isUploading || !canSendFiles}>
           {isUploading
             ? t("common.states.uploading")
             : t("common.buttons.sendMessage")}
-        </button>
+        </Button>
       </div>
 
       <input

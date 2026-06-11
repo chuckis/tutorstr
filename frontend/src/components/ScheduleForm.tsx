@@ -3,6 +3,8 @@ import { useI18n } from "../i18n/I18nProvider";
 import { TimeSlot, TutorSchedule } from "../hooks/hookTypes";
 import { addMinutesToDateTimeLocal } from "../utils/dateTimeLocal";
 import { isSlotInPast } from "../domain/TimeSlot";
+import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
 
 const emptySlot: TimeSlot = { start: "", end: "" };
 
@@ -55,32 +57,28 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
       </div>
 
       <div className="slot-row">
-        <label>
-          {t("schedule.start")}
-          <input
-            type="datetime-local"
-            value={newSlot.start}
-            onChange={(event) =>
-              setNewSlot({
-                start: event.target.value,
-                end: addMinutesToDateTimeLocal(event.target.value, 60),
-              })
-            }
-          />
-        </label>
-        <label>
-          {t("schedule.end")}
-          <input
-            type="datetime-local"
-            value={newSlot.end}
-            onChange={(event) =>
-              setNewSlot({ ...newSlot, end: event.target.value })
-            }
-          />
-        </label>
-        <button type="button" className="ghost" onClick={addSlot}>
+        <Input
+          label={t("schedule.start")}
+          type="datetime-local"
+          value={newSlot.start}
+          onChange={(event) =>
+            setNewSlot({
+              start: event.target.value,
+              end: addMinutesToDateTimeLocal(event.target.value, 60),
+            })
+          }
+        />
+        <Input
+          label={t("schedule.end")}
+          type="datetime-local"
+          value={newSlot.end}
+          onChange={(event) =>
+            setNewSlot({ ...newSlot, end: event.target.value })
+          }
+        />
+        <Button variant="ghost" onClick={addSlot}>
           {t("schedule.addSlot")}
-        </button>
+        </Button>
       </div>
 
       {visibleSlots.length > 0 ? (
@@ -90,13 +88,9 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
               <span>
                 {formatDateTime(slot.start)} → {formatDateTime(slot.end)}
               </span>
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => removeSlot(originalIndex)}
-              >
+              <Button variant="ghost" onClick={() => removeSlot(originalIndex)}>
                 {t("schedule.remove")}
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

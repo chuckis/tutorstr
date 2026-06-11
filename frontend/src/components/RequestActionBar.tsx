@@ -1,4 +1,5 @@
 import { useI18n } from "../i18n/I18nProvider";
+import { Button } from "./ui/Button";
 
 type RequestActionBarProps = {
   canAccept: boolean;
@@ -26,31 +27,19 @@ export function RequestActionBar({
   return (
     <div className="request-action-bar">
       {canAccept ? (
-        <button
-          type="button"
-          className="primary-action"
-          onClick={onAccept}
-        >
+        <Button variant="primary" onClick={onAccept}>
           {t("requests.accept")}
-        </button>
+        </Button>
       ) : null}
       {canDecline ? (
-        <button
-          type="button"
-          className="ghost-action"
-          onClick={onDecline}
-        >
+        <Button variant="ghost" onClick={onDecline}>
           {t("requests.decline")}
-        </button>
+        </Button>
       ) : null}
       {canCancel ? (
-        <button
-          type="button"
-          className="ghost-action"
-          onClick={onCancel}
-        >
+        <Button variant="ghost" onClick={onCancel}>
           {t("requests.cancelRequest")}
-        </button>
+        </Button>
       ) : null}
     </div>
   );

@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { BookingCard } from "./ui/BookingCard";
 
 type RequestCardProps = {
   children: ReactNode;
@@ -14,26 +15,20 @@ export function RequestCard({
   onOpen
 }: RequestCardProps) {
   return (
-    <li
-      className={`request-card ${className || ""}`.trim()}
-      onClick={onOpen}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onOpen();
-        }
-      }}
-      role="button"
-      tabIndex={0}
+    <BookingCard
+      onOpen={onOpen}
+      className={className}
+      footer={
+        <div
+          className="request-actions"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          {footer}
+        </div>
+      }
     >
       <div className="request-card-body">{children}</div>
-      <div
-        className="request-actions"
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => event.stopPropagation()}
-      >
-        {footer}
-      </div>
-    </li>
+    </BookingCard>
   );
 }
