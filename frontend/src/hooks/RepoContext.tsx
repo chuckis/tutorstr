@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useMemo } from "react";
+import { createContext, ReactNode, useContext, useEffect, useMemo } from "react";
 import { createNostrBookingEventsRepository } from "../adapters/nostr/bookingEventsRepository";
 import { createNostrLessonAgreementEventsRepository } from "../adapters/nostr/lessonAgreementEventsRepository";
 import { createNostrPrivateMessagingRepository } from "../adapters/nostr/privateMessagingRepository";
@@ -9,6 +9,7 @@ import { createNostrPublicLessonRepository } from "../adapters/nostr/publicLesso
 import { createNostrRelayManager } from "../adapters/nostr/relayManager";
 import { createNostrLessonNoteRepository } from "../adapters/nostr/lessonNoteRepository";
 import { blossomMediaRepository } from "../adapters/nostr/blossomMediaRepository";
+import { startGlobalSubscription, stopGlobalSubscription } from "../adapters/nostr/subscriptionManager";
 import { BookingEventsRepository } from "../ports/bookingEventsRepository";
 import { LessonAgreementEventsRepository } from "../ports/lessonAgreementEventsRepository";
 import { PrivateMessagingRepository } from "../ports/privateMessagingRepository";
@@ -54,6 +55,12 @@ export function RepoProvider({ children }: { children: ReactNode }) {
     }),
     []
   );
+
+  // ── Global Nostr subscription (single bus for all event kinds) ──
+  useEffect(() => {
+    startGlobalSubscription();
+    return () => stopGlobalSubscription();
+  }, []);
 
   return <RepoContext.Provider value={value}>{children}</RepoContext.Provider>;
 }

@@ -1,0 +1,35 @@
+import { nostrClient } from "../../nostr/client";
+import { TutorHubKind } from "../../nostr/kinds";
+import { emitEvent } from "./eventBus";
+
+const ALL_KINDS = [
+  TutorHubKind.DirectMessage,     // 4
+  TutorHubKind.Profile,           // 30000
+  TutorHubKind.TutorSchedule,     // 30001
+  TutorHubKind.BookingRequest,    // 30002
+  TutorHubKind.BookingStatus,     // 30003
+  TutorHubKind.StudentProgress,   // 30004
+  TutorHubKind.LessonAgreement,   // 30006
+];
+
+let shutdown: (() => void) | null = null;
+
+export function startGlobalSubscription(): void {
+  if (shutdown) return;
+
+  const unsubscribe = nostrClient.subscribe(
+    { kinds: ALL_KINDS, limit: 1000 },
+    (event) => {
+      emitEvent(event);
+    },
+  );
+
+  shutdown = () => {
+    unsubscribe();
+    shutdown = null;
+  };
+}
+
+export function stopGlobalSubscription(): void {
+  shutdown?.();
+}

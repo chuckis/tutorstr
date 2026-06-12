@@ -1,14 +1,11 @@
 import { PublicLessonRepository } from "../../ports/publicLessonRepository";
-import { nostrClient } from "../../nostr/client";
 import { TutorHubKind } from "../../nostr/kinds";
+import { addKindListener } from "./eventBus";
 
 export function createNostrPublicLessonRepository(): PublicLessonRepository {
   return {
-    subscribeAll(onEvent, options) {
-      return nostrClient.subscribe(
-        { kinds: [TutorHubKind.LessonAgreement], limit: options?.limit ?? 400 },
-        onEvent
-      );
-    }
+    subscribeAll(onEvent) {
+      return addKindListener(TutorHubKind.LessonAgreement, onEvent);
+    },
   };
 }

@@ -1,10 +1,10 @@
 import { fallbackDirectMessageThreadKey } from "../../domain/messageThread";
-import { PrivateMessagingRepository, AttachmentMessagePayload } from "../../ports/privateMessagingRepository";
+import { PrivateMessagingRepository, ProgressEntryEvent } from "../../ports/privateMessagingRepository";
 import { nostrClient } from "../../nostr/client";
+import { addKindListener } from "./eventBus";
 import { TutorHubKind } from "../../nostr/kinds";
 import { EncryptedMessage, MessageAttachment } from "../../domain/messaging";
 import { ProgressEntry } from "../../domain/progress";
-import { ProgressEntryEvent } from "../../ports/privateMessagingRepository";
 import { getTagValue } from "../../utils/nostrTags";
 
 function parseMessageContent(content: string): { text: string; attachments: MessageAttachment[] } {
@@ -37,7 +37,7 @@ function buildEncryptedMessage(
   senderPubkey: string,
   recipientPubkey: string,
   plaintext: string,
-  tags: string[][]
+  tags: string[][],
 ): EncryptedMessage {
   const threadKeyFromTag = getTagValue(tags, "thread");
   const fallback = fallbackDirectMessageThreadKey(recipientPubkey);
@@ -61,139 +61,80 @@ function buildEncryptedMessage(
 export function createNostrPrivateMessagingRepository(): PrivateMessagingRepository {
   return {
     subscribeMessagesForUser(pubkey, onMessage, since) {
-      const incoming = nostrClient.subscribe(
-        { kinds: [TutorHubKind.DirectMessage], "#p": [pubkey], since, limit: 200 },
-        async (event) => {
-          const plaintext = await nostrClient.decryptContent(
+      return addKindListener(TutorHubKind.DirectMessage, async (event) => {
+        if (since && event.created_at < since) return;
+
+        const isIncoming = getTagValue(event.tags, "p") === pubkey;
+        const isOutgoing = event.pubkey === pubkey;
+        if (!isIncoming && !isOutgoing) return;
+
+        const counterparty = isIncoming
+          ? event.pubkey
+          : getTagValue(event.tags, "p") || "";
+
+        const plaintext = await nostrClient.decryptContent(
+          counterparty,
+          event.content,
+        );
+        if (!plaintext) return;
+
+        onMessage(
+          buildEncryptedMessage(
+            event.id,
+            event.created_at,
             event.pubkey,
-            event.content
-          );
-          if (!plaintext) {
-            return;
-          }
-
-          onMessage(
-            buildEncryptedMessage(
-              event.id,
-              event.created_at,
-              event.pubkey,
-              event.pubkey,
-              plaintext,
-              event.tags
-            )
-          );
-        }
-      );
-
-      const outgoing = nostrClient.subscribe(
-        { kinds: [TutorHubKind.DirectMessage], authors: [pubkey], since, limit: 200 },
-        async (event) => {
-          const recipient = getTagValue(event.tags, "p");
-          if (!recipient) {
-            return;
-          }
-
-          const plaintext = await nostrClient.decryptContent(
-            recipient,
-            event.content
-          );
-          if (!plaintext) {
-            return;
-          }
-
-          onMessage(
-            buildEncryptedMessage(
-              event.id,
-              event.created_at,
-              event.pubkey,
-              recipient,
-              plaintext,
-              event.tags
-            )
-          );
-        }
-      );
-
-      return () => {
-        incoming();
-        outgoing();
-      };
+            counterparty,
+            plaintext,
+            event.tags,
+          ),
+        );
+      });
     },
 
     subscribeProgressEntriesForUser(pubkey, onEntry) {
-      const incoming = nostrClient.subscribe(
-        { kinds: [TutorHubKind.StudentProgress], "#p": [pubkey], limit: 200 },
-        async (event) => {
-          const plaintext = await nostrClient.decryptContent(
-            event.pubkey,
-            event.content
-          );
-          if (!plaintext) {
-            return;
-          }
+      return addKindListener(TutorHubKind.StudentProgress, async (event) => {
+        const isIncoming = getTagValue(event.tags, "p") === pubkey;
+        const isOutgoing = event.pubkey === pubkey;
+        if (!isIncoming && !isOutgoing) return;
 
-          try {
-            const parsed = JSON.parse(plaintext) as ProgressEntry;
-            onEntry({
-              id: event.id,
-              created_at: event.created_at,
-              pubkey: event.pubkey,
-              counterparty: event.pubkey,
-              entry: parsed
-            });
-          } catch {
-            // ignore malformed payloads
-          }
+        const counterparty = isIncoming
+          ? event.pubkey
+          : getTagValue(event.tags, "p") || "";
+
+        const plaintext = await nostrClient.decryptContent(
+          counterparty,
+          event.content,
+        );
+        if (!plaintext) return;
+
+        try {
+          const parsed = JSON.parse(plaintext) as ProgressEntry;
+          onEntry({
+            id: event.id,
+            created_at: event.created_at,
+            pubkey: event.pubkey,
+            counterparty,
+            entry: parsed,
+          });
+        } catch {
+          // ignore malformed payloads
         }
-      );
-
-      const outgoing = nostrClient.subscribe(
-        { kinds: [TutorHubKind.StudentProgress], authors: [pubkey], limit: 200 },
-        async (event) => {
-          const recipient = getTagValue(event.tags, "p");
-          if (!recipient) {
-            return;
-          }
-
-          const plaintext = await nostrClient.decryptContent(
-            recipient,
-            event.content
-          );
-          if (!plaintext) {
-            return;
-          }
-
-          try {
-            const parsed = JSON.parse(plaintext) as ProgressEntry;
-            onEntry({
-              id: event.id,
-              created_at: event.created_at,
-              pubkey: event.pubkey,
-              counterparty: recipient,
-              entry: parsed
-            });
-          } catch {
-            // ignore malformed payloads
-          }
-        }
-      );
-
-      return () => {
-        incoming();
-        outgoing();
-      };
+      });
     },
 
     async sendMessage(recipientPubkey, text, threadKey) {
-      if (!text.trim()) {
-        return;
-      }
+      if (!text.trim()) return;
 
       await nostrClient.publishEncryptedEvent(
         TutorHubKind.DirectMessage,
         recipientPubkey,
         text,
-        [["thread", threadKey || fallbackDirectMessageThreadKey(recipientPubkey).threadKey]]
+        [
+          [
+            "thread",
+            threadKey || fallbackDirectMessageThreadKey(recipientPubkey).threadKey,
+          ],
+        ],
       );
     },
 
@@ -203,7 +144,12 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
         TutorHubKind.DirectMessage,
         recipientPubkey,
         content,
-        [["thread", threadKey || fallbackDirectMessageThreadKey(recipientPubkey).threadKey]]
+        [
+          [
+            "thread",
+            threadKey || fallbackDirectMessageThreadKey(recipientPubkey).threadKey,
+          ],
+        ],
       );
     },
 
@@ -211,8 +157,8 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
       await nostrClient.publishEncryptedEvent(
         TutorHubKind.StudentProgress,
         recipientPubkey,
-        JSON.stringify(entry)
+        JSON.stringify(entry),
       );
-    }
+    },
   };
 }

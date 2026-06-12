@@ -1,5 +1,6 @@
-import { describe, afterEach, expect, it, vi } from "vitest";
+import { describe, beforeEach, afterEach, expect, it, vi } from "vitest";
 import { createNostrLessonNoteRepository } from "../lessonNoteRepository";
+import { emitEvent, clearEventBus } from "../eventBus";
 import { nostrClient } from "../../../nostr/client";
 import type { NostrEvent } from "../../../nostr/client";
 
@@ -24,7 +25,7 @@ function makeEvent(overrides: Partial<NostrEvent> = {}): NostrEvent {
     pubkey: "author-1",
     created_at: 1715000000,
     kind: 30004,
-    tags: [],
+    tags: [["p", "pubkey-test"]],
     content: "encrypted",
     sig: "sig",
     ...overrides,
@@ -32,64 +33,17 @@ function makeEvent(overrides: Partial<NostrEvent> = {}): NostrEvent {
 }
 
 describe("createNostrLessonNoteRepository subscribe", () => {
+  beforeEach(() => {
+    clearEventBus();
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it("creates two subscriptions: one by #p and one by authors", () => {
+  it("delivers decrypted notes matching lessonId", async () => {
     const repo = createNostrLessonNoteRepository();
     const onNote = vi.fn();
-    const onReady = vi.fn();
-
-    vi.mocked(nostrClient.subscribe)
-      .mockReturnValueOnce(() => {})
-      .mockReturnValueOnce(() => {});
-
-    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote, onReady);
-
-    expect(nostrClient.subscribe).toHaveBeenCalledTimes(2);
-
-    const [filter1] = vi.mocked(nostrClient.subscribe).mock.calls[0];
-    expect(filter1.kinds).toEqual([30004]);
-    expect((filter1 as Record<string, string[]>)["#p"]).toEqual(["pubkey-test"]);
-
-    const [filter2] = vi.mocked(nostrClient.subscribe).mock.calls[1];
-    expect(filter2.kinds).toEqual([30004]);
-    expect((filter2 as Record<string, string[]>).authors).toEqual(["pubkey-test"]);
-  });
-
-  it("fires onReady only after both subscriptions EOSE", () => {
-    const repo = createNostrLessonNoteRepository();
-    const onNote = vi.fn();
-    const onReady = vi.fn();
-
-    let eose1: (() => void) | undefined;
-    let eose2: (() => void) | undefined;
-
-    vi.mocked(nostrClient.subscribe).mockImplementation((_filter, _onEvent, options) => {
-      if (!eose1) {
-        eose1 = options?.onEose;
-      } else {
-        eose2 = options?.onEose;
-      }
-      return () => {};
-    });
-
-    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote, onReady);
-
-    expect(onReady).not.toHaveBeenCalled();
-
-    eose1!();
-    expect(onReady).not.toHaveBeenCalled();
-
-    eose2!();
-    expect(onReady).toHaveBeenCalledOnce();
-  });
-
-  it("forwards decrypted events matching the lessonId to onNote", async () => {
-    const repo = createNostrLessonNoteRepository();
-    const onNote = vi.fn();
-    const onReady = vi.fn();
 
     const eventPayload = JSON.stringify({
       type: "lesson_note",
@@ -99,15 +53,10 @@ describe("createNostrLessonNoteRepository subscribe", () => {
     });
 
     vi.mocked(nostrClient.decryptContent).mockResolvedValue(eventPayload);
-    vi.mocked(nostrClient.subscribe).mockImplementation((_filter, onEvent, options) => {
-      setImmediate(() => {
-        onEvent(makeEvent({ id: "event-1", pubkey: "tutor-1" }));
-        setImmediate(() => options?.onEose?.());
-      });
-      return () => {};
-    });
 
-    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote, onReady);
+    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote);
+
+    emitEvent(makeEvent({ id: "event-1", pubkey: "tutor-1" }));
 
     await vi.waitFor(() => {
       expect(onNote).toHaveBeenCalledOnce();
@@ -122,7 +71,6 @@ describe("createNostrLessonNoteRepository subscribe", () => {
   it("ignores events with a different lessonId", async () => {
     const repo = createNostrLessonNoteRepository();
     const onNote = vi.fn();
-    const onReady = vi.fn();
 
     const eventPayload = JSON.stringify({
       type: "lesson_note",
@@ -131,27 +79,21 @@ describe("createNostrLessonNoteRepository subscribe", () => {
     });
 
     vi.mocked(nostrClient.decryptContent).mockResolvedValue(eventPayload);
-    vi.mocked(nostrClient.subscribe).mockImplementation((_filter, onEvent, options) => {
-      setImmediate(() => {
-        onEvent(makeEvent({ id: "event-2", pubkey: "tutor-1" }));
-        setImmediate(() => options?.onEose?.());
-      });
-      return () => {};
-    });
 
-    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote, onReady);
+    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote);
+
+    emitEvent(makeEvent({ id: "event-2", pubkey: "tutor-1" }));
 
     await vi.waitFor(() => {
-      expect(onReady).toHaveBeenCalledOnce();
+      expect(nostrClient.decryptContent).toHaveBeenCalled();
     });
 
     expect(onNote).not.toHaveBeenCalled();
   });
 
-  it("deduplicates the same event when both subscriptions fire it", async () => {
+  it("deduplicates events with the same id", async () => {
     const repo = createNostrLessonNoteRepository();
     const onNote = vi.fn();
-    const onReady = vi.fn();
 
     const eventPayload = JSON.stringify({
       type: "lesson_note",
@@ -160,30 +102,22 @@ describe("createNostrLessonNoteRepository subscribe", () => {
     });
 
     vi.mocked(nostrClient.decryptContent).mockResolvedValue(eventPayload);
-    vi.mocked(nostrClient.subscribe).mockImplementation((_filter, onEvent, options) => {
-      const evt = makeEvent({ id: "event-shared" });
-      setImmediate(() => {
-        onEvent(evt);
-        setImmediate(() => options?.onEose?.());
-      });
-      return () => {};
-    });
 
-    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote, onReady);
+    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote);
 
+    // Emit the same event twice — eventBus deduplicates by id
+    emitEvent(makeEvent({ id: "event-shared" }));
+    emitEvent(makeEvent({ id: "event-shared" }));
+
+    // Wait for decrypt to settle
     await vi.waitFor(() => {
-      expect(onReady).toHaveBeenCalledOnce();
+      expect(onNote).toHaveBeenCalledOnce();
     });
-
-    // Even though both subscriptions fire the same event id,
-    // the handleEvent's shared seen set should deduplicate.
-    expect(onNote).toHaveBeenCalledOnce();
   });
 
   it("ignores malformed (non-lesson_note) events", async () => {
     const repo = createNostrLessonNoteRepository();
     const onNote = vi.fn();
-    const onReady = vi.fn();
 
     const malformedPayload = JSON.stringify({
       type: "progress_entry",
@@ -191,37 +125,69 @@ describe("createNostrLessonNoteRepository subscribe", () => {
     });
 
     vi.mocked(nostrClient.decryptContent).mockResolvedValue(malformedPayload);
-    vi.mocked(nostrClient.subscribe).mockImplementation((_filter, onEvent, options) => {
-      setImmediate(() => {
-        onEvent(makeEvent({ id: "event-progress", pubkey: "tutor-1" }));
-        setImmediate(() => options?.onEose?.());
-      });
-      return () => {};
-    });
 
-    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote, onReady);
+    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote);
+
+    emitEvent(makeEvent({ id: "event-progress", pubkey: "tutor-1" }));
 
     await vi.waitFor(() => {
-      expect(onReady).toHaveBeenCalledOnce();
+      expect(nostrClient.decryptContent).toHaveBeenCalled();
     });
 
     expect(onNote).not.toHaveBeenCalled();
   });
 
-  it("returns a combined unsubscribe function that closes both subscriptions", () => {
+  it("filters out events not addressed to or authored by the user", async () => {
     const repo = createNostrLessonNoteRepository();
-    const unsub1 = vi.fn();
-    const unsub2 = vi.fn();
+    const onNote = vi.fn();
 
-    vi.mocked(nostrClient.subscribe)
-      .mockReturnValueOnce(unsub1)
-      .mockReturnValueOnce(unsub2);
+    vi.mocked(nostrClient.decryptContent).mockResolvedValue(
+      JSON.stringify({ type: "lesson_note", lessonId: "lesson-1", content: "ok" }),
+    );
 
-    const unsubscribe = repo.subscribeNotesForLesson("lesson-1", "pubkey-test", vi.fn());
+    repo.subscribeNotesForLesson("lesson-1", "pubkey-test", onNote);
+
+    // Not addressed to pubkey-test, not authored by pubkey-test
+    emitEvent(
+      makeEvent({
+        id: "event-unrelated",
+        tags: [["p", "someone-else"]],
+      }),
+    );
+
+    // Give async decrypt time to settle
+    await vi.waitFor(() => {
+      expect(nostrClient.decryptContent).not.toHaveBeenCalled();
+    });
+
+    expect(onNote).not.toHaveBeenCalled();
+  });
+
+  it("returns an unsubscribe function that stops delivery", async () => {
+    const repo = createNostrLessonNoteRepository();
+    const onNote = vi.fn();
+
+    const eventPayload = JSON.stringify({
+      type: "lesson_note",
+      lessonId: "lesson-1",
+      content: "After unsubscribe",
+    });
+
+    vi.mocked(nostrClient.decryptContent).mockResolvedValue(eventPayload);
+
+    const unsubscribe = repo.subscribeNotesForLesson(
+      "lesson-1",
+      "pubkey-test",
+      onNote,
+    );
 
     unsubscribe();
 
-    expect(unsub1).toHaveBeenCalledOnce();
-    expect(unsub2).toHaveBeenCalledOnce();
+    emitEvent(makeEvent({ id: "event-after" }));
+
+    // Small delay to ensure the event wasn't delivered
+    await vi.waitFor(() => {
+      expect(onNote).not.toHaveBeenCalled();
+    });
   });
 });

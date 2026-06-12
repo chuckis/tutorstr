@@ -66,42 +66,48 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
       }
     }
 
+    let profileReceived = false;
+
     const unsubscribe = profileEventRepository.subscribe(
       pubkey,
       (event) => {
         try {
           const parsed = normalizeProfile(
-            JSON.parse(event.content) as UserProfile
+            JSON.parse(event.content) as UserProfile,
           );
           latestProfileRef.current = parsed;
           setProfile(parsed);
           localStorage.setItem(profileStorageKey, JSON.stringify(parsed));
           setLastEventId(event.id);
           setLoading(false);
+          profileReceived = true;
         } catch {
           // ignore malformed content
         }
       },
-      {
-        limit: 1,
-        onEose: () => {
-          setLoading(false);
-
-          if (autoPublishStartedRef.current) {
-            return;
-          }
-
-          autoPublishStartedRef.current = true;
-          const profileForPublish = { ...latestProfileRef.current };
-          if (viewerRole) {
-            profileForPublish.role = viewerRole;
-          }
-          void publishProfile(profileForPublish);
-        }
-      }
     );
 
-    return () => unsubscribe();
+    // After the synchronous store replay, check if we got a profile.
+    // If not — auto-publish (new user, no profile on relay yet).
+    const timer = setTimeout(() => {
+      setLoading(false);
+
+      if (profileReceived || autoPublishStartedRef.current) {
+        return;
+      }
+
+      autoPublishStartedRef.current = true;
+      const profileForPublish = { ...latestProfileRef.current };
+      if (viewerRole) {
+        profileForPublish.role = viewerRole;
+      }
+      void publishProfile(profileForPublish);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, [pubkey]);
 
   async function publishProfile(nextProfile: UserProfile) {
@@ -111,7 +117,7 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
       const eventId = await profileEventRepository.publish(
         pubkey,
         JSON.stringify(nextProfile),
-        buildProfileTags(nextProfile)
+        buildProfileTags(nextProfile),
       );
       localStorage.setItem(`tutorhub:profile:${pubkey}`, JSON.stringify(nextProfile));
       latestProfileRef.current = nextProfile;
@@ -120,7 +126,7 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
       setStatus(t("profile.form.publish"));
     } catch (error) {
       setStatus(
-        toLocalizedErrorMessage(error, t) || t("profile.form.publish")
+        toLocalizedErrorMessage(error, t) || t("profile.form.publish"),
       );
     }
   }
@@ -131,6 +137,6 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
     status,
     loading,
     lastEventId,
-    publishProfile
+    publishProfile,
   };
 }

@@ -1,8 +1,8 @@
-import { BookingEventsRepository } from "../../ports/bookingEventsRepository";
+import { BookingEventsRepository, BookingRequestEvent, BookingStatusPayload, BookingStatusEvent } from "../../ports/bookingEventsRepository";
 import { TutorHubKind } from "../../nostr/kinds";
 import { nostrClient } from "../../nostr/client";
+import { addKindListener } from "./eventBus";
 import { BookingRequest } from "../../domain/booking";
-import { BookingRequestEvent, BookingStatusPayload, BookingStatusEvent } from "../../ports/bookingEventsRepository";
 import { getTagValue } from "../../utils/nostrTags";
 import { makeSlotAllocationKey } from "../../domain/slotAllocation";
 
@@ -29,8 +29,8 @@ function toBookingRequestEvent(
     tutorPubkey: getTagValue(tags, "p") || fallbackTutorPubkey,
     request: {
       ...parsed,
-      bookingId
-    }
+      bookingId,
+    },
   };
 }
 
@@ -51,106 +51,80 @@ function toBookingStatusEvent(
     studentPubkey: getTagValue(tags, "p") || fallbackStudentPubkey,
     status: {
       ...parsed,
-      bookingId
-    }
+      bookingId,
+    },
   };
 }
 
 export function createNostrBookingEventsRepository(): BookingEventsRepository {
   return {
     subscribeRequestsForTutor(pubkey, onRequest, since) {
-      return nostrClient.subscribe(
-        { kinds: [TutorHubKind.BookingRequest], "#p": [pubkey], since, limit: 5 },
-        (event) => {
-          try {
-            const parsed = JSON.parse(event.content) as BookingRequest;
-            onRequest(
-              toBookingRequestEvent(
-                event.pubkey,
-                pubkey,
-                event.id,
-                event.created_at,
-                event.tags,
-                parsed
-              )
-            );
-          } catch {
-            // ignore malformed content
-          }
+      return addKindListener(TutorHubKind.BookingRequest, (event) => {
+        if (since && event.created_at < since) return;
+        const tutorPubkey = getTagValue(event.tags, "p");
+        if (tutorPubkey !== pubkey) return;
+        try {
+          const parsed = JSON.parse(event.content) as BookingRequest;
+          onRequest(
+            toBookingRequestEvent(
+              event.pubkey,
+              pubkey,
+              event.id,
+              event.created_at,
+              event.tags,
+              parsed,
+            ),
+          );
+        } catch {
+          // ignore malformed content
         }
-      );
+      });
     },
 
-    subscribeRequestsByUser(pubkey, onRequest) {
-      return nostrClient.subscribe(
-        { kinds: [TutorHubKind.BookingRequest], authors: [pubkey], limit: 200 },
-        (event) => {
-          try {
-            const parsed = JSON.parse(event.content) as BookingRequest;
-            onRequest(
-              toBookingRequestEvent(
-                event.pubkey,
-                "",
-                event.id,
-                event.created_at,
-                event.tags,
-                parsed
-              )
-            );
-          } catch {
-            // ignore malformed content
-          }
+    subscribeRequestsByUser(pubkey, onRequest, since) {
+      return addKindListener(TutorHubKind.BookingRequest, (event) => {
+        if (since && event.created_at < since) return;
+        if (event.pubkey !== pubkey) return;
+        try {
+          const parsed = JSON.parse(event.content) as BookingRequest;
+          onRequest(
+            toBookingRequestEvent(
+              event.pubkey,
+              "",
+              event.id,
+              event.created_at,
+              event.tags,
+              parsed,
+            ),
+          );
+        } catch {
+          // ignore malformed content
         }
-      );
+      });
     },
 
     subscribeStatusesForUser(pubkey, onStatus, since) {
-      const incoming = nostrClient.subscribe(
-        { kinds: [TutorHubKind.BookingStatus], "#p": [pubkey], since, limit: 200 },
-        (event) => {
-          try {
-            const parsed = JSON.parse(event.content) as BookingStatusPayload;
-            onStatus(
-              toBookingStatusEvent(
-                event.pubkey,
-                pubkey,
-                event.id,
-                event.created_at,
-                event.tags,
-                parsed
-              )
-            );
-          } catch {
-            // ignore malformed content
-          }
+      return addKindListener(TutorHubKind.BookingStatus, (event) => {
+        if (since && event.created_at < since) return;
+        const isMentioned = getTagValue(event.tags, "p") === pubkey;
+        const isAuthor = event.pubkey === pubkey;
+        if (!isMentioned && !isAuthor) return;
+        try {
+          const parsed = JSON.parse(event.content) as BookingStatusPayload;
+          onStatus(
+            toBookingStatusEvent(
+              event.pubkey,
+              pubkey,
+              event.id,
+              event.created_at,
+              event.tags,
+              parsed,
+            ),
+          );
+        } catch {
+          // ignore malformed content
         }
-      );
-
-      const authored = nostrClient.subscribe(
-        { kinds: [TutorHubKind.BookingStatus], authors: [pubkey], since, limit: 200 },
-        (event) => {
-          try {
-            const parsed = JSON.parse(event.content) as BookingStatusPayload;
-            onStatus(
-              toBookingStatusEvent(
-                event.pubkey,
-                pubkey,
-                event.id,
-                event.created_at,
-                event.tags,
-                parsed
-              )
-            );
-          } catch {
-            // ignore malformed content
-          }
-        }
-      );
-
-      return () => {
-        incoming();
-        authored();
-      };
+      });
     },
 
     async publishBookingRequest(currentPubkey, tutorPubkey, payload) {
@@ -161,20 +135,20 @@ export function createNostrBookingEventsRepository(): BookingEventsRepository {
       const request: BookingRequest = {
         ...payload,
         bookingId,
-        slotAllocationKey
+        slotAllocationKey,
       };
       const tags: string[][] = [
         ["p", tutorPubkey],
         ["t", "booking:request"],
         ["d", bookingId],
         ["slot", slotAllocationKey],
-        ["student", currentPubkey]
+        ["student", currentPubkey],
       ];
 
       await nostrClient.publishEvent(
         TutorHubKind.BookingRequest,
         JSON.stringify(request),
-        tags
+        tags,
       );
 
       return bookingId;
@@ -182,17 +156,16 @@ export function createNostrBookingEventsRepository(): BookingEventsRepository {
 
     async publishBookingStatus(studentPubkey, payload) {
       const status: BookingStatusPayload = {
-
         bookingId: payload.bookingId,
         status: payload.status,
         note: payload.note,
         reason: payload.reason,
-        slotAllocationKey: payload.slotAllocationKey
+        slotAllocationKey: payload.slotAllocationKey,
       };
       const tags: string[][] = [
         ["p", studentPubkey],
         ["t", "booking:status"],
-        ["d", payload.bookingId]
+        ["d", payload.bookingId],
       ];
       if (payload.slotAllocationKey) {
         tags.push(["slot", payload.slotAllocationKey]);
@@ -201,8 +174,8 @@ export function createNostrBookingEventsRepository(): BookingEventsRepository {
       await nostrClient.publishReplaceableEvent(
         TutorHubKind.BookingStatus,
         JSON.stringify(status),
-        tags
+        tags,
       );
-    }
+    },
   };
 }
