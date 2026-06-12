@@ -304,17 +304,6 @@ export function useAppController(
     }
 
     await actions.respondToBooking(request, nextStatus);
-
-    if (nextStatus === "accepted") {
-      notification.success(t("common.notifications.lessonConfirmed"), {
-        action: {
-          label: t("common.notifications.view"),
-          onClick: () => navigation.setActiveTab("lessons"),
-        },
-      });
-    } else {
-      notification.info(t("common.notifications.bookingRejected"));
-    }
   }
 
   async function cancelRequestById(requestId: string) {
@@ -325,7 +314,6 @@ export function useAppController(
     }
 
     await actions.cancelRequestFromStudent(request);
-    notification.info(t("common.notifications.bookingCancelled"));
   }
 
   return {
