@@ -28,15 +28,18 @@ export type BookingStatusEvent = {
 export interface BookingEventsRepository {
   subscribeRequestsForTutor(
     pubkey: string,
-    onRequest: (request: BookingRequestEvent) => void
+    onRequest: (request: BookingRequestEvent) => void,
+    since?: number
   ): () => void;
   subscribeRequestsByUser(
     pubkey: string,
-    onRequest: (request: BookingRequestEvent) => void
+    onRequest: (request: BookingRequestEvent) => void,
+    since?: number
   ): () => void;
   subscribeStatusesForUser(
     pubkey: string,
-    onStatus: (status: BookingStatusEvent) => void
+    onStatus: (status: BookingStatusEvent) => void,
+    since?: number
   ): () => void;
   publishBookingRequest(
     currentPubkey: string,

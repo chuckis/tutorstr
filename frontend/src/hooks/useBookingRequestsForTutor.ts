@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { BookingRequestEvent } from "../ports/bookingEventsRepository";
 import { useBookingEventsRepository } from "./useBookingEventsRepository";
+import { getNotificationSince } from "../utils/notificationCursor";
 
 const LOAD_TIMEOUT = 8000;
 
@@ -15,6 +16,7 @@ export function useBookingRequestsForTutor(pubkey: string) {
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), LOAD_TIMEOUT);
 
+    const since = getNotificationSince();
     const unsubscribe = bookingEventsRepository.subscribeRequestsForTutor(
       pubkey,
       (request) => {
@@ -30,7 +32,8 @@ export function useBookingRequestsForTutor(pubkey: string) {
         });
         setLoading(false);
         clearTimeout(timer);
-      }
+      },
+      since
     );
 
     return () => {

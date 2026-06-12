@@ -60,9 +60,9 @@ function buildEncryptedMessage(
 
 export function createNostrPrivateMessagingRepository(): PrivateMessagingRepository {
   return {
-    subscribeMessagesForUser(pubkey, onMessage) {
+    subscribeMessagesForUser(pubkey, onMessage, since) {
       const incoming = nostrClient.subscribe(
-        { kinds: [TutorHubKind.DirectMessage], "#p": [pubkey], limit: 200 },
+        { kinds: [TutorHubKind.DirectMessage], "#p": [pubkey], since, limit: 200 },
         async (event) => {
           const plaintext = await nostrClient.decryptContent(
             event.pubkey,
@@ -86,7 +86,7 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
       );
 
       const outgoing = nostrClient.subscribe(
-        { kinds: [TutorHubKind.DirectMessage], authors: [pubkey], limit: 200 },
+        { kinds: [TutorHubKind.DirectMessage], authors: [pubkey], since, limit: 200 },
         async (event) => {
           const recipient = getTagValue(event.tags, "p");
           if (!recipient) {

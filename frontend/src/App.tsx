@@ -13,6 +13,7 @@ import { useAppController } from "./hooks/useAppController";
 import { useBlossomConfig } from "./hooks/useBlossomConfig";
 import { RepoProvider } from "./hooks/RepoContext";
 import { NotificationProvider } from "./hooks/NotificationContext";
+import { useNotificationCursor } from "./hooks/useNotificationCursor";
 import { useI18n } from "./i18n/I18nProvider";
 import { useTheme } from "./theme/ThemeProvider";
 import { UIKitPage } from "./components/UIKitPage";
@@ -95,6 +96,7 @@ type AuthenticatedAppProps = {
 function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: AuthenticatedAppProps) {
   const { t } = useI18n();
   const [showUIKit] = useState(() => typeof window !== 'undefined' && window.location.hash === '#ui-kit');
+  useNotificationCursor();
   const { theme, toggleTheme } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus } = useBlossomConfig();

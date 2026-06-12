@@ -58,9 +58,9 @@ function toBookingStatusEvent(
 
 export function createNostrBookingEventsRepository(): BookingEventsRepository {
   return {
-    subscribeRequestsForTutor(pubkey, onRequest) {
+    subscribeRequestsForTutor(pubkey, onRequest, since) {
       return nostrClient.subscribe(
-        { kinds: [TutorHubKind.BookingRequest], "#p": [pubkey], limit: 5 },
+        { kinds: [TutorHubKind.BookingRequest], "#p": [pubkey], since, limit: 5 },
         (event) => {
           try {
             const parsed = JSON.parse(event.content) as BookingRequest;
@@ -104,9 +104,9 @@ export function createNostrBookingEventsRepository(): BookingEventsRepository {
       );
     },
 
-    subscribeStatusesForUser(pubkey, onStatus) {
+    subscribeStatusesForUser(pubkey, onStatus, since) {
       const incoming = nostrClient.subscribe(
-        { kinds: [TutorHubKind.BookingStatus], "#p": [pubkey], limit: 200 },
+        { kinds: [TutorHubKind.BookingStatus], "#p": [pubkey], since, limit: 200 },
         (event) => {
           try {
             const parsed = JSON.parse(event.content) as BookingStatusPayload;
@@ -127,7 +127,7 @@ export function createNostrBookingEventsRepository(): BookingEventsRepository {
       );
 
       const authored = nostrClient.subscribe(
-        { kinds: [TutorHubKind.BookingStatus], authors: [pubkey], limit: 200 },
+        { kinds: [TutorHubKind.BookingStatus], authors: [pubkey], since, limit: 200 },
         (event) => {
           try {
             const parsed = JSON.parse(event.content) as BookingStatusPayload;

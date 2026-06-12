@@ -167,7 +167,7 @@ export function useAppController(
       for (const msg of messages) {
         if (
           !prevMsgIds.current.has(msg.id) &&
-          msg.counterparty !== keypair.pubkey
+          msg.pubkey !== keypair.pubkey
         ) {
           notification.info(t("common.notifications.newMessage"), {
             dedupKey: `msg:${msg.id}`,
@@ -186,6 +186,7 @@ export function useAppController(
     if (prevStatusKeys.current.size > 0) {
       for (const statusEvent of bookingsState.statusesList) {
         if (prevStatusKeys.current.has(statusEvent.id)) continue;
+        if (statusEvent.pubkey === keypair.pubkey) continue;
 
         const status: BookingStatusPayload = statusEvent.status;
         const booking = [...bookingsState.incoming, ...bookingsState.outgoing].find(

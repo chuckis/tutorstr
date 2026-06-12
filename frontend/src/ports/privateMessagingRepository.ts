@@ -17,7 +17,8 @@ export type AttachmentMessagePayload = {
 export interface PrivateMessagingRepository {
   subscribeMessagesForUser(
     pubkey: string,
-    onMessage: (message: EncryptedMessage) => void
+    onMessage: (message: EncryptedMessage) => void,
+    since?: number
   ): () => void;
   subscribeProgressEntriesForUser(
     pubkey: string,
