@@ -7,6 +7,7 @@ import progressEn from "../locales/en/progress.json";
 import profileEn from "../locales/en/profile.json";
 import requestsEn from "../locales/en/requests.json";
 import scheduleEn from "../locales/en/schedule.json";
+import blogEn from "../locales/en/blog.json";
 import accountUk from "../locales/uk/account.json";
 import authUk from "../locales/uk/auth.json";
 import commonUk from "../locales/uk/common.json";
@@ -16,6 +17,7 @@ import progressUk from "../locales/uk/progress.json";
 import profileUk from "../locales/uk/profile.json";
 import requestsUk from "../locales/uk/requests.json";
 import scheduleUk from "../locales/uk/schedule.json";
+import blogUk from "../locales/uk/blog.json";
 import accountRu from "../locales/ru/account.json";
 import authRu from "../locales/ru/auth.json";
 import commonRu from "../locales/ru/common.json";
@@ -25,6 +27,7 @@ import progressRu from "../locales/ru/progress.json";
 import profileRu from "../locales/ru/profile.json";
 import requestsRu from "../locales/ru/requests.json";
 import scheduleRu from "../locales/ru/schedule.json";
+import blogRu from "../locales/ru/blog.json";
 import { AppLocale } from "../domain/locale";
 
 export const resources: Record<AppLocale, Record<string, unknown>> = {
@@ -37,7 +40,8 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     schedule: scheduleEn,
     requests: requestsEn,
     lessons: lessonsEn,
-    progress: progressEn
+    progress: progressEn,
+    blog: blogEn
   },
   uk: {
     account: accountUk,
@@ -48,7 +52,8 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     schedule: scheduleUk,
     requests: requestsUk,
     lessons: lessonsUk,
-    progress: progressUk
+    progress: progressUk,
+    blog: blogUk
   },
   ru: {
     account: accountRu,
@@ -59,6 +64,7 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     schedule: scheduleRu,
     requests: requestsRu,
     lessons: lessonsRu,
-    progress: progressRu
+    progress: progressRu,
+    blog: blogRu
   }
 };

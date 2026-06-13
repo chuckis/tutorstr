@@ -18,7 +18,10 @@
   },
   "actions": {
     "share": "Share",
-    "remove": "Remove"
+    "remove": "Remove",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "buttons": {
     "back": "Back",

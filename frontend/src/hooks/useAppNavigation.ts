@@ -3,6 +3,7 @@ import { AccountRole } from "../domain/account";
 import { effectiveRequestSegment } from "../application/account/requestSegment";
 import { Booking } from "../domain/booking";
 import { Lesson } from "../domain/lesson";
+import { BlogPost } from "../domain/blog";
 import { UserProfileEvent } from "../ports/eventTypes";
 
 export type MainTab = "discover" | "requests" | "lessons" | "profile";
@@ -14,6 +15,11 @@ export type SelectedRequestData = {
   segment: RequestSegment;
 };
 
+export type SelectedBlogPostData = {
+  post: BlogPost;
+  authorId: string;
+};
+
 export function useAppNavigation(role: AccountRole = "tutor") {
   const [activeTab, setActiveTab] = useState<MainTab>("discover");
   const [storedRequestSegment, setStoredRequestSegment] =
@@ -22,13 +28,19 @@ export function useAppNavigation(role: AccountRole = "tutor") {
   const [selectedTutor, setSelectedTutor] = useState<UserProfileEvent | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<SelectedRequestData | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [selectedBlogPost, setSelectedBlogPost] = useState<SelectedBlogPostData | null>(null);
+  const [myBlogOpen, setMyBlogOpen] = useState<boolean>(false);
+  const [blogEditorDraftId, setBlogEditorDraftId] = useState<string | null | undefined>(undefined);
   const [pendingReturnRequest, setPendingReturnRequest] = useState<SelectedRequestData | null>(null);
 
   const requestSegment = effectiveRequestSegment(role, storedRequestSegment);
-  const detailActive = selectedTutor !== null || selectedRequest !== null || selectedLesson !== null;
+  const detailActive = selectedTutor !== null || selectedRequest !== null || selectedLesson !== null || selectedBlogPost !== null || myBlogOpen || blogEditorDraftId !== undefined;
 
   function selectTab(tab: MainTab) {
     setActiveTab(tab);
+    setSelectedBlogPost(null);
+    setMyBlogOpen(false);
+    setBlogEditorDraftId(undefined);
 
     if (tab === "discover" || tab === "profile") {
       setSelectedLesson(null);
@@ -81,6 +93,12 @@ export function useAppNavigation(role: AccountRole = "tutor") {
     setSelectedRequest,
     selectedLesson,
     setSelectedLesson,
+    selectedBlogPost,
+    setSelectedBlogPost,
+    myBlogOpen,
+    setMyBlogOpen,
+    blogEditorDraftId,
+    setBlogEditorDraftId,
     detailActive,
     pendingReturnRequest,
     navigateToProfileFromRequest

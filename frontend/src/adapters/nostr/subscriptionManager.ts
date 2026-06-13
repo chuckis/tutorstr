@@ -10,6 +10,7 @@ const ALL_KINDS = [
   TutorHubKind.BookingStatus,     // 30003
   TutorHubKind.StudentProgress,   // 30004
   TutorHubKind.LessonAgreement,   // 30006
+  TutorHubKind.TutorBlogPost,    // 30005
 ];
 
 let shutdown: (() => void) | null = null;

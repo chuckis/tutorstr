@@ -78,18 +78,19 @@ Tags:
 - `["p", "<counterparty_npub>"]` (required)
 - Optional: `["t", "progress:log"]`
 
-## Kind 30005 — TutorBlogPost (public)
+## Kind 30005 — TutorBlogPost (public, replaceable)
 
-Purpose: Public blog post authored by a tutor.
+Purpose: Public blog post authored by a tutor. Uses NIP-23 compatible event
+shape.
 
-Content schema (JSON):
-- `title`: string
-- `body`: string (markdown)
-- `publishedAt`: string (ISO-8601)
+Content: Markdown body of the post (plain text, no JSON wrapping).
 
 Tags:
-- `["t", "role:tutor"]`
-- Optional: `["t", "blog"]`
+- `["d", "<stable-post-id>"]` (required, UUID v4 generated once at draft creation)
+- `["title", "Post title"]` (required)
+- `["summary", "Short description"]` (optional but recommended)
+- `["published_at", "<unix-timestamp-string>"]` (required, canonical publication time)
+- `["t", "<tag>"]` (optional, repeatable, max 7, normalized to lowercase+trim)
 
 ## Kind 30006 — LessonAgreement (public, replaceable per lesson)
 

@@ -21,6 +21,9 @@ import { StudentDetailView } from "./StudentDetailView";
 import { TutorCard } from "./TutorCard";
 import { Button } from "./ui/Button";
 import { EmptyState } from "./ui/EmptyState";
+import { useState } from "react";
+import { BlogPostList } from "./blog/BlogPostList";
+import { useTutorBlog } from "../hooks/useTutorBlog";
 
 type DiscoverTabProps = {
   selectedTutor: UserProfileEvent | null;
@@ -46,6 +49,7 @@ type DiscoverTabProps = {
   winnerByAllocationKey: Record<string, SlotOccupancy>;
   role: AccountRole;
   loading: boolean;
+  onSelectBlogPost?: (data: { post: any; authorId: string }) => void;
 };
 
 export function DiscoverTab({
@@ -67,6 +71,7 @@ export function DiscoverTab({
   winnerByAllocationKey,
   role,
   loading,
+  onSelectBlogPost,
 }: DiscoverTabProps) {
   const { t, formatDateTime, formatNumber } = useI18n();
   const isNewcomerProfile = isProfileEmpty(profile);
@@ -207,6 +212,15 @@ export function DiscoverTab({
           </div>
         </article>
 
+        <TutorBlogSection
+          tutorId={selectedTutor.pubkey}
+          onSelectPost={(post) => {
+            if (onSelectBlogPost) {
+              onSelectBlogPost({ post, authorId: selectedTutor.pubkey });
+            }
+          }}
+        />
+
       </DetailPageLayout>
     );
   }
@@ -245,5 +259,46 @@ export function DiscoverTab({
         )}
       </div>
     </section>
+  );
+}
+
+type TutorBlogSectionProps = {
+  tutorId: string;
+  onSelectPost: (post: any) => void;
+};
+
+function TutorBlogSection({ tutorId, onSelectPost }: TutorBlogSectionProps) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const { posts, loading } = useTutorBlog(tutorId);
+
+  const publishedPosts = posts.filter((p) => p.status === "published");
+
+  if (!open) {
+    return (
+      <article className="panel">
+        <Button variant="secondary" onClick={() => setOpen(true)}>
+          {t("blog.title")} ({publishedPosts.length})
+        </Button>
+      </article>
+    );
+  }
+
+  return (
+    <article className="panel">
+      <div className="stack">
+        <div className="blog-section-header">
+          <h3>{t("blog.title")}</h3>
+          <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+            {t("common.buttons.cancel")}
+          </Button>
+        </div>
+        <BlogPostList
+          posts={publishedPosts}
+          loading={loading}
+          onSelectPost={onSelectPost}
+        />
+      </div>
+    </article>
   );
 }

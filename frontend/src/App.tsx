@@ -18,6 +18,9 @@ import { useI18n } from "./i18n/I18nProvider";
 import { useTheme } from "./theme/ThemeProvider";
 import { UIKitPage } from "./components/UIKitPage";
 import { AccountRole } from "./domain/account";
+import { BlogEditorView } from "./components/blog/BlogEditorView";
+import { MyBlogView } from "./components/blog/MyBlogView";
+import { BlogPostView } from "./components/blog/BlogPostView";
 import { AuthSession } from "./domain/auth";
 import { authVaultRepository } from "./adapters/auth/localStorageVaultRepository";
 import { webCryptoVaultCipher } from "./adapters/auth/webCryptoVaultCipher";
@@ -102,6 +105,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
   const { blossomUrl, setBlossomUrl, uploadAvatar, uploadStatus } = useBlossomConfig();
   const {
     navigation,
+    blogState,
     relay,
     discoverStatus,
     messageStatus,
@@ -135,6 +139,40 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
   }, [uploadAvatar, profileState.profile, profileState.setProfile]);
 
   if (showUIKit) return <UIKitPage />;
+
+  // Blog views — highest priority in detail chain
+  if (navigation.blogEditorDraftId !== undefined) {
+    return (
+      <BlogEditorView
+        draftId={navigation.blogEditorDraftId}
+        role={viewerRole}
+        pubkey={keypair.pubkey}
+        onClose={() => navigation.setBlogEditorDraftId(undefined)}
+      />
+    );
+  }
+  if (navigation.myBlogOpen) {
+    return (
+      <MyBlogView
+        role={viewerRole}
+        pubkey={keypair.pubkey}
+        onBack={() => navigation.setMyBlogOpen(false)}
+        onNewPost={() => { navigation.setMyBlogOpen(false); navigation.setBlogEditorDraftId(null); }}
+        onEditDraft={(draftId) => { navigation.setMyBlogOpen(false); navigation.setBlogEditorDraftId(draftId); }}
+        onSelectPost={({ id, authorId }) => { navigation.setMyBlogOpen(false); navigation.setSelectedBlogPost({ post: { id, authorId } as any, authorId }); }}
+      />
+    );
+  }
+  if (navigation.selectedBlogPost) {
+    return (
+      <BlogPostView
+        post={navigation.selectedBlogPost.post}
+        authorId={navigation.selectedBlogPost.authorId}
+        onBack={() => navigation.setSelectedBlogPost(null)}
+      />
+    );
+  }
+
   return (
     <main className="app-shell">
       {!navigation.detailActive ? (
@@ -182,6 +220,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             }}
             role={viewerRole}
             loading={stateLoading.discover}
+            onSelectBlogPost={(data) => navigation.setSelectedBlogPost(data)}
           />
         ) : null}
 
@@ -273,6 +312,8 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             allLessons={lessonsState.lessons}
             bookingsIncoming={bookingsState.incoming}
             tutors={directoryState.tutors}
+            onOpenMyBlog={() => navigation.setMyBlogOpen(true)}
+            onNewPost={() => navigation.setBlogEditorDraftId(null)}
           />
         ) : null}
       </section>

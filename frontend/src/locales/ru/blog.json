@@ -1,0 +1,28 @@
+{
+  "title": "Блог",
+  "myBlog": "Мой блог",
+  "newPost": "Новый пост",
+  "publishedPosts": "Опубликованные посты",
+  "drafts": "Черновики",
+  "noPosts": "Пока нет постов",
+  "noDrafts": "Нет черновиков",
+  "publish": "Опубликовать",
+  "saveDraft": "Сохранить черновик",
+  "discard": "Отменить",
+  "deleteDraftConfirm": "Удалить этот черновик?",
+  "deletePostConfirm": "Будет отправлен запрос на удаление. Релеи могут не гарантировать удаление.",
+  "warnings": {
+    "draftsLocalOnly": "Черновики сохраняются только на этом устройстве и не синхронизируются."
+  },
+  "editor": {
+    "newPost": "Новый пост",
+    "editPost": "Редактировать пост",
+    "titlePlaceholder": "Заголовок поста",
+    "summaryPlaceholder": "Краткое описание (необязательно)",
+    "bodyPlaceholder": "Напишите в Markdown...",
+    "tagsPlaceholder": "Добавить тег, нажмите Enter"
+  },
+  "status": {
+    "deletion_requested": "Запрошено удаление"
+  }
+}

@@ -20,6 +20,8 @@ import { useTutorProfile } from "./useTutorProfile";
 import { useTutorSchedule } from "./useTutorSchedule";
 import { useTutorSchedules } from "./useTutorSchedules";
 import { useRelays } from "./useRelays";
+import { useTutorBlog } from "./useTutorBlog";
+import { useMyBlog } from "./useMyBlog";
 import { useI18n } from "../i18n/I18nProvider";
 import { useNotification } from "./NotificationContext";
 import { BookingStatusPayload } from "../ports/bookingEventsRepository";
@@ -61,6 +63,7 @@ export function useAppController(
   });
   const lessonsState = useLessons(keypair.pubkey);
   const messagesState = useEncryptedMessages(keypair.pubkey);
+  const blogState = useMyBlog(keypair.pubkey, viewerRole);
   const publicAllocationState = usePublicAllocatedSlots();
   const schedulesState = useTutorSchedules();
 
@@ -330,6 +333,7 @@ export function useAppController(
     publicAllocationState,
     lessonsState,
     messagesState,
+    blogState,
     lessonNoteState,
     messageIndicators,
     stateLoading,

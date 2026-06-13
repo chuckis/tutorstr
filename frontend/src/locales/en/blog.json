@@ -1,0 +1,28 @@
+{
+  "title": "Blog",
+  "myBlog": "My Blog",
+  "newPost": "New post",
+  "publishedPosts": "Published posts",
+  "drafts": "Drafts",
+  "noPosts": "No posts yet",
+  "noDrafts": "No drafts",
+  "publish": "Publish",
+  "saveDraft": "Save draft",
+  "discard": "Discard",
+  "deleteDraftConfirm": "Delete this draft?",
+  "deletePostConfirm": "This will send a deletion request. Removal is not guaranteed on all relays.",
+  "warnings": {
+    "draftsLocalOnly": "Drafts are saved on this device only and will not sync across devices."
+  },
+  "editor": {
+    "newPost": "New post",
+    "editPost": "Edit post",
+    "titlePlaceholder": "Post title",
+    "summaryPlaceholder": "Short description (optional)",
+    "bodyPlaceholder": "Write in Markdown...",
+    "tagsPlaceholder": "Add tag, press Enter"
+  },
+  "status": {
+    "deletion_requested": "Deletion requested"
+  }
+}

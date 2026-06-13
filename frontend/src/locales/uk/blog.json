@@ -1,0 +1,28 @@
+{
+  "title": "Блог",
+  "myBlog": "Мій блог",
+  "newPost": "Новий пост",
+  "publishedPosts": "Опубліковані пости",
+  "drafts": "Чернетки",
+  "noPosts": "Поки немає постів",
+  "noDrafts": "Немає чернеток",
+  "publish": "Опублікувати",
+  "saveDraft": "Зберегти чернетку",
+  "discard": "Скасувати",
+  "deleteDraftConfirm": "Видалити цю чернетку?",
+  "deletePostConfirm": "Буде надіслано запит на видалення. Релеї можуть не гарантувати видалення.",
+  "warnings": {
+    "draftsLocalOnly": "Чернетки зберігаються лише на цьому пристрої та не синхронізуються."
+  },
+  "editor": {
+    "newPost": "Новий пост",
+    "editPost": "Редагувати пост",
+    "titlePlaceholder": "Заголовок поста",
+    "summaryPlaceholder": "Короткий опис (необов'язково)",
+    "bodyPlaceholder": "Напишіть у Markdown...",
+    "tagsPlaceholder": "Додати тег, натисніть Enter"
+  },
+  "status": {
+    "deletion_requested": "Запит на видалення"
+  }
+}

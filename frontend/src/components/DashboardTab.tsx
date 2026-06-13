@@ -31,6 +31,8 @@ type DashboardTabProps = {
   bookingsIncoming: Booking[];
   tutors?: Record<string, UserProfileEvent>;
   loading: boolean;
+  onOpenMyBlog?: () => void;
+  onNewPost?: () => void;
 };
 
 function dashboardMode(role: AccountRole): DashboardMode {
@@ -54,6 +56,8 @@ export function DashboardTab({
   role,
   mode,
   loading,
+  onOpenMyBlog,
+  onNewPost,
   upcomingLessons = [],
   allLessons = [],
   bookingsIncoming = [],
@@ -150,6 +154,26 @@ export function DashboardTab({
                 <Card padding="md">
                   <span>{t("profile.statsTotalLessons")} <strong>{totalLessons}</strong></span>
                 </Card>
+              </div>
+            </article>
+          ) : null}
+
+          {isTutor ? (
+            <article className="panel dashboard-blog-panel">
+              <div className="dashboard-section-heading">
+                <h3>{t("blog.title")}</h3>
+              </div>
+              <div className="dashboard-metrics">
+                {onOpenMyBlog ? (
+                  <button type="button" className="ui-btn ui-btn--secondary" onClick={onOpenMyBlog}>
+                    {t("blog.myBlog")}
+                  </button>
+                ) : null}
+                {onNewPost ? (
+                  <button type="button" className="ui-btn ui-btn--primary" onClick={onNewPost}>
+                    {t("blog.newPost")}
+                  </button>
+                ) : null}
               </div>
             </article>
           ) : null}

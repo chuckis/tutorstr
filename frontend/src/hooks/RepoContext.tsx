@@ -20,6 +20,11 @@ import { RelayManager } from "../ports/relayManager";
 import { SignerManager } from "../ports/signerManager";
 import { LessonNoteRepository } from "../ports/lessonNoteRepository";
 import { MediaUploadRepository } from "../ports/mediaUploadRepository";
+import { createNostrBlogRepository } from "../adapters/nostr/blogRepository";
+import { createLocalStorageDraftRepository } from "../adapters/localStorageDraftRepository";
+import { BlogRepository } from "../ports/blogRepository";
+import { DraftRepository } from "../ports/draftRepository";
+
 
 export { createNostrBookingRepository, mapNostrBookings } from "../adapters/nostr/bookingRepository";
 export { createNostrLessonRepository } from "../adapters/nostr/lessonRepository";
@@ -35,6 +40,8 @@ type RepoContextValue = {
   signerManager: SignerManager;
   lessonNoteRepository: LessonNoteRepository;
   mediaUploadRepository: MediaUploadRepository;
+  blogRepository: BlogRepository;
+  draftRepository: DraftRepository;
 };
 
 const RepoContext = createContext<RepoContextValue | null>(null);
@@ -51,6 +58,8 @@ export function RepoProvider({ children }: { children: ReactNode }) {
       relayManager: createNostrRelayManager(),
       signerManager: createNostrSignerManager(),
       lessonNoteRepository: createNostrLessonNoteRepository(),
+      blogRepository: createNostrBlogRepository(),
+      draftRepository: createLocalStorageDraftRepository(),
       mediaUploadRepository: blossomMediaRepository,
     }),
     []
