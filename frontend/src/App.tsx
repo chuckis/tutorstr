@@ -1,4 +1,5 @@
 import "./App.css";
+import "@mdxeditor/editor/style.css";
 import { useState, useCallback } from "react";
 import { AuthScreen } from "./components/AuthScreen";
 import { BottomNav } from "./components/BottomNav";

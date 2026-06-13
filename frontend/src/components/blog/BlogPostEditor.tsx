@@ -1,9 +1,32 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import type { AccountRole } from "../../domain/account";
 import type { BlogDraft } from "../../domain/blog";
 import { normalizeTags } from "../../domain/blog";
 import { useI18n } from "../../i18n/I18nProvider";
 import { Button } from "../ui/Button";
+import { useEditorImageUpload } from "../../hooks/useEditorImageUpload";
+
+import { MDXEditor, type MDXEditorMethods } from "@mdxeditor/editor";
+import { toolbarPlugin } from "@mdxeditor/editor";
+import { headingsPlugin } from "@mdxeditor/editor";
+import { listsPlugin } from "@mdxeditor/editor";
+import { linkPlugin } from "@mdxeditor/editor";
+import { linkDialogPlugin } from "@mdxeditor/editor";
+import { imagePlugin } from "@mdxeditor/editor";
+import { quotePlugin } from "@mdxeditor/editor";
+import { codeBlockPlugin } from "@mdxeditor/editor";
+import { markdownShortcutPlugin } from "@mdxeditor/editor";
+import { diffSourcePlugin } from "@mdxeditor/editor";
+
+import { UndoRedo } from "@mdxeditor/editor";
+import { BoldItalicUnderlineToggles } from "@mdxeditor/editor";
+import { CodeToggle } from "@mdxeditor/editor";
+import { BlockTypeSelect } from "@mdxeditor/editor";
+import { CreateLink } from "@mdxeditor/editor";
+import { InsertImage } from "@mdxeditor/editor";
+import { ListsToggle } from "@mdxeditor/editor";
+import { Separator } from "@mdxeditor/editor";
+import { DiffSourceToggleWrapper } from "@mdxeditor/editor";
 
 type BlogPostEditorProps = {
   draft: BlogDraft;
@@ -25,11 +48,17 @@ export function BlogPostEditor({
   publishing,
 }: BlogPostEditorProps) {
   const { t } = useI18n();
+  const { uploadImage } = useEditorImageUpload();
+  const editorRef = useRef<MDXEditorMethods>(null);
   const [title, setTitle] = useState(initialDraft.title);
   const [summary, setSummary] = useState(initialDraft.summary);
   const [body, setBody] = useState(initialDraft.body);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initialDraft.tags);
+
+  useEffect(() => {
+    editorRef.current?.setMarkdown(initialDraft.body);
+  }, [initialDraft.body]);
 
   function handleAddTag() {
     const normalized = normalizeTags([tagInput]);
@@ -48,15 +77,20 @@ export function BlogPostEditor({
       ...initialDraft,
       title: title.trim(),
       summary: summary.trim(),
-      body,
+      body: editorRef.current?.getMarkdown() ?? body,
       tags: normalizeTags(tags),
       savedAt: Date.now(),
     };
   }
 
   function canPublish(): boolean {
-    return title.trim().length > 0 && body.trim().length > 0;
+    const currentBody = editorRef.current?.getMarkdown() ?? body;
+    return title.trim().length > 0 && currentBody.trim().length > 0;
   }
+
+  const handleChange = useCallback((md: string) => {
+    setBody(md);
+  }, []);
 
   return (
     <section className="tab-panel blog-editor">
@@ -80,12 +114,43 @@ export function BlogPostEditor({
           />
         </div>
         <div className="form-field">
-          <textarea
-            className="textarea blog-editor__body"
-            placeholder={t("blog.editor.bodyPlaceholder")}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={12}
+          <MDXEditor
+            ref={editorRef}
+            markdown={body}
+            onChange={handleChange}
+            contentEditableClassName="blog-editor__body"
+            plugins={[
+              toolbarPlugin({
+                toolbarContents: () => (
+                  <>
+                    <UndoRedo />
+                    <Separator />
+                    <BoldItalicUnderlineToggles />
+                    <CodeToggle />
+                    <Separator />
+                    <BlockTypeSelect />
+                    <CreateLink />
+                    <InsertImage />
+                    <ListsToggle />
+                    <Separator />
+                    <DiffSourceToggleWrapper>
+                      <></>
+                    </DiffSourceToggleWrapper>
+                  </>
+                ),
+              }),
+              headingsPlugin(),
+              listsPlugin(),
+              linkPlugin(),
+              linkDialogPlugin(),
+              imagePlugin({
+                imageUploadHandler: uploadImage,
+              }),
+              quotePlugin(),
+              codeBlockPlugin(),
+              markdownShortcutPlugin(),
+              diffSourcePlugin(),
+            ]}
           />
         </div>
         <div className="form-field">

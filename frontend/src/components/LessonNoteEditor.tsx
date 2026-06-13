@@ -1,6 +1,24 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useEffect, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { Button } from "./ui/Button";
+
+import { MDXEditor, type MDXEditorMethods } from "@mdxeditor/editor";
+import { toolbarPlugin } from "@mdxeditor/editor";
+import { headingsPlugin } from "@mdxeditor/editor";
+import { listsPlugin } from "@mdxeditor/editor";
+import { linkPlugin } from "@mdxeditor/editor";
+import { linkDialogPlugin } from "@mdxeditor/editor";
+import { quotePlugin } from "@mdxeditor/editor";
+import { codeBlockPlugin } from "@mdxeditor/editor";
+import { markdownShortcutPlugin } from "@mdxeditor/editor";
+
+import { UndoRedo } from "@mdxeditor/editor";
+import { BoldItalicUnderlineToggles } from "@mdxeditor/editor";
+import { CodeToggle } from "@mdxeditor/editor";
+import { BlockTypeSelect } from "@mdxeditor/editor";
+import { CreateLink } from "@mdxeditor/editor";
+import { ListsToggle } from "@mdxeditor/editor";
+import { Separator } from "@mdxeditor/editor";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
 
@@ -58,11 +76,16 @@ export function LessonNoteEditor({
   uploadProgress = "idle",
 }: LessonNoteEditorProps) {
   const { t } = useI18n();
+  const editorRef = useRef<MDXEditorMethods>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [filePreviews, setFilePreviews] = useState<FilePreview[]>([]);
   const isEmpty = !value.trim();
   const isBusy = publishStatus === "saving" || shareStatus === "saving" || uploadProgress === "uploading";
   const hasFiles = filePreviews.length > 0;
+
+  useEffect(() => {
+    editorRef.current?.setMarkdown(value);
+  }, [value]);
 
   const addFiles = useCallback((fileList: FileList) => {
     const newPreviews = Array.from(fileList)
@@ -109,15 +132,42 @@ export function LessonNoteEditor({
     onShare(files);
   }, [onShare, filePreviews, hasFiles]);
 
+  const handleEditorChange = useCallback((md: string) => {
+    onChange(md);
+  }, [onChange]);
+
   return (
     <div className="lesson-note-editor">
       <label className="filter">
         {t("lessons.personalNote")}
-        <textarea
-          rows={4}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={isBusy}
+        <MDXEditor
+          ref={editorRef}
+          markdown={value}
+          onChange={handleEditorChange}
+          contentEditableClassName="lesson-note-editor__body"
+          plugins={[
+            toolbarPlugin({
+              toolbarContents: () => (
+                <>
+                  <UndoRedo />
+                  <Separator />
+                  <BoldItalicUnderlineToggles />
+                  <CodeToggle />
+                  <Separator />
+                  <BlockTypeSelect />
+                  <CreateLink />
+                  <ListsToggle />
+                </>
+              ),
+            }),
+            headingsPlugin(),
+            listsPlugin(),
+            linkPlugin(),
+            linkDialogPlugin(),
+            quotePlugin(),
+            codeBlockPlugin(),
+            markdownShortcutPlugin(),
+          ]}
         />
       </label>
 
