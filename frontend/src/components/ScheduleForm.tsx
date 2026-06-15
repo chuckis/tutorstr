@@ -77,7 +77,7 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
             setNewSlot({ ...newSlot, end: event.target.value })
           }
         />
-        <Button variant="ghost" onClick={addSlot}>
+        <Button variant="ghost" type="button" onClick={addSlot}>
           {t("schedule.addSlot")}
         </Button>
       </div>
@@ -89,7 +89,7 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
               <span>
                 {formatDateTime(slot.start)} → {formatDateTime(slot.end)}
               </span>
-              <Button variant="ghost" onClick={() => removeSlot(originalIndex)}>
+              <Button variant="ghost" type="button" onClick={() => removeSlot(originalIndex)}>
                 {t("schedule.remove")}
               </Button>
             </li>
