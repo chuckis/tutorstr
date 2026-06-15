@@ -1,16 +1,9 @@
 import { SimplePool } from "nostr-tools/pool";
 import { DEFAULT_RELAYS } from "./config";
 import { NostrSigner } from "../ports/nostrSigner";
+import type { Filter } from "nostr-tools";
 
-export type NostrFilter = {
-  ids?: string[];
-  kinds?: number[];
-  authors?: string[];
-  since?: number;
-  until?: number;
-  limit?: number;
-  [key: string]: string[] | number[] | number | undefined;
-};
+export type NostrFilter = Filter;
 
 export type NostrEvent = {
   id: string;
@@ -166,7 +159,9 @@ export class NostrClient {
     onEvent: (event: NostrEvent) => void,
     options: SubscribeOptions = {}
   ) {
-    const subscription = this.pool.subscribe(this.relays, filters, {
+
+    const filter = Array.isArray(filters) ? filters[0] : filters;
+    const subscription = this.pool.subscribeMany(this.relays, filter, {
       onevent: (event) => {
         logIncomingEvent(event);
         onEvent(event);

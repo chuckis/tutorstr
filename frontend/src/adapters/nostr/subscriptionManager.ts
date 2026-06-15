@@ -19,7 +19,7 @@ export function startGlobalSubscription(): void {
   if (shutdown) return;
 
   const unsubscribe = nostrClient.subscribe(
-    { kinds: ALL_KINDS, limit: 1000 },
+    { kinds: ALL_KINDS, since: Math.floor(Date.now() / 1000) - 30 * 24 * 3600 },
     (event) => {
       emitEvent(event);
     },
