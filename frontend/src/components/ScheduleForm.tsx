@@ -34,6 +34,7 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
       slots: [...schedule.slots, newSlot as TimeSlot]
     });
     setNewSlot(emptySlot);
+    setIsDirty(true);
   }
 
   function removeSlot(index: number) {
@@ -84,7 +85,7 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
       {visibleSlots.length > 0 ? (
         <ul className="slot-list">
           {visibleSlots.map(({ slot, originalIndex }) => (
-            <li key={`${slot.start}-${originalIndex}`}>
+            <li key={originalIndex}>
               <span>
                 {formatDateTime(slot.start)} → {formatDateTime(slot.end)}
               </span>

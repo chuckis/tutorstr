@@ -55,7 +55,7 @@ function isSlotWithinRange(slot: TimeSlot, from: Date, to: Date): boolean {
   return start < to.getTime() && end > from.getTime();
 }
 
-function isSlotAvailable(
+export function isSlotAvailable(
   slot: TimeSlot,
   tutorPubkey: string,
   occupiedKeys: Set<string>

@@ -101,7 +101,6 @@ export function useTutorSchedule(pubkey: string, viewerRole: AccountRole) {
       }),
     [pubkey, scheduleEventRepository]
   );
-
   function mergeSchedules(published: TutorSchedule, draft: TutorSchedule): TutorSchedule {
     const draftKeys = new Set(draft.slots.map((s) => `${s.start}|${s.end}`));
     return normalizeSchedule({
