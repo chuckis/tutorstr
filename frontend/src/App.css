@@ -431,6 +431,26 @@
   margin-bottom: var(--space-2);
 }
 
+.relay-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-3) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.relay-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2);
+  background: var(--color-glass);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
 .dashboard-identity-strip {
   display: grid;
   gap: var(--space-3);

@@ -187,10 +187,12 @@ export function DashboardSettingsDrawer({
             </article>
 
             <RelayConfig
+              relays={relay.relays}
               relayInput={relay.relayInput}
               onRelayInputChange={relay.setRelayInput}
               relayStatus={relay.relayStatus}
-              onUpdateRelays={relay.updateRelays}
+              onAddRelay={relay.addRelay}
+              onRemoveRelay={relay.removeRelay}
             />
 
             <article className="panel dashboard-session-panel">

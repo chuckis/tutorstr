@@ -1,50 +1,64 @@
 import { useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { useRepo } from "./RepoContext";
+import { DEFAULT_RELAYS } from "../nostr/config";
 
-const STORAGE_KEY = "nostr_relays";
-const DEFAULT_RELAYS = ["wss://relay.damus.io", "wss://nos.lol"].join("\n");
+const RELAY_STORAGE_KEY = "tutorhub:relays";
 
+function loadRelays(): string[] {
+  const stored = localStorage.getItem(RELAY_STORAGE_KEY);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as string[];
+      return parsed.filter((r) => typeof r === "string" && r.length > 0);
+    } catch { /* ignore */ }
+  }
+  return [...DEFAULT_RELAYS];
+}
+
+function persistRelays(relays: string[]) {
+  localStorage.setItem(RELAY_STORAGE_KEY, JSON.stringify(relays));
+}
 
 export function useRelays() {
   const { t } = useI18n();
   const { relayManager } = useRepo();
-  const [relayInput, setRelayInput] = useState<string>(
-    () => localStorage.getItem(STORAGE_KEY) ?? DEFAULT_RELAYS
-  );
+  const [relays, setRelays] = useState<string[]>(loadRelays);
+  const [relayInput, setRelayInput] = useState("");
   const [relayStatus, setRelayStatus] = useState("");
 
-  function getRelayList(): string[] {
-    return relayInput
-      .split("\n")
-      .map((r) => r.trim())
-      .filter((r) => r.startsWith("wss://") || r.startsWith("ws://"));
-  }
-
-
-  function updateRelays() {
-    const parsed = parseRelayList(relayInput);
-    if (parsed.length === 0) {
-      setRelayStatus(t("common.validation.requiredRelay"));
+  function addRelay() {
+    const url = relayInput.trim();
+    if (!url.startsWith("wss://") && !url.startsWith("ws://")) {
+      setRelayStatus(t("profile.relayInvalidUrl"));
       return;
     }
+    if (relays.includes(url)) {
+      setRelayStatus(t("profile.relayAlreadyAdded"));
+      return;
+    }
+    const updated = [...relays, url];
+    setRelays(updated);
+    persistRelays(updated);
+    relayManager.setRelays(updated);
+    setRelayInput("");
+    setRelayStatus(t("profile.relayAdded"));
+  }
 
-    relayManager.setRelays(parsed);
-    setRelayStatus(t("profile.saveRelays"));
+  function removeRelay(url: string) {
+    const updated = relays.filter((r) => r !== url);
+    setRelays(updated);
+    persistRelays(updated);
+    relayManager.setRelays(updated);
+    setRelayStatus(t("profile.relayRemoved"));
   }
 
   return {
+    relays,
     relayInput,
     setRelayInput,
     relayStatus,
-    getRelayList,
-    updateRelays,
+    addRelay,
+    removeRelay,
   };
-}
-
-function parseRelayList(value: string) {
-  return value
-    .split(",")
-    .map((relay) => relay.trim())
-    .filter(Boolean);
 }
