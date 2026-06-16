@@ -66,8 +66,7 @@ export function createNostrBookingRepository({
         return;
       }
 
-      const recipient =
-        status === "cancelled" ? request.tutorPubkey : request.pubkey;
+      const recipient = request.pubkey;
 
       await publishBookingStatus(recipient, {
         bookingId: id,
