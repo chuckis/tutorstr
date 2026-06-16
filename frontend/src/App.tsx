@@ -148,19 +148,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
         draftId={navigation.blogEditorDraftId}
         role={viewerRole}
         pubkey={keypair.pubkey}
-        onClose={() => navigation.setBlogEditorDraftId(undefined)}
-      />
-    );
-  }
-  if (navigation.myBlogOpen) {
-    return (
-      <MyBlogView
-        role={viewerRole}
-        pubkey={keypair.pubkey}
-        onBack={() => navigation.setMyBlogOpen(false)}
-        onNewPost={() => { navigation.setMyBlogOpen(false); navigation.setBlogEditorDraftId(null); }}
-        onEditDraft={(draftId) => { navigation.setMyBlogOpen(false); navigation.setBlogEditorDraftId(draftId); }}
-        onSelectPost={({ id, authorId }) => { navigation.setMyBlogOpen(false); navigation.setSelectedBlogPost({ post: { id, authorId } as any, authorId }); }}
+        onClose={() => window.history.back()}
       />
     );
   }
@@ -169,7 +157,19 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
       <BlogPostView
         post={navigation.selectedBlogPost.post}
         authorId={navigation.selectedBlogPost.authorId}
-        onBack={() => navigation.setSelectedBlogPost(null)}
+        onBack={() => window.history.back()}
+      />
+    );
+  }
+  if (navigation.myBlogOpen) {
+    return (
+      <MyBlogView
+        role={viewerRole}
+        pubkey={keypair.pubkey}
+        onBack={() => window.history.back()}
+        onNewPost={() => { navigation.setBlogEditorDraftId(null); }}
+        onEditDraft={(draftId) => { navigation.setBlogEditorDraftId(draftId); }}
+        onSelectPost={({ id, authorId }) => { navigation.setSelectedBlogPost({ post: { id, authorId } as any, authorId }); }}
       />
     );
   }

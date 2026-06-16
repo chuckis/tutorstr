@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AccountRole } from "../domain/account";
 import { effectiveRequestSegment } from "../application/account/requestSegment";
 import { Booking } from "../domain/booking";
@@ -63,6 +63,7 @@ export function useAppNavigation(role: AccountRole = "tutor") {
   ) {
     setPendingReturnRequest(request);
     setSelectedRequest(null);
+    pushHistory("tutor-profile");
     setSelectedTutor(profile);
     selectTab("discover");
   }
@@ -79,6 +80,67 @@ export function useAppNavigation(role: AccountRole = "tutor") {
     }
   }
 
+  // ── History API ──
+
+  function pushHistory(screen: string) {
+    history.pushState({ screen }, "");
+  }
+
+  const closeDetailRef = useRef<() => void>(() => {});
+
+  closeDetailRef.current = () => {
+    if (blogEditorDraftId !== undefined) {
+      setBlogEditorDraftId(undefined);
+    } else if (myBlogOpen) {
+      setMyBlogOpen(false);
+    } else if (selectedBlogPost) {
+      setSelectedBlogPost(null);
+    } else if (selectedTutor) {
+      handleSetSelectedTutor(null);
+    } else if (selectedRequest) {
+      setSelectedRequest(null);
+    } else if (selectedLesson) {
+      setSelectedLesson(null);
+    }
+  };
+
+  useEffect(() => {
+    const handler = () => closeDetailRef.current();
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, []);
+
+  // Wrapped setters that push history state when opening a detail
+  function wrapSetSelectedTutor(next: UserProfileEvent | null) {
+    if (next !== null) pushHistory("tutor-profile");
+    handleSetSelectedTutor(next);
+  }
+
+  function wrapSetSelectedRequest(next: SelectedRequestData | null) {
+    if (next !== null) pushHistory("request-details");
+    setSelectedRequest(next);
+  }
+
+  function wrapSetSelectedLesson(next: Lesson | null) {
+    if (next !== null) pushHistory("lesson-details");
+    setSelectedLesson(next);
+  }
+
+  function wrapSetSelectedBlogPost(next: SelectedBlogPostData | null) {
+    if (next !== null) pushHistory("blog-post");
+    setSelectedBlogPost(next);
+  }
+
+  function wrapSetMyBlogOpen(next: boolean) {
+    if (next) pushHistory("my-blog");
+    setMyBlogOpen(next);
+  }
+
+  function wrapSetBlogEditorDraftId(next: string | null | undefined) {
+    if (next !== undefined) pushHistory("blog-editor");
+    setBlogEditorDraftId(next);
+  }
+
   return {
     role,
     activeTab,
@@ -88,17 +150,17 @@ export function useAppNavigation(role: AccountRole = "tutor") {
     lessonSegment,
     setLessonSegment,
     selectedTutor,
-    setSelectedTutor: handleSetSelectedTutor,
+    setSelectedTutor: wrapSetSelectedTutor,
     selectedRequest,
-    setSelectedRequest,
+    setSelectedRequest: wrapSetSelectedRequest,
     selectedLesson,
-    setSelectedLesson,
+    setSelectedLesson: wrapSetSelectedLesson,
     selectedBlogPost,
-    setSelectedBlogPost,
+    setSelectedBlogPost: wrapSetSelectedBlogPost,
     myBlogOpen,
-    setMyBlogOpen,
+    setMyBlogOpen: wrapSetMyBlogOpen,
     blogEditorDraftId,
-    setBlogEditorDraftId,
+    setBlogEditorDraftId: wrapSetBlogEditorDraftId,
     detailActive,
     pendingReturnRequest,
     navigateToProfileFromRequest

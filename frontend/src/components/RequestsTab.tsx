@@ -257,7 +257,7 @@ export function RequestsTab({
       <RequestDetailsView
         selectedRequest={viewModel.selectedRequest}
         messagesByThread={messagesByThread}
-        onBack={() => onSelectRequest(null)}
+        onBack={() => window.history.back()}
         onRespondToRequest={onRespondToRequest}
         onCancelRequest={onCancelRequest}
         onSendMessage={onSendMessage}

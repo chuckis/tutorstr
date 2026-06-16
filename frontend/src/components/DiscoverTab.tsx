@@ -110,7 +110,7 @@ export function DiscoverTab({
         <StudentDetailView
           profile={selectedTutor}
           viewerRole={role}
-          onBack={() => onSelectTutor(null)}
+          onBack={() => window.history.back()}
           onSendMessage={onSendMessage}
           onSendMessageWithFiles={onSendMessageWithFiles}
           messagesByThread={messagesByThread}
@@ -122,7 +122,7 @@ export function DiscoverTab({
     return (
       <DetailPageLayout
         backLabel={t("discover.backToDiscover")}
-        onBack={() => onSelectTutor(null)}
+        onBack={() => window.history.back()}
       >
         <article className="panel">
           <div className="tutor-profile-header">

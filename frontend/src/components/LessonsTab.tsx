@@ -159,7 +159,7 @@ export function LessonsTab({
     return (
       <DetailPageLayout
         backLabel={t("lessons.backToLessons")}
-        onBack={() => onSelectLesson(null)}
+        onBack={() => window.history.back()}
         title={selectedLesson.subject || t("lessons.defaultTitle")}
         subtitle={lessonSubtitle}
       >
