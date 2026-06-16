@@ -43,20 +43,8 @@ export class NostrClient {
   private relays: string[];
   private signer: NostrSigner | null = null;
 
-  private static readonly RELAY_STORAGE = "tutorhub:relays";
-
   constructor(relays: string[] = DEFAULT_RELAYS) {
-    const storedRelays = localStorage.getItem(NostrClient.RELAY_STORAGE);
-    if (storedRelays) {
-      try {
-        const parsed = JSON.parse(storedRelays) as string[];
-        this.relays = parsed.filter(Boolean);
-      } catch {
-        this.relays = [...relays];
-      }
-    } else {
-      this.relays = [...relays];
-    }
+    this.relays = [...relays];
     this.pool = new SimplePool({ enableReconnect: true });
   }
 
@@ -66,7 +54,7 @@ export class NostrClient {
 
   setRelays(relays: string[]) {
     this.relays = [...relays];
-    localStorage.setItem(NostrClient.RELAY_STORAGE, JSON.stringify(this.relays));
+    localStorage.setItem("tutorhub:relays", JSON.stringify(this.relays));
   }
 
   async publish(event: NostrEvent) {
@@ -163,7 +151,6 @@ export class NostrClient {
     const filter = Array.isArray(filters) ? filters[0] : filters;
     const subscription = this.pool.subscribeMany(this.relays, filter, {
       onevent: (event) => {
-        // logIncomingEvent(event);
         onEvent(event);
       },
       oneose: options.onEose

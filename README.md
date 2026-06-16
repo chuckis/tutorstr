@@ -5,7 +5,7 @@ Tutor Hub over Nostr: decentralized tutoring app where domain data lives in Nost
 ## Current State (June 2026)
 
 - Frontend MVP is active (`React + TypeScript + Vite`, PWA shell)
-- Relay workspace exists with custom Nostr relay server implementation in [THR](https://github.com/tutor-hub-2030/thr) submodule
+- Local dev relay built with [Khatru](https://github.com/fiatjaf/khatru) (Go) — in-memory, accepts all custom kinds
 - **Roles are live** — every npub is bound to exactly one role (`tutor` / `student`). Stored in the local vault only — no Nostr channel carries the role. See `docs/plans/role_separation_tutor_student.md` for design notes.
 - Lesson notes with visibility chips (`saved` / `published` / `shared`) — notes list and detail views accessible from lesson detail
 - `App.tsx` is a thin shell/controller composition layer
@@ -135,41 +135,51 @@ flowchart LR
 
 ## Repository Structure
 
-- `frontend/` main app (implemented)
-- `relay/` submodule pointing to [THR](https://github.com/tutor-hub-2030/thr) — custom Nostr relay for Tutor Hub
-- `docs/` specifications and event kind docs
+- `frontend/` — main app (React + TypeScript + Vite)
+- `relay/` — local dev relay (Go + Khatru, in-memory store)
+- `docs/` — specifications and event kind docs
 
-## Run Locally
+## Development Setup
+
+### Prerequisites
+
+- **Node.js** >= 22
+- **Go** >= 1.24
+- **npm** >= 10
+
+### Quick Start
 
 From repository root:
 
 ```bash
+# Install frontend dependencies
 npm install
+
+# Start both frontend and local relay
 npm run dev
 ```
 
-Useful scripts:
+This starts:
+- **Vite** dev server (frontend at `http://localhost:5173`)
+- **Khatru** relay (Go) at `ws://localhost:5555`
+
+The frontend automatically connects to `ws://localhost:5555` in development mode via `.env.development`.
+
+### Environment
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `VITE_NOSTR_RELAYS` | `ws://localhost:5555` (dev) | Comma-separated relay URLs |
+| `VITE_DEBUG_NOSTR` | — | Set to `true` to enable verbose Nostr event logging |
+
+### Useful Scripts
 
 ```bash
-npm run build
-npm run preview
-npm run test
+npm run dev          # Frontend + relay (parallel)
+npm run dev:client   # Frontend only
+npm run dev:relay    # Relay only
+npm run build        # Production build (frontend only)
+npm run preview      # Preview production build
+npm run test         # Run tests
+npm run depmap       # Regenerate dependency diagram
 ```
-
-Workspace equivalents:
-
-```bash
-npm --workspace frontend run dev
-npm --workspace frontend run build
-npm --workspace frontend run preview
-```
-
-Notes:
-- Root `npm run dev` / `build` / `preview` proxy to the `frontend` workspace
-- `npm run test` runs all tests via vitest
-
-Optional env for default relays:
-
-- `VITE_NOSTR_RELAYS=wss://relay1.example,wss://relay2.example`
-
-If not set, frontend uses defaults from `frontend/src/nostr/config.ts`.

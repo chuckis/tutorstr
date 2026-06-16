@@ -13,6 +13,7 @@ function prismFixPlugin() {
 
 export default defineConfig({
   plugins: [react(), prismFixPlugin()],
+  envDir: path.resolve(__dirname, ".."),
   resolve: {
     alias: [
       {

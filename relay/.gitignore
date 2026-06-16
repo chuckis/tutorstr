@@ -1,0 +1,7 @@
+# Go
+relay/relay
+relay/relay.exe
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

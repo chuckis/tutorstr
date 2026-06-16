@@ -2,17 +2,19 @@
   "name": "tutorstr",
   "private": true,
   "workspaces": [
-    "frontend",
-    "relay"
+    "frontend"
   ],
   "scripts": {
-    "dev": "npm --workspace frontend run dev",
+    "dev:client": "npm --workspace frontend run dev",
+    "dev:relay": "cd relay && go run main.go",
+    "dev": "concurrently --kill-others -n \"VITE,KHATRU\" -c \"cyan,magenta\" \"npm:dev:client\" \"npm:dev:relay\"",
     "build": "npm --workspace frontend run build",
     "preview": "npm --workspace frontend run preview",
     "test": "node -e \"console.log('no tests yet')\"",
     "depmap": "node scripts/generate-dependency-map.mjs"
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "madge": "^8.0.0"
   }
 }
