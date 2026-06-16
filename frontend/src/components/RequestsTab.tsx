@@ -8,6 +8,7 @@ import {
 } from "../hooks/useRequestsTabViewModel";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage } from "../hooks/hookTypes";
+import { HintIcon } from "./ui/HintIcon";
 import { RequestCard } from "./RequestCard";
 import { RequestDetailsView } from "./RequestDetailsView";
 import { Spinner } from "./Spinner";
@@ -310,12 +311,24 @@ export function RequestsTab({
             : t("requests.empty")}
         />
       ) : requestSegment === "incoming" && !isStudent ? (
-        <IncomingRequestGroups
-          groups={viewModel.incomingGroups}
-          onSelectRequest={onSelectRequest}
-          onRespondToRequest={onRespondToRequest}
-          onCancelRequest={onCancelRequest}
-        />
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <h3 style={{ fontSize: "var(--fs-body)", margin: 0 }}>
+              {t("requests.incoming")}
+            </h3>
+            <HintIcon
+              hintId="booking-request"
+              title={t("hints.booking-request.title")}
+              content={t("hints.booking-request.content")}
+            />
+          </div>
+          <IncomingRequestGroups
+            groups={viewModel.incomingGroups}
+            onSelectRequest={onSelectRequest}
+            onRespondToRequest={onRespondToRequest}
+            onCancelRequest={onCancelRequest}
+          />
+        </>
       ) : (
         <OutgoingRequestList
           requests={viewModel.outgoingRequests}

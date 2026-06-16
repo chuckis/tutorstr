@@ -1,0 +1,20 @@
+{
+  "gotIt": "Got it",
+  "dontShow": "Don't show again",
+  "schedule-slots": {
+    "title": "Schedule slots",
+    "content": "Add time slots when you're available for lessons. Students will see them and can send a booking request."
+  },
+  "booking-request": {
+    "title": "Booking request",
+    "content": "A student wants to book a lesson at the specified time. Accept or decline — the student will be notified."
+  },
+  "nostr-key": {
+    "title": "Your Nostr keys",
+    "content": "nsec is your private key — never share it. npub is your public address, safe to share. Tutorstr doesn't store keys on servers."
+  },
+  "lesson-status": {
+    "title": "Lesson statuses",
+    "content": "scheduled — upcoming lesson. completed — finished. canceled — the lesson won't take place."
+  }
+}

@@ -18,3 +18,10 @@ export function addMinutesToDateTimeLocal(value: string, minutes: number) {
 
   return formatDateTimeLocalInput(new Date(date.getTime() + minutes * 60000));
 }
+
+export function slotDurationMinutes(start: string, end: string): number {
+  const a = new Date(start).getTime();
+  const b = new Date(end).getTime();
+  if (Number.isNaN(a) || Number.isNaN(b)) return 0;
+  return Math.round((b - a) / 60000);
+}

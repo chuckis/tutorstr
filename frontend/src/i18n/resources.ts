@@ -2,6 +2,7 @@ import accountEn from "../locales/en/account.json";
 import authEn from "../locales/en/auth.json";
 import commonEn from "../locales/en/common.json";
 import discoverEn from "../locales/en/discover.json";
+import hintsEn from "../locales/en/hints.json";
 import lessonsEn from "../locales/en/lessons.json";
 import progressEn from "../locales/en/progress.json";
 import profileEn from "../locales/en/profile.json";
@@ -12,6 +13,7 @@ import accountUk from "../locales/uk/account.json";
 import authUk from "../locales/uk/auth.json";
 import commonUk from "../locales/uk/common.json";
 import discoverUk from "../locales/uk/discover.json";
+import hintsUk from "../locales/uk/hints.json";
 import lessonsUk from "../locales/uk/lessons.json";
 import progressUk from "../locales/uk/progress.json";
 import profileUk from "../locales/uk/profile.json";
@@ -22,6 +24,7 @@ import accountRu from "../locales/ru/account.json";
 import authRu from "../locales/ru/auth.json";
 import commonRu from "../locales/ru/common.json";
 import discoverRu from "../locales/ru/discover.json";
+import hintsRu from "../locales/ru/hints.json";
 import lessonsRu from "../locales/ru/lessons.json";
 import progressRu from "../locales/ru/progress.json";
 import profileRu from "../locales/ru/profile.json";
@@ -36,6 +39,7 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     auth: authEn,
     common: commonEn,
     discover: discoverEn,
+    hints: hintsEn,
     profile: profileEn,
     schedule: scheduleEn,
     requests: requestsEn,
@@ -48,6 +52,7 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     auth: authUk,
     common: commonUk,
     discover: discoverUk,
+    hints: hintsUk,
     profile: profileUk,
     schedule: scheduleUk,
     requests: requestsUk,
@@ -60,6 +65,7 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     auth: authRu,
     common: commonRu,
     discover: discoverRu,
+    hints: hintsRu,
     profile: profileRu,
     schedule: scheduleRu,
     requests: requestsRu,

@@ -6,6 +6,7 @@ import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
 import { Textarea } from "./ui/Textarea";
 import { Checkbox } from "./ui/Checkbox";
+import { HintIcon } from "./ui/HintIcon";
 
 type AuthScreenProps = {
   mode: "welcome" | "unlock" | "role-pick";
@@ -118,7 +119,14 @@ export function AuthScreen({
       {generatedNsec ? (
         <section className="auth-panel auth-warning">
           <p className="eyebrow">{t("auth.saveNow")}</p>
-          <h2>{t("auth.yourSecretKey")}</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <h2>{t("auth.yourSecretKey")}</h2>
+            <HintIcon
+              hintId="nostr-key"
+              title={t("hints.nostr-key.title")}
+              content={t("hints.nostr-key.content")}
+            />
+          </div>
           <p className="secret-value">{generatedNsec}</p>
           <p className="warning-text">{t("auth.warning")}</p>
           <Checkbox
@@ -168,8 +176,7 @@ export function AuthScreen({
                     setLocalError("");
                   }}
                 >
-                  <span className="auth-card-title">{t("auth.createTitle")}</span>
-                  <span className="muted">{t("auth.createBody")}</span>
+                  <span className="auth-card-title">{t("auth.createTitle")}</span> <span className="muted">{t("auth.createBody")}</span>
                 </Card>
                 <Card
                   hoverable
@@ -180,8 +187,7 @@ export function AuthScreen({
                     setLocalError("");
                   }}
                 >
-                  <span className="auth-card-title">{t("auth.importTitle")}</span>
-                  <span className="muted">{t("auth.importBody")}</span>
+                  <span className="auth-card-title">{t("auth.importTitle")}</span> <span className="muted">{t("auth.importBody")}</span>
                 </Card>
               </div>
             </>
@@ -267,8 +273,7 @@ export function AuthScreen({
               aria-pressed={selectedRole === "tutor"}
               onClick={() => setSelectedRole("tutor")}
             >
-              <span className="auth-card-title">{t("account.rolePick.tutorTitle")}</span>
-              <span className="muted">{t("account.rolePick.tutorBody")}</span>
+              <span className="auth-card-title">{t("account.rolePick.tutorTitle")}</span> <span className="muted">{t("account.rolePick.tutorBody")}</span>
             </Card>
             <Card
               hoverable
@@ -277,8 +282,7 @@ export function AuthScreen({
               aria-pressed={selectedRole === "student"}
               onClick={() => setSelectedRole("student")}
             >
-              <span className="auth-card-title">{t("account.rolePick.studentTitle")}</span>
-              <span className="muted">{t("account.rolePick.studentBody")}</span>
+              <span className="auth-card-title">{t("account.rolePick.studentTitle")}</span> <span className="muted">{t("account.rolePick.studentBody")}</span>
             </Card>
           </div>
           <div className="auth-actions">

@@ -13,6 +13,7 @@ import { UserProfileEvent, TutorScheduleEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { isProfileEmpty } from "../utils/normalize";
 import { isSlotInPast } from "../domain/TimeSlot";
+import { slotDurationMinutes } from "../utils/dateTimeLocal";
 import { Avatar } from "./Avatar";
 import { FilterBar } from "./FilterBar";
 import { DetailPageLayout } from "./DetailPageLayout";
@@ -182,9 +183,7 @@ export function DiscoverTab({
                       <li key={`${slot.start}-${index}`}>
                         <div className="request-actions">
                           <span>
-                            {formatDateTime(slot.start)}
-                            {" -> "}
-                            {formatDateTime(slot.end)}
+                            {formatDateTime(slot.start)} · {t("lessons.minutes", { count: slotDurationMinutes(slot.start, slot.end) })}
                           </span>
                           <Button variant="primary"
                             type="button"

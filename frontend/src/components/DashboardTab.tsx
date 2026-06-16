@@ -114,17 +114,17 @@ export function DashboardTab({
               <>
                 <div className="dashboard-metrics">
                   <Card padding="md">
-                    <span>{t("profile.metricSubjects")} <strong>{profileSubjects.length || 0}</strong></span>
+                    <span>{t("profile.metricSubjects")}</span> <strong>{profileSubjects.length || 0}</strong>
                   </Card>
                   <Card padding="md">
-                    <span>{t("profile.metricSchedule")} <strong>{publishedSchedule.slots.length || 0}</strong></span>
+                    <span>{t("profile.metricSchedule")}</span> <strong>{publishedSchedule.slots.length || 0}</strong>
                   </Card>
                   <Card padding="md">
-                    <span>{t("profile.metricRate")} <strong>
+                    <span>{t("profile.metricRate")}</span> <strong>
                       {hourlyRate
                         ? `$${hourlyRate}`
                         : t("common.states.notSet")}
-                    </strong></span>
+                    </strong>
                   </Card>
                 </div>
 
@@ -146,13 +146,13 @@ export function DashboardTab({
               </div>
               <div className="dashboard-metrics">
                 <Card padding="md">
-                  <span>{t("profile.statsPublishedSlots")} <strong>{publishedSchedule.slots.length || 0}</strong></span>
+                  <span>{t("profile.statsPublishedSlots")}</span> <strong>{publishedSchedule.slots.length || 0}</strong>
                 </Card>
                 <Card padding="md">
-                  <span>{t("profile.statsCompletedLessons")} <strong>{completedLessons}</strong></span>
+                  <span>{t("profile.statsCompletedLessons")}</span> <strong>{completedLessons}</strong>
                 </Card>
                 <Card padding="md">
-                  <span>{t("profile.statsTotalLessons")} <strong>{totalLessons}</strong></span>
+                  <span>{t("profile.statsTotalLessons")}</span> <strong>{totalLessons}</strong>
                 </Card>
               </div>
             </article>

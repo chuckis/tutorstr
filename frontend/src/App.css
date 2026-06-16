@@ -3259,3 +3259,114 @@ button:active {
   gap: var(--space-2);
   justify-content: flex-start;
 }
+
+/* ── Hint system ── */
+
+.hint-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.hint-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--motion);
+}
+
+.hint-icon:hover,
+.hint-icon:focus-visible {
+  color: var(--color-text);
+}
+
+.hint-icon--new {
+  animation: hint-pulse 2s ease-in-out infinite;
+}
+
+@keyframes hint-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.hint-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  width: 260px;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-popup);
+  display: grid;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.hint-popover__title {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.hint-popover__body p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.hint-popover__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.hint-popover__btn {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--motion), border-color var(--motion);
+}
+
+.hint-popover__btn:hover,
+.hint-popover__btn:focus-visible {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+}
+
+.hint-popover__btn--muted {
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 640px) {
+  .hint-popover {
+    left: auto;
+    right: 0;
+  }
+}

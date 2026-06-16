@@ -6,8 +6,6 @@ flowchart LR
   AACC[application/account]
   ALOC[application/locale]
   P[ports]
-  PS[ports/nostrSigner]
-  PE[ports/eventTypes]
   D[domain]
   AD[adapters/nostr]
   AAUTH[adapters/auth]
@@ -15,8 +13,6 @@ flowchart LR
   NK[nostr/kinds]
   U[utils]
   I[i18n]
-  HT[hooks/hookTypes]
-  RC[hooks/RepoContext]
 
   AACC --> A
   AACC --> D
@@ -24,13 +20,12 @@ flowchart LR
   AAUTH --> P
   AA --> D
   AA --> P
-  AD --> AAUTH
+  AD -.-> AAUTH
   AD --> D
   AD --> N
   AD --> NK
   AD --> P
   AD --> U
-  AD --> PS
   ALOC --> D
   ALOC --> P
   A --> AACC
@@ -39,24 +34,26 @@ flowchart LR
   H --> A
   H --> AA
   H --> AACC
+  H -.-> AD
   H --> D
   H --> I
+  H -.-> N
   H --> P
-  H --> HT
-  H --> RC
   H --> U
+  H -.-> UI
   I --> ALOC
   I --> D
-  N --> PS
-  RC --> AD
-  RC --> P
-  HT --> D
-  HT --> P
-  HT --> PE
+  N -.-> P
   P --> D
-  PS --> D
+  UI -.-> A
+  UI -.-> AAUTH
+  UI -.-> AD
+  UI -.-> D
   UI --> H
-  UI --> HT
   UI --> I
+  UI -.-> P
   UI --> U
   U --> D
+
+  classDef leak stroke:#c2410c,stroke-width:2px,color:#7c2d12;
+  class A,AAUTH,AD,D,N,P,UI leak;

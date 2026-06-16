@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { TimeSlot, TutorSchedule } from "../hooks/hookTypes";
-import { addMinutesToDateTimeLocal } from "../utils/dateTimeLocal";
+import { addMinutesToDateTimeLocal, slotDurationMinutes } from "../utils/dateTimeLocal";
 import { isSlotInPast } from "../domain/TimeSlot";
 import { Button } from "./ui/Button";
+import { HintIcon } from "./ui/HintIcon";
 import { Input } from "./ui/Input";
 
 const emptySlot: TimeSlot = { start: "", end: "" };
@@ -55,6 +56,11 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
     <form className="schedule-form" onSubmit={handleSubmit}>
       <div className="schedule-header">
         <h3>{t("schedule.availability")}</h3>
+        <HintIcon
+          hintId="schedule-slots"
+          title={t("hints.schedule-slots.title")}
+          content={t("hints.schedule-slots.content")}
+        />
       </div>
 
       <div className="slot-row">
@@ -87,7 +93,7 @@ export function ScheduleForm({ schedule, onChange, onSubmit }: ScheduleFormProps
           {visibleSlots.map(({ slot, originalIndex }) => (
             <li key={originalIndex}>
               <span>
-                {formatDateTime(slot.start)} → {formatDateTime(slot.end)}
+                {formatDateTime(slot.start)} · {t("lessons.minutes", { count: slotDurationMinutes(slot.start, slot.end) })}
               </span>
               <Button variant="ghost" type="button" onClick={() => removeSlot(originalIndex)}>
                 {t("schedule.remove")}

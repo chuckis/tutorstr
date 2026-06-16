@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
+import { slotDurationMinutes } from "../utils/dateTimeLocal";
 import { BookingRequest } from "../hooks/hookTypes";
 import { TutorScheduleEvent } from "../hooks/hookTypes";
 import { addMinutesToDateTimeLocal } from "../utils/dateTimeLocal";
@@ -76,7 +77,7 @@ export function BookingRequestForm({
           placeholder={t("discover.customTime")}
           options={availableSlots.map((slot, index) => {
             const state = getSlotState?.(slot);
-            let label = `${formatDateTime(slot.start)} → ${formatDateTime(slot.end)}`;
+            let label = `${formatDateTime(slot.start)} · ${t("lessons.minutes", { count: slotDurationMinutes(slot.start, slot.end) })}`;
             if (state === "requested") label += ` (${t("discover.requested")})`;
             if (state === "unavailable") label += ` (${t("discover.unavailable")})`;
             return { value: `${slot.start}|${slot.end}`, label };

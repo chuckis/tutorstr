@@ -7,6 +7,7 @@ import { AccountRole } from "../domain/account";
 import { LessonNoteWithVisibility } from "../domain/lessonNote";
 import { toDisplayId } from "../utils/display";
 import { DetailPageLayout } from "./DetailPageLayout";
+import { HintIcon } from "./ui/HintIcon";
 import { LessonsCalendar } from "./LessonsCalendar";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -337,6 +338,16 @@ export function LessonsTab({
             </Button>
           </div>
         ) : null}
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <h3 style={{ fontSize: "var(--fs-body)", margin: 0 }}>
+            {lessonSegment === "upcoming" ? t("lessons.upcoming") : t("lessons.past")}
+          </h3>
+          <HintIcon
+            hintId="lesson-status"
+            title={t("hints.lesson-status.title")}
+            content={t("hints.lesson-status.content")}
+          />
+        </div>
         {loading && lessons.length === 0 ? (
           <Spinner label={t("common.states.loading")} />
         ) : showCalendar ? (
