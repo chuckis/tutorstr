@@ -163,7 +163,7 @@ export class NostrClient {
     const filter = Array.isArray(filters) ? filters[0] : filters;
     const subscription = this.pool.subscribeMany(this.relays, filter, {
       onevent: (event) => {
-        logIncomingEvent(event);
+        // logIncomingEvent(event);
         onEvent(event);
       },
       oneose: options.onEose

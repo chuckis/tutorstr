@@ -1,6 +1,6 @@
 import { ScheduleEventRepository } from "../../ports/scheduleEventRepository";
 import { nostrClient } from "../../nostr/client";
-import { addKindListener } from "./eventBus";
+import { addKindListener, emitEvent } from "./eventBus";
 
 export function createNostrScheduleEventRepository(): ScheduleEventRepository {
   return {
@@ -16,6 +16,15 @@ export function createNostrScheduleEventRepository(): ScheduleEventRepository {
     async publish(_, content, tags) {
       const event = await nostrClient.publishReplaceableEvent(30001, content, tags);
       return event.id;
+    },
+    async fetchAll() {
+      await new Promise<void>((resolve) => {
+        nostrClient.subscribe(
+          { kinds: [30001], limit: 100 },
+          (event) => emitEvent(event),
+          { onEose: resolve }
+        );
+      });
     },
   };
 }

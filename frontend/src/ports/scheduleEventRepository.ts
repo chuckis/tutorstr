@@ -18,4 +18,5 @@ export interface ScheduleEventRepository {
     options?: { limit?: number }
   ): () => void;
   publish(pubkey: string, content: string, tags: string[][]): Promise<string>;
+  fetchAll(): Promise<void>;
 }

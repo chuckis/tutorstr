@@ -21,7 +21,11 @@ export function addKindListener(
   }
   kindListeners.get(kind)!.add(listener);
 
-  const events = useEventBusStore.getState().eventsByKind[kind];
+   const events = useEventBusStore.getState().eventsByKind[kind];
+  // console.log('[LISTENER ADDED] kind:', kind, 'events in store:', events ? Object.keys(events).length : 0);
+console.log('[LISTENER ADDED] kind:', kind, 'total now:', kindListeners.get(kind)?.size);
+console.log('[LISTENER ADDED] kind:', kind, 'events in store:', events ? Object.keys(events).length : 0);
+
   if (events) {
     for (const event of Object.values(events)) {
       listener(event);
@@ -34,6 +38,9 @@ export function addKindListener(
 }
 
 export function emitEvent(event: NostrEvent): void {
+  
+  console.log('[EMIT]', event.kind, new Date(event.created_at * 1000).toLocaleDateString(), kindListeners.get(event.kind)?.size ?? 0, 'listeners');
+  console.log('[EMIT]', event.kind, kindListeners.get(event.kind)?.size ?? 0, 'listeners');
   let isNew = false;
 
   useEventBusStore.setState((state) => {

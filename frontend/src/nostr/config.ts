@@ -7,5 +7,5 @@ export const DEFAULT_RELAYS = (() => {
       .filter(Boolean);
   }
 
-  return ["wss://relay.damus.io", "wss://relay.primal.net"];
+  return ["wss://relay.damus.io", "wss://relay.primal.net", "wss://relay.nostr.band"];
 })();

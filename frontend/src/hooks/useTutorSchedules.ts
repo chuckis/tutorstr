@@ -16,8 +16,12 @@ export function useTutorSchedules() {
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), LOAD_TIMEOUT);
 
+    scheduleEventRepository.fetchAll().catch(() => {}); // ← явный запрос к реле
+
+
     const unsubscribe = scheduleEventRepository.subscribeAll(
       (event) => {
+        console.log('[SCHEDULE EVENT]', event.pubkey.slice(0,8), new Date(event.created_at * 1000).toLocaleDateString());
         try {
           const parsed = normalizeSchedule(JSON.parse(event.content));
           setSchedules((prev) => {
@@ -46,7 +50,7 @@ export function useTutorSchedules() {
       clearTimeout(timer);
       unsubscribe();
     };
-  }, []);
+  }, [scheduleEventRepository]);
 
   return { schedules, loading };
 }

@@ -19,10 +19,8 @@ export function startGlobalSubscription(): void {
   if (shutdown) return;
 
   const unsubscribe = nostrClient.subscribe(
-    { kinds: ALL_KINDS, since: Math.floor(Date.now() / 1000) - 30 * 24 * 3600 },
-    (event) => {
-      emitEvent(event);
-    },
+    { kinds: ALL_KINDS },
+    (event) => { emitEvent(event); }
   );
 
   shutdown = () => {
