@@ -58,7 +58,68 @@ The frontend is moving toward a layered structure where Nostr is an implementati
 
 Each layer directory has an agents-first README with key files and rules.
 
-> Dependency map: [`docs/diagrams/actual-dependency-map.mmd`](docs/diagrams/actual-dependency-map.mmd) — visual overview of module dependencies and current violations.
+```mermaid
+flowchart LR
+  UI[components]
+  H[hooks]
+  A[application/usecases]
+  AA[application/auth]
+  AACC[application/account]
+  ALOC[application/locale]
+  P[ports]
+  D[domain]
+  AD[adapters/nostr]
+  AAUTH[adapters/auth]
+  N[nostr]
+  NK[nostr/kinds]
+  U[utils]
+  I[i18n]
+
+  AACC --> A
+  AACC --> D
+  AAUTH --> D
+  AAUTH --> P
+  AA --> D
+  AA --> P
+  AD -.-> AAUTH
+  AD --> D
+  AD --> N
+  AD --> NK
+  AD --> P
+  AD --> U
+  ALOC --> D
+  ALOC --> P
+  A --> AACC
+  A --> D
+  A --> P
+  H --> A
+  H --> AA
+  H --> AACC
+  H -.-> AD
+  H --> D
+  H --> I
+  H -.-> N
+  H --> P
+  H --> U
+  H -.-> UI
+  I --> ALOC
+  I --> D
+  N -.-> P
+  P --> D
+  UI -.-> A
+  UI -.-> AAUTH
+  UI -.-> AD
+  UI -.-> D
+  UI --> H
+  UI --> I
+  UI -.-> P
+  UI --> U
+  U --> D
+
+  classDef leak stroke:#c2410c,stroke-width:2px,color:#7c2d12;
+  class A,AAUTH,AD,D,N,P,UI leak;
+```
+
 > Regenerate locally before pushing: `npm run depmap`
 
 ## Nostr Kinds Used
