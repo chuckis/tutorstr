@@ -4,14 +4,14 @@ import { emitEvent } from "./eventBus";
 
 const ALL_KINDS = [
   TutorHubKind.DirectMessage,     // 4
-  TutorHubKind.Profile,           // 30000
+  0,                              // Metadata (NIP-01)
   TutorHubKind.TutorSchedule,     // 30001
   TutorHubKind.BookingRequest,    // 30002
   TutorHubKind.BookingStatus,     // 30003
   TutorHubKind.StudentProgress,   // 30004
   TutorHubKind.LessonAgreement,   // 30006
-  TutorHubKind.TutorBlogPost,    // 30005
-  TutorHubKind.Review,           // 32267
+  TutorHubKind.TutorBlogPost,     // 30005
+  TutorHubKind.Review,            // 32267
 ];
 
 let shutdown: (() => void) | null = null;

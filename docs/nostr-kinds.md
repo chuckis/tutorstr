@@ -10,22 +10,34 @@ Custom Nostr kinds used by Tutor Hub, aligned with `frontend/src/nostr/kinds.ts`
   - Public events: plain JSON in `content`.
   - Encrypted events: `content` is NIP-04 or NIP-44 ciphertext, and the cleartext schema below applies.
 
-## Kind 30000 — TutorProfile (public, replaceable)
+## Kind 0 — Metadata (NIP-01, replaceable)
 
-Purpose: Publish a tutor's public profile for discovery.
+**Replaces `kind 30000`.** Standard Nostr metadata event. Used by both tutors and
+students.
 
-Content schema (JSON):
+Content schema — NIP-01 standard fields with custom extensions:
 - `name`: string
-- `bio`: string
-- `subjects`: string[]
-- `languages`: string[]
-- `hourlyRate`: number
-- `avatarUrl`: string (URL)
+- `about`: string (maps to internal `bio`)
+- `picture`: string (URL, maps to internal `avatarUrl`)
+- `subjects`: string[] (custom)
+- `languages`: string[] (custom)
+- `hourlyRate`: number (custom)
+- `role`: "tutor" | "student" (custom)
+- `availabilityMode`: "remote" | "offline" | "hybrid" (custom, tutor-only)
+- `timezone`: string (custom, IANA, tutor-only)
+- `workHours`: string (custom, tutor-only)
 
 Tags:
-- `["t", "role:tutor"]`
+- `["t", "schema:<version>"]` — content schema version (currently `1`)
+- `["t", "role:<tutor|student>"]` — role marker for relay filtering
 - `["t", "subject:<subject>"]` (repeat per subject)
-- Optional: `["t", "language:<language>"]` (repeat per language)
+- `["t", "language:<language>"]` (repeat per language)
+- `["t", "mode:<remote|offline|hybrid>"]` (tutor-only)
+
+## Kind 30000 — TutorProfile (DEPRECATED)
+
+> **Deprecated.** Use `kind 0` (Metadata) instead. Kept for backward compat
+> with old clients. No new development.
 
 ## Kind 30001 — TutorSchedule (public, replaceable)
 

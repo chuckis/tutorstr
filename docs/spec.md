@@ -26,14 +26,15 @@ of that account; multi-role, role switching, and role recovery on foreign client
 are out of scope (see §4.6 and the design notes in
 `docs/plans/role_separation_tutor_student.md`).
 
-The role is **stored only in the local vault** of the creating client. It is the
-source of truth for the user's own UI and enforcement; no Nostr event (`kind
-30007` or any other) carries the role. Other clients that import the same
-`nsec` into a "clean" vault have no role until they re-run onboarding
-(recovery) — outside MVP, see §4.6.
+The role is **stored in the local vault** of the creating client and **published
+in the user's `kind 0` profile event** (both in `content.role` and
+`["t", "role:tutor|student"]` tag). This allows role discovery for extension
+(NIP-07) and remote signer (NIP-46) users who have no vault. There is no
+dedicated role-only event (`kind 30007`) — the role lives on the profile event,
+which is the natural home for it.
 
 ### 4.1 Tutor
-- Publish and update profile (`kind 30000`)
+- Publish and update profile (`kind 0`)
 - Publish and update availability schedule (`kind 30001`)
 - Accept, reject, or cancel booking requests (`kind 30003`)
 - Mark lessons as completed or cancelled (`kind 30006`)
@@ -46,7 +47,7 @@ source of truth for the user's own UI and enforcement; no Nostr event (`kind
 - Cancel own pending booking requests
 - Track personal learning progress (`kind 30004`, encrypted)
 - Communicate privately with tutors
-- Publish a simplified public profile (`kind 30000`, without `subjects` /
+- Publish a simplified public profile (`kind 0`, without `subjects` /
   `hourlyRate`)
 
 ### 4.3 Visitor (logged out)
@@ -58,7 +59,7 @@ source of truth for the user's own UI and enforcement; no Nostr event (`kind
 
 | Action | Tutor | Student | Enforced in |
 | --- | :-: | :-: | --- |
-| Publish `kind 30000` (profile) | yes | yes (subset of fields) | use case + form |
+| Publish `kind 0` (profile) | yes | yes (subset of fields) | use case + form |
 | Publish `kind 30001` (schedule) | yes | **no** | `PublishTutorSchedule` guard |
 | Send `kind 30002` (booking request) | **no** | yes | `CreateBookingRequest` guard |
 | Accept / reject `kind 30003` | yes | **no** | `AcceptBooking` guard |
@@ -68,7 +69,7 @@ source of truth for the user's own UI and enforcement; no Nostr event (`kind
 | `kind 30004` (progress log) | yes | yes | symmetric |
 | `kind 4` (DM, NIP-04) | yes | yes | symmetric |
 | `kind 30005` (blog post) | yes | **no** | reserved for tutor |
-| Discover tab content | tutors only (filter on `kind 30000`) | tutors only | `useTutorDirectory` |
+| Discover tab content | tutors only (filter on `kind 0`) | tutors only | `useTutorDirectory` |
 | `Requests` segment `incoming` | rendered | **not rendered** | `useAppNavigation` + `RequestsTab` |
 | `Requests` segment `outgoing` | rendered | rendered | both |
 | `Profile` form fields | full | `name`, `bio`, `avatarUrl`, `languages` only | `ProfileForm` `mode` |
@@ -91,14 +92,19 @@ controller passes the same role into every component that needs to branch.
 - **Import flow**: no role-pick step. The role is read from the vault; if the
   imported key has no role on this device (legacy / cross-client import), the
   legacy fallback assigns `role = "tutor"` (see §4.6).
+- **NIP-07 extension flow**: user connects via browser extension. No vault
+  entry exists. The app subscribes to `kind 0` for the user's pubkey. If a
+  profile with a `role` tag is found, the role is resolved from it. If not,
+  the user is prompted to pick a role.
 - **Unlock flow**: unchanged; role is restored from the vault.
 
 ### 4.6 Out of scope for MVP (noted, not implemented)
 
 - Switching role for an existing `npub` — the user must create a new account.
 - `1:N` mapping (`npub` with both roles) — single role only.
-- Publishing the role in a Nostr event (`kind 30007` Account, `kind 0`
-  metadata, or any other channel). The vault is the only source of truth.
+- Publishing the role in a dedicated Nostr event (`kind 30007` Account). The
+  role may appear in the user's `kind 0` profile event (content + tags), which
+  is the natural home — not in a separate kind.
 - Verifying a counterparty's role from a remote event. Tutors and students
   are trusted to publish what they publish; the only check is the local
   guard.
@@ -119,18 +125,18 @@ Frontend:
 - nostr-tools
 
 Backend:
-- Custom Nostr Relay
-- TypeScript (Node.js / Bun / Deno)
+- Custom Nostr Relay (Khatru, in `relay/`)
+- Go
 - WebSocket
 
 Storage:
-- SQLite or LevelDB
+- In-memory (slicestore) for development; persistent (LMDB/PostgreSQL) for production
 
 ## 6. Nostr Event Kinds
 
 | Kind  | Description |
 |------:|------------|
-| 30000 | Profile (replaceable; tutor or student — see §7.1) |
+| 0 | Metadata (NIP-01; replaces `kind 30000` — see §7.1) |
 | 30001 | Tutor Schedule (replaceable; tutor-only publish) |
 | 30002 | Booking Request (student-only publish) |
 | 30003 | Booking Status |
@@ -139,27 +145,35 @@ Storage:
 | 30006 | Lesson Agreement (replaceable per lesson) |
 
 See `docs/nostr-kinds.md` for full NIP-style definitions, tags, and schemas.
-The role is not published to Nostr in MVP — there is no `kind 30007` Account
-event. See §4 for the role model.
+The role may appear in the user's `kind 0` profile (content and tags) but not
+in a dedicated kind (`kind 30007`). See §4 for the role model.
 
 ## 7. Event Definitions
 
-### 7.1 Profile (kind 30000)
-Replaceable event. Used by **both** tutors and students; only tutors fill the
-tutor-specific fields. The schema below is the full schema; empty / missing
-keys are allowed for student profiles.
+### 7.1 Profile (kind 0, replaces kind 30000)
+Standard Nostr metadata event (NIP-01). Used by **both** tutors and students;
+only tutors fill the tutor-specific fields. Internal `UserProfile` type uses
+`bio`/`avatarUrl`; `serializeProfile()` maps to NIP-01 fields (`about`/`picture`)
+on publish.
 
-Content (JSON):
-- name
-- bio
-- subjects (tutor only)
-- languages
-- hourlyRate (tutor only)
-- avatarUrl
+Content (JSON) — NIP-01 standard + custom extensions:
+- `name`: string
+- `about`: string (maps to internal `bio`)
+- `picture`: string (URL, maps to internal `avatarUrl`)
+- `subjects`: string[] (custom, tutor only)
+- `languages`: string[] (custom)
+- `hourlyRate`: number (custom, tutor only)
+- `role`: "tutor" | "student" (custom)
+- `availabilityMode`: "remote" | "offline" | "hybrid" (custom, tutor only)
+- `timezone`: string (custom, IANA, tutor only)
+- `workHours`: string (custom, tutor only)
 
 Tags:
-- `t: role:tutor` — only emitted for tutor profiles
-- `t: subject:*` — only emitted when `subjects` is non-empty
+- `["t", "schema:1"]` — content schema version
+- `["t", "role:tutor"]` or `["t", "role:student"]` — role for relay filtering
+- `["t", "subject:<subject>"]` (repeat per subject)
+- `["t", "language:<language>"]` (repeat per language)
+- `["t", "mode:<mode>"]` (tutor only)
 
 ### 7.2 Tutor Schedule (kind 30001)
 Replaceable event.

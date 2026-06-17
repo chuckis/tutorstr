@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { useRepo } from "./RepoContext";
 import { Role, UserProfile, PROFILE_SCHEMA_VERSION } from "../domain/profile";
-import { emptyProfile, normalizeProfile } from "../utils/normalize";
+import { emptyProfile, normalizeProfile, serializeProfile } from "../utils/normalize";
 
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   if (!(error instanceof Error)) {
@@ -73,7 +73,7 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
       (event) => {
         try {
           const parsed = normalizeProfile(
-            JSON.parse(event.content) as UserProfile,
+            JSON.parse(event.content) as Record<string, unknown>,
           );
           latestProfileRef.current = parsed;
           setProfile(parsed);
@@ -116,7 +116,7 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
     try {
       const eventId = await profileEventRepository.publish(
         pubkey,
-        JSON.stringify(nextProfile),
+        JSON.stringify(serializeProfile(nextProfile)),
         buildProfileTags(nextProfile),
       );
       localStorage.setItem(`tutorhub:profile:${pubkey}`, JSON.stringify(nextProfile));

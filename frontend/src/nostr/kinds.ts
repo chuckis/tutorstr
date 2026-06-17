@@ -1,4 +1,6 @@
 export enum TutorHubKind {
+  Metadata = 0,
+  /** @deprecated Use Metadata (kind 0) instead. Kept for backward compat. */
   Profile = 30000,
   TutorSchedule = 30001,
   BookingRequest = 30002,

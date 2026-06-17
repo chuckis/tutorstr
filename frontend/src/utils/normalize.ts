@@ -47,6 +47,23 @@ export function isProfileEmpty(profile: UserProfile) {
   );
 }
 
+/** Serialize internal UserProfile to NIP-01 kind:0 wire format. */
+export function serializeProfile(profile: UserProfile): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    name: profile.name,
+    about: profile.bio,
+    picture: profile.avatarUrl,
+    subjects: profile.subjects,
+    languages: profile.languages,
+    hourlyRate: profile.hourlyRate
+  };
+  if (profile.role) out.role = profile.role;
+  if (profile.availabilityMode) out.availabilityMode = profile.availabilityMode;
+  if (profile.timezone) out.timezone = profile.timezone;
+  if (profile.workHours) out.workHours = profile.workHours;
+  return out;
+}
+
 export function normalizeSchedule(
   input: Partial<TutorSchedule> | null | undefined
 ) {
