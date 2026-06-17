@@ -8,16 +8,20 @@ import { Textarea } from "./ui/Textarea";
 import { Checkbox } from "./ui/Checkbox";
 import { HintIcon } from "./ui/HintIcon";
 
+type AuthScreenMode = "welcome" | "unlock" | "role-pick" | "nip07-connecting";
+
 type AuthScreenProps = {
-  mode: "welcome" | "unlock" | "role-pick";
+  mode: AuthScreenMode;
   status: string;
   generatedNsec: string;
+  nip07ExtensionAvailable?: boolean;
   onCreateProfile: (passphrase: string) => Promise<void>;
   onChooseRole: (role: AccountRole) => Promise<void>;
   onCancelRolePick: () => void;
   onImportProfile: (secret: string, passphrase: string) => Promise<void>;
   onUnlock: (passphrase: string) => Promise<void>;
   onDismissGeneratedSecret: () => Promise<void>;
+  onConnectNip07?: () => Promise<void>;
 };
 
 type WelcomeFlow = "choice" | "create" | "import";
@@ -26,12 +30,14 @@ export function AuthScreen({
   mode,
   status,
   generatedNsec,
+  nip07ExtensionAvailable,
   onCreateProfile,
   onChooseRole,
   onCancelRolePick,
   onImportProfile,
   onUnlock,
-  onDismissGeneratedSecret
+  onDismissGeneratedSecret,
+  onConnectNip07
 }: AuthScreenProps) {
   const { t } = useI18n();
   const [flow, setFlow] = useState<WelcomeFlow>("choice");
@@ -108,6 +114,11 @@ export function AuthScreen({
     onCancelRolePick();
   }
 
+  async function handleConnectNip07() {
+    setLocalError("");
+    await onConnectNip07?.();
+  }
+
   return (
     <main className="auth-shell">
       <section className="auth-hero">
@@ -161,11 +172,23 @@ export function AuthScreen({
         </section>
       ) : null}
 
+      {!generatedNsec && mode === "nip07-connecting" ? (
+        <section className="auth-panel">
+          <h2>{t("auth.connecting")}</h2>
+          <p className="muted">{status || t("auth.extensionWait")}</p>
+        </section>
+      ) : null}
+
       {!generatedNsec && mode === "welcome" ? (
         <section className="auth-panel stack">
           {flow === "choice" ? (
             <>
               <h2>{t("auth.chooseStart")}</h2>
+              {nip07ExtensionAvailable ? (
+                <Button variant="primary" type="button" onClick={handleConnectNip07}>
+                  {t("auth.signInExtension")}
+                </Button>
+              ) : null}
               <div className="auth-card-grid">
                 <Card
                   hoverable

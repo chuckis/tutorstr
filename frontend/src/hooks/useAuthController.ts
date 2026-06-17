@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { nip19 } from "nostr-tools";
 import { createNewProfile } from "../application/auth/createNewProfile";
 import { exportSecretKey } from "../application/auth/exportSecretKey";
 import { importExistingKey } from "../application/auth/importExistingKey";
@@ -14,8 +15,17 @@ import { VaultCipher } from "../ports/vaultCipher";
 import { NostrKeyMaterial } from "../ports/nostrKeyMaterial";
 import { NostrSigner } from "../ports/nostrSigner";
 import { SignerManager } from "../ports/signerManager";
+import { nostrClient } from "../nostr/client";
+import { createNip07Signer } from "../adapters/nostr/nip07Signer";
+import type { WindowNostr } from "nostr-tools/nip07";
 
-type AuthMode = "loading" | "welcome" | "unlock" | "role-pick" | "authenticated";
+type AuthMode =
+  | "loading"
+  | "welcome"
+  | "unlock"
+  | "role-pick"
+  | "nip07-connecting"
+  | "authenticated";
 
 type PendingGeneratedProfile = {
   secretKeyHex: string;
@@ -25,6 +35,11 @@ type PendingGeneratedProfile = {
 
 type PendingRolePick = {
   passphrase: string;
+};
+
+type Nip07Pending = {
+  pubkey: string;
+  npub: string;
 };
 
 type AuthDependencies = {
@@ -38,6 +53,8 @@ type SignerFactory = (
   session: AuthSession,
   passphrase: string
 ) => NostrSigner;
+
+const NIP07_ROLE_DISCOVERY_TIMEOUT = 3000;
 
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   if (!(error instanceof Error)) {
@@ -60,6 +77,9 @@ export function useAuthController(
   const [pendingGeneratedProfile, setPendingGeneratedProfile] =
     useState<PendingGeneratedProfile | null>(null);
   const [pendingRolePick, setPendingRolePick] = useState<PendingRolePick | null>(null);
+  const [nip07Pending, setNip07Pending] = useState<Nip07Pending | null>(null);
+  const nip07SubRef = useRef<(() => void) | null>(null);
+  const nip07TimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const restored = restoreStoredSession(authDeps.vaultRepository);
@@ -74,7 +94,71 @@ export function useAuthController(
     setMode("unlock");
   }, [authDeps.signerManager, authDeps.vaultRepository]);
 
+  useEffect(() => {
+    return () => {
+      nip07SubRef.current?.();
+      if (nip07TimerRef.current) clearTimeout(nip07TimerRef.current);
+    };
+  }, []);
+
   const isAuthenticated = mode === "authenticated" && session !== null;
+
+  const nip07ExtensionAvailable =
+    typeof window !== "undefined" &&
+    (window as unknown as { nostr?: WindowNostr }).nostr !== undefined;
+
+  function startNip07RoleDiscovery(pubkey: string, npub: string) {
+    let resolved = false;
+
+    nip07SubRef.current = nostrClient.subscribe(
+      { kinds: [0], authors: [pubkey], limit: 1 },
+      (event) => {
+        if (resolved) return;
+        try {
+          const parsed = JSON.parse(event.content) as Record<string, unknown>;
+          const role = typeof parsed.role === "string"
+            ? (parsed.role as AccountRole)
+            : null;
+          const tagRole = event.tags.find(
+            ([k, v]) => k === "t" && (v === "role:tutor" || v === "role:student")
+          );
+
+          if (role === "tutor" || role === "student") {
+            resolved = true;
+            nip07SubRef.current?.();
+            if (nip07TimerRef.current) clearTimeout(nip07TimerRef.current);
+            finishNip07Auth(pubkey, npub, role);
+          } else if (tagRole) {
+            resolved = true;
+            nip07SubRef.current?.();
+            if (nip07TimerRef.current) clearTimeout(nip07TimerRef.current);
+            const extractedRole = tagRole[1].split(":")[1] as AccountRole;
+            finishNip07Auth(pubkey, npub, extractedRole);
+          }
+        } catch {
+          // ignore parse errors
+        }
+      },
+    );
+
+    nip07TimerRef.current = setTimeout(() => {
+      if (resolved) return;
+      nip07SubRef.current?.();
+      setNip07Pending({ pubkey, npub });
+      setMode("role-pick");
+      setStatus("");
+    }, NIP07_ROLE_DISCOVERY_TIMEOUT);
+  }
+
+  function finishNip07Auth(pubkey: string, npub: string, role: AccountRole) {
+    const nextSession: AuthSession = { pubkey, npub, role };
+    const signer = createNip07Signer(nextSession);
+    authDeps.signerManager.setSigner(signer);
+    setSession(nextSession);
+    setNip07Pending(null);
+    setStatus("");
+    setMode("authenticated");
+  }
 
   const actions = useMemo(
     () => ({
@@ -84,6 +168,14 @@ export function useAuthController(
         setMode("role-pick");
       },
       async chooseRole(role: AccountRole) {
+        // NIP-07 role-pick branch
+        if (nip07Pending) {
+          setStatus(t("auth.connecting"));
+          finishNip07Auth(nip07Pending.pubkey, nip07Pending.npub, role);
+          return;
+        }
+
+        // Vault create branch
         if (!pendingRolePick) {
           return;
         }
@@ -109,9 +201,38 @@ export function useAuthController(
         }
       },
       cancelRolePick() {
+        // NIP-07 cancel
+        if (nip07Pending) {
+          setNip07Pending(null);
+          setStatus("");
+          setMode("welcome");
+          return;
+        }
+
+        // Vault create cancel
         setPendingRolePick(null);
         setStatus("");
         setMode("welcome");
+      },
+      async connectNip07() {
+        const nostr = (window as unknown as { nostr?: WindowNostr }).nostr;
+        if (!nostr) {
+          setStatus(t("auth.extensionNotFound") || "NIP-07 extension not found");
+          return;
+        }
+
+        setStatus(t("auth.connecting"));
+        setMode("nip07-connecting");
+
+        try {
+          const pubkey = await nostr.getPublicKey();
+          const npub = nip19.npubEncode(pubkey);
+          setStatus(t("auth.checkingProfile"));
+          startNip07RoleDiscovery(pubkey, npub);
+        } catch (error) {
+          setStatus(toLocalizedErrorMessage(error, t) || t("auth.connectionFailed"));
+          setMode("welcome");
+        }
       },
       async importProfile(secret: string, passphrase: string) {
         setStatus(t("auth.importPanelTitle"));
@@ -157,10 +278,14 @@ export function useAuthController(
         }
       },
       logout() {
+        nip07SubRef.current?.();
+        if (nip07TimerRef.current) clearTimeout(nip07TimerRef.current);
         logoutUseCase(authDeps.vaultRepository);
         authDeps.signerManager.setSigner(null);
         setGeneratedNsec("");
         setPendingGeneratedProfile(null);
+        setPendingRolePick(null);
+        setNip07Pending(null);
         setSession(null);
         setStatus("");
         setMode("welcome");
@@ -198,7 +323,7 @@ export function useAuthController(
         }
       },
     }),
-    [authDeps, createSigner, pendingGeneratedProfile, pendingRolePick, t]
+    [authDeps, createSigner, pendingGeneratedProfile, pendingRolePick, nip07Pending, t]
   );
 
   return {
@@ -208,6 +333,7 @@ export function useAuthController(
     status,
     generatedNsec,
     isAuthenticated,
+    nip07ExtensionAvailable,
     actions
   };
 }

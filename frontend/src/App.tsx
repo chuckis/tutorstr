@@ -64,16 +64,20 @@ export default function App() {
             ? "unlock"
             : auth.mode === "role-pick"
               ? "role-pick"
-              : "welcome"
+              : auth.mode === "nip07-connecting"
+                ? "nip07-connecting"
+                : "welcome"
         }
         status={auth.status}
         generatedNsec={auth.generatedNsec}
+        nip07ExtensionAvailable={auth.nip07ExtensionAvailable}
         onCreateProfile={auth.actions.createProfile}
         onChooseRole={auth.actions.chooseRole}
         onCancelRolePick={auth.actions.cancelRolePick}
         onImportProfile={auth.actions.importProfile}
         onUnlock={auth.actions.unlock}
         onDismissGeneratedSecret={auth.actions.dismissGeneratedSecret}
+        onConnectNip07={auth.actions.connectNip07}
       />
     );
   }
