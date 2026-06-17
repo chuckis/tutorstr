@@ -128,7 +128,10 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     stateLoading,
     requestsUnreadCount,
     lessonsUnreadCount,
-    isNewLesson
+    isNewLesson,
+    publishReview,
+    publishReviewLoading,
+    publishReviewError
   } = useAppController(onLogout, viewerRole, blossomUrl);
 
   const handleAvatarUpload = useCallback(async (file: File) => {
@@ -289,6 +292,11 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             messageStatus={messageStatus}
             loading={stateLoading.lessons}
+            lessonAgreements={lessonsState.lessonAgreements.agreements}
+            onPublishReview={publishReview}
+            publishReviewLoading={publishReviewLoading}
+            publishReviewError={publishReviewError}
+            viewerRole={viewerRole}
           />
         ) : null}
 

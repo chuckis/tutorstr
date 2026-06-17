@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { groupLessonsByTimeline } from "../application/usecases/groupLessonsByTimeline";
 import { Lesson } from "../domain/lesson";
 import { useLessonRepository } from "./useLessonRepository";
+import { useLessonAgreementsForUser } from "./useLessonAgreementsForUser";
 
 export function useLessons(userId: string, options?: { now?: number }) {
   const lessonRepository = useLessonRepository(userId);
+  const lessonAgreements = useLessonAgreementsForUser(userId);
   const now = options?.now ?? Date.now();
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,7 @@ export function useLessons(userId: string, options?: { now?: number }) {
     lessonBuckets,
     lessonMap,
     lessonRepository,
+    lessonAgreements,
     loading
   };
 }

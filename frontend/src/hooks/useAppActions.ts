@@ -4,12 +4,16 @@ import { SlotOccupancy } from "../domain/slotOccupancy";
 import { TimeSlot } from "../domain/TimeSlot";
 import { makeSlotAllocationKey, makeSlotBidKey } from "../domain/slotAllocation";
 import { Lesson, LessonStatus } from "../domain/lesson";
+import { ReviewRating } from "../domain/review";
 import { BookingRepository } from "../ports/bookingRepository";
 import { LessonRepository } from "../ports/lessonRepository";
+import { ReviewRepository } from "../ports/reviewRepository";
 import { NotificationService } from "../ports/notificationService";
+import { LessonAgreementEvent } from "../ports/lessonAgreementEventsRepository";
 import { useI18n } from "../i18n/I18nProvider";
 import { ChangeLessonStatus } from "../application/usecases/changeLessonStatus";
 import { CancelBooking } from "../application/usecases/cancelBooking";
+import { PublishReview } from "../application/usecases/publishReview";
 import {
   CreateBookingRequest,
   BookingRequestPayload
@@ -37,6 +41,7 @@ type UseAppActionsProps = {
   winnerByAllocationKey: Record<string, SlotOccupancy>;
   bookingRepository: BookingRepository;
   lessonRepository: LessonRepository;
+  reviewRepository: ReviewRepository;
   acceptBooking: AcceptBookingUseCase;
   sendMessage: (recipientPubkey: string, text: string, threadKey?: string) => Promise<void>;
   sendMessageWithFiles: (
@@ -72,6 +77,7 @@ export function useAppActions({
   winnerByAllocationKey,
   bookingRepository,
   lessonRepository,
+  reviewRepository,
   acceptBooking,
   sendMessage,
   sendMessageWithFiles,
@@ -93,6 +99,7 @@ export function useAppActions({
   const createBookingRequestUseCase = new CreateBookingRequest(
     publishBookingRequest
   );
+  const publishReviewUseCase = new PublishReview(reviewRepository);
 
   async function respondToBooking(request: Booking, nextStatus: "accepted" | "rejected") {
     if (nextStatus !== "accepted") {
@@ -219,6 +226,24 @@ export function useAppActions({
     }
   }
 
+  async function publishReview(
+    lessonAgreementEvent: LessonAgreementEvent,
+    viewerPubkey: string,
+    rating: ReviewRating,
+    comment: string
+  ) {
+    const result = await publishReviewUseCase.execute(
+      lessonAgreementEvent,
+      viewerPubkey,
+      viewerRole,
+      { rating, comment }
+    );
+
+    if (!result.ok) {
+      throw new Error(result.error.type);
+    }
+  }
+
   function logout() {
     onLogout();
   }
@@ -231,6 +256,7 @@ export function useAppActions({
     requestPublishedSlot,
     sendEncryptedMessage,
     sendEncryptedMessageWithFiles,
+    publishReview,
     logout
   };
 }

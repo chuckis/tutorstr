@@ -2,6 +2,8 @@ import { useI18n } from "../i18n/I18nProvider";
 import { AccountRole, Booking, Lesson, TutorSchedule } from "../hooks/hookTypes";
 import { UserProfileEvent } from "../hooks/hookTypes";
 import { toDisplayId } from "../utils/display";
+import { useReviewsForSubject } from "../hooks/useReviewsForSubject";
+import { ReputationBadge } from "./ReputationBadge";
 import { Avatar } from "./Avatar";
 import { ScheduleForm } from "./ScheduleForm";
 import { Spinner } from "./Spinner";
@@ -66,6 +68,7 @@ export function DashboardTab({
   const { t, formatDateTime } = useI18n();
   const resolvedMode = mode ?? dashboardMode(role);
   const isTutor = resolvedMode === "tutor";
+  const { reputation } = useReviewsForSubject(pubkey);
 
   const profileSummary = profileBio || t("common.states.noBioYet");
   const profileStatusLabel = profileStatus || t("profile.statusIdle");
@@ -94,6 +97,7 @@ export function DashboardTab({
               <Avatar url={profileAvatarUrl} role={role} size="lg" />
               <div>
                 <h2>{profileName || (isTutor ? t("profile.dashboardTitle") : t("profile.student.dashboardTitle"))}</h2>
+                <ReputationBadge reputation={reputation} />
                 <p className="muted">
                   {isTutor
                     ? t("profile.dashboardIntro")

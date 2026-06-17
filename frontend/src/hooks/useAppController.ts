@@ -24,6 +24,7 @@ import { useTutorBlog } from "./useTutorBlog";
 import { useMyBlog } from "./useMyBlog";
 import { useI18n } from "../i18n/I18nProvider";
 import { useNotification } from "./NotificationContext";
+import { useRepo } from "./RepoContext";
 import { BookingStatusPayload } from "../ports/bookingEventsRepository";
 
 function isRequestVisibleForBadge(
@@ -46,10 +47,13 @@ export function useAppController(
   blossomUrl: string
 ) {
   const { t } = useI18n();
+  const { reviewRepository } = useRepo();
   const notification = useNotification();
   const navigation = useAppNavigation(viewerRole);
   const [discoverStatus, setDiscoverStatus] = useState("");
   const [messageStatus, setMessageStatus] = useState("");
+  const [publishReviewLoading, setPublishReviewLoading] = useState(false);
+  const [publishReviewError, setPublishReviewError] = useState<string | null>(null);
   const keypair = useNostrKeypair();
   const profileState = useTutorProfile(keypair.pubkey, viewerRole);
   const scheduleState = useTutorSchedule(keypair.pubkey, viewerRole);
@@ -252,6 +256,7 @@ export function useAppController(
     },
     bookingRepository: bookingsState.bookingRepository,
     lessonRepository: lessonsState.lessonRepository,
+    reviewRepository,
     acceptBooking: bookingsState.acceptBooking,
     sendMessage,
     sendMessageWithFiles,
@@ -319,6 +324,24 @@ export function useAppController(
     await actions.cancelRequestFromStudent(request);
   }
 
+  async function handlePublishReview(
+    lessonAgreementEvent: import("../ports/lessonAgreementEventsRepository").LessonAgreementEvent,
+    viewerPubkey: string,
+    rating: import("../domain/review").ReviewRating,
+    comment: string
+  ) {
+    setPublishReviewLoading(true);
+    setPublishReviewError(null);
+    try {
+      await actions.publishReview(lessonAgreementEvent, viewerPubkey, rating, comment);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "unknown";
+      setPublishReviewError(msg);
+    } finally {
+      setPublishReviewLoading(false);
+    }
+  }
+
   return {
     navigation,
     relay,
@@ -347,6 +370,9 @@ export function useAppController(
     publishBookingRequest,
     requestsUnreadCount: messageIndicators.requestUnreadCount + newRequestIndicator.newCount,
     lessonsUnreadCount: messageIndicators.lessonUnreadCount + newLessonIndicator.newCount,
-    isNewLesson: (lessonId: string) => newLessonIndicator.isNew(lessonId)
+    isNewLesson: (lessonId: string) => newLessonIndicator.isNew(lessonId),
+    publishReview: handlePublishReview,
+    publishReviewLoading,
+    publishReviewError,
   };
 }

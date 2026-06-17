@@ -22,6 +22,8 @@ import { StudentDetailView } from "./StudentDetailView";
 import { TutorCard } from "./TutorCard";
 import { Button } from "./ui/Button";
 import { EmptyState } from "./ui/EmptyState";
+import { ReputationBadge } from "./ReputationBadge";
+import { useReviewsForSubject } from "../hooks/useReviewsForSubject";
 import { useState } from "react";
 import { BlogPostList } from "./blog/BlogPostList";
 import { useTutorBlog } from "../hooks/useTutorBlog";
@@ -77,6 +79,8 @@ export function DiscoverTab({
   const { t, formatDateTime, formatNumber } = useI18n();
   const isNewcomerProfile = isProfileEmpty(profile);
   const isStudent = role === "student";
+  const selectedTutorPubkey = selectedTutor?.pubkey ?? "";
+  const { reputation } = useReviewsForSubject(selectedTutorPubkey);
 
   function getSlotState(tutorPubkey: string, slot: TimeSlot) {
     const slotBidKey = makeSlotBidKey(tutorPubkey, studentPubkey, slot);
@@ -137,6 +141,9 @@ export function DiscoverTab({
               </p>
             </div>
           </div>
+          {selectedTutorPubkey ? (
+            <ReputationBadge reputation={reputation} />
+          ) : null}
           <p>{selectedTutor.profile.bio || t("common.states.noBioYet")}</p>
           {selectedTutor.profile.subjects.length > 0 ? (
             <div className="chips">

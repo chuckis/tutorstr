@@ -1,10 +1,12 @@
 import { CalendarClock, CalendarRange, History, List } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Lesson, LessonStatus, lessonMessageThreadKey, EncryptedMessage } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { UserProfileEvent, MessageAttachment } from "../hooks/hookTypes";
 import { AccountRole } from "../domain/account";
 import { LessonNoteWithVisibility } from "../domain/lessonNote";
+import { LessonAgreementEvent } from "../ports/lessonAgreementEventsRepository";
+import { ReviewRating } from "../domain/review";
 import { toDisplayId } from "../utils/display";
 import { DetailPageLayout } from "./DetailPageLayout";
 import { HintIcon } from "./ui/HintIcon";
@@ -19,6 +21,7 @@ import { MessageAttachmentPreview } from "./MessageAttachmentPreview";
 import { Button } from "./ui/Button";
 import { LessonCard } from "./ui/LessonCard";
 import { EmptyState } from "./ui/EmptyState";
+import { ReviewForm } from "./ReviewForm";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
 type UploadProgress = "idle" | "uploading" | "done" | "error";
@@ -75,6 +78,16 @@ type LessonsTabProps = {
   ) => void | Promise<void>;
   messageStatus: string;
   loading: boolean;
+  lessonAgreements: Record<string, LessonAgreementEvent>;
+  onPublishReview: (
+    lessonAgreementEvent: LessonAgreementEvent,
+    viewerPubkey: string,
+    rating: ReviewRating,
+    comment: string
+  ) => Promise<void>;
+  publishReviewLoading: boolean;
+  publishReviewError: string | null;
+  viewerRole: AccountRole;
 };
 
 export function LessonsTab({
@@ -104,12 +117,29 @@ export function LessonsTab({
   onSendMessage,
   onSendMessageWithFiles,
   messageStatus,
-  loading
+  loading,
+  lessonAgreements,
+  onPublishReview,
+  publishReviewLoading,
+  publishReviewError,
+  viewerRole,
 }: LessonsTabProps) {
   const { t, formatDateTime } = useI18n();
   const [viewMode, setViewMode] = useState<LessonViewMode>("list");
   const [noteView, setNoteView] = useState<NoteView>(null);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+
+  const handleReviewSubmit = useCallback(
+    async (rating: ReviewRating, comment: string) => {
+      if (!selectedLesson) return;
+      const event = lessonAgreements[selectedLesson.id];
+      if (!event) return;
+      await onPublishReview(event, currentPubkey, rating, comment);
+      setReviewSubmitted(true);
+    },
+    [selectedLesson, lessonAgreements, onPublishReview, currentPubkey]
+  );
 
   if (selectedLesson) {
     const threadInfo = lessonMessageThreadKey(selectedLesson);
@@ -124,6 +154,10 @@ export function LessonsTab({
     const selectedNote = selectedNoteId
       ? noteList.find((n) => n.id === selectedNoteId) ?? null
       : null;
+
+    const agreementEvent = lessonAgreements[selectedLesson.id];
+    const isCompleted = selectedLesson.status === "completed";
+    const showReviewForm = isCompleted && !reviewSubmitted && agreementEvent;
 
     if (noteView === "list") {
       return (
@@ -160,7 +194,10 @@ export function LessonsTab({
     return (
       <DetailPageLayout
         backLabel={t("lessons.backToLessons")}
-        onBack={() => window.history.back()}
+        onBack={() => {
+          setReviewSubmitted(false);
+          window.history.back();
+        }}
         title={selectedLesson.subject || t("lessons.defaultTitle")}
         subtitle={lessonSubtitle}
       >
@@ -210,6 +247,18 @@ export function LessonsTab({
                 {t("lessons.cancel")}
               </Button>
             </div>
+          ) : null}
+
+          {showReviewForm ? (
+            <ReviewForm
+              onSubmit={handleReviewSubmit}
+              loading={publishReviewLoading}
+              error={publishReviewError}
+            />
+          ) : null}
+
+          {reviewSubmitted && !publishReviewError ? (
+            <p className="muted">{t("review.alreadyReviewed")}</p>
           ) : null}
 
           <LessonNoteEditor
