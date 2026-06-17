@@ -13,7 +13,7 @@ import (
 func main() {
 	relay := khatru.NewRelay()
 
-	relay.Info.Name = "Local Tutorstr Relay"
+	relay.Info.Name = "Local TutorHub Relay"
 	relay.Info.Description = "In-memory relay for local development. Accepts all custom kinds."
 	relay.Info.PubKey = ""
 	relay.Info.Contact = ""

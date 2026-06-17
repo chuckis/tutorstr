@@ -1,6 +1,6 @@
 # Architecture Decisions & Hard-Won Lessons
 
-> Tutorstr / TutorHub — Nostr PWA  
+> TutorHub / TutorHub — Nostr PWA  
 > Обновлено: июнь 2025
 
 ---

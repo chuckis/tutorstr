@@ -1,4 +1,4 @@
-# Tutorstr
+# TutorHub
 
 Tutor Hub over Nostr: decentralized tutoring app where domain data lives in Nostr events.
 

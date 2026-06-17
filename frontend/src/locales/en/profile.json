@@ -94,8 +94,8 @@
     "privateKey_a": "It is your secret key that controls your Nostr identity. Anyone with access to your nsec can impersonate you, publish events, and access your encrypted messages. Never share it with anyone or paste it into untrusted websites. Store it in a password manager or write it down and keep it in a safe place."
   },
   "about": {
-    "title": "About Tutorstr",
-    "description": "Tutorstr is a decentralized tutoring platform built on the Nostr protocol. Identities, profiles, schedules, and agreements are all stored as Nostr events — no central server required.",
+    "title": "About TutorHub",
+    "description": "TutorHub is a decentralized tutoring platform built on the Nostr protocol. Identities, profiles, schedules, and agreements are all stored as Nostr events — no central server required.",
     "version": "Version: MVP",
     "builtOn": "Built on the Nostr protocol",
     "sourceCode": "Source code"

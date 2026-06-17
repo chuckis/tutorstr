@@ -1,9 +1,9 @@
 {
   "app": {
-    "title": "Tutorstr",
+    "title": "TutorHub",
     "subtitle": "Nostr хаб репетиторов",
     "loadingVault": "Загрузка хранилища",
-    "checkingVault": "Проверка сохранённого профиля Tutorstr.",
+    "checkingVault": "Проверка сохранённого профиля TutorHub.",
     "authSessionNotReady": "Сессия аутентификации не готова."
   },
   "nav": {
@@ -14,7 +14,7 @@
     "profile": "Профиль"
   },
   "share": {
-    "checkItOut": "Смотри на Tutorstr!"
+    "checkItOut": "Смотри на TutorHub!"
   },
   "actions": {
     "share": "Поделиться",

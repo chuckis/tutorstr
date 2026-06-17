@@ -1,7 +1,7 @@
 {
   "rolePick": {
     "title": "What brings you here?",
-    "body": "Pick the role that matches how you will use Tutorstr. You cannot change this later for the same identity.",
+    "body": "Pick the role that matches how you will use TutorHub. You cannot change this later for the same identity.",
     "tutorTitle": "I am a tutor",
     "tutorBody": "Publish your profile and schedule, accept student requests, run lessons.",
     "studentTitle": "I am a student",

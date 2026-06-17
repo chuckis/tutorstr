@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Tutorstr are recorded here. Dates are ISO 8601 (YYYY-MM-DD).
+All notable changes to TutorHub are recorded here. Dates are ISO 8601 (YYYY-MM-DD).
 
 The format is loose `Keep a Changelog`-style: `Added`, `Changed`, `Removed`,
 `Fixed`, plus a `Notes` block for cross-cutting items that need a paragraph.

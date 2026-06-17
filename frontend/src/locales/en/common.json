@@ -1,9 +1,9 @@
 {
   "app": {
-    "title": "Tutorstr",
+    "title": "TutorHub",
     "subtitle": "Nostr tutor hub",
     "loadingVault": "Loading vault",
-    "checkingVault": "Checking this device for a saved Tutorstr profile.",
+    "checkingVault": "Checking this device for a saved TutorHub profile.",
     "authSessionNotReady": "Authentication session is not ready."
   },
   "nav": {
@@ -14,7 +14,7 @@
     "profile": "Dashboard"
   },
   "share": {
-    "checkItOut": "Check it out on Tutorstr!"
+    "checkItOut": "Check it out on TutorHub!"
   },
   "actions": {
     "share": "Share",

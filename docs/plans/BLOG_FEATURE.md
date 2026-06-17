@@ -1,5 +1,5 @@
 # BLOG_FEATURE — Agent Specification
-## Tutor Blog for Tutorstr
+## Tutor Blog for TutorHub
 
 > **Repo:** `https://github.com/chuckis/tutorstr`
 > **Branch:** `master`

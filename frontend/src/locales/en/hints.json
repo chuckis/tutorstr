@@ -11,7 +11,7 @@
   },
   "nostr-key": {
     "title": "Your Nostr keys",
-    "content": "nsec is your private key — never share it. npub is your public address, safe to share. Tutorstr doesn't store keys on servers."
+    "content": "nsec is your private key — never share it. npub is your public address, safe to share. TutorHub doesn't store keys on servers."
   },
   "lesson-status": {
     "title": "Lesson statuses",

@@ -1,4 +1,4 @@
-# Tutorstr Frontend
+# TutorHub Frontend
 
 React + TypeScript + Vite PWA for the Tutor Hub over Nostr platform.
 
