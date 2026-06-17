@@ -23,6 +23,7 @@ import { TutorCard } from "./TutorCard";
 import { Button } from "./ui/Button";
 import { EmptyState } from "./ui/EmptyState";
 import { ReputationBadge } from "./ReputationBadge";
+import { ReviewList } from "./ReviewList";
 import { useReviewsForSubject } from "../hooks/useReviewsForSubject";
 import { useState } from "react";
 import { BlogPostList } from "./blog/BlogPostList";
@@ -80,7 +81,7 @@ export function DiscoverTab({
   const isNewcomerProfile = isProfileEmpty(profile);
   const isStudent = role === "student";
   const selectedTutorPubkey = selectedTutor?.pubkey ?? "";
-  const { reputation } = useReviewsForSubject(selectedTutorPubkey);
+  const { reviews, reputation } = useReviewsForSubject(selectedTutorPubkey);
 
   function getSlotState(tutorPubkey: string, slot: TimeSlot) {
     const slotBidKey = makeSlotBidKey(tutorPubkey, studentPubkey, slot);
@@ -136,14 +137,12 @@ export function DiscoverTab({
               <h2>
                 {selectedTutor.profile.name || t("common.states.unnamedTutor")}
               </h2>
+              <ReputationBadge reputation={reputation} />
               <p className="muted">
                 {selectedTutor.profile.languages.join(", ") || t("common.states.notSet")}
               </p>
             </div>
           </div>
-          {selectedTutorPubkey ? (
-            <ReputationBadge reputation={reputation} />
-          ) : null}
           <p>{selectedTutor.profile.bio || t("common.states.noBioYet")}</p>
           {selectedTutor.profile.subjects.length > 0 ? (
             <div className="chips">
@@ -216,6 +215,11 @@ export function DiscoverTab({
               <p className="muted">{discoverStatus}</p>
             ) : null}
           </div>
+        </article>
+
+        <article className="panel">
+          <h3>{t("review.title")} ({reputation.reviewCount})</h3>
+          <ReviewList reviews={reviews} />
         </article>
 
         <TutorBlogSection

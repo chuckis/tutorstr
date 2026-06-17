@@ -1,6 +1,9 @@
+import { Star } from "lucide-react";
 import { Review } from "../domain/review";
 import { useI18n } from "../i18n/I18nProvider";
 import { toDisplayId } from "../utils/display";
+import { Card } from "./ui/Card";
+import { Badge } from "./ui/Badge";
 
 type ReviewListProps = {
   reviews: Review[];
@@ -14,29 +17,38 @@ export function ReviewList({ reviews }: ReviewListProps) {
   }
 
   return (
-    <div className="review-list">
+    <div className="stack">
       {reviews.map((review) => (
-        <div key={review.id} className="review-item">
-          <div className="review-item-header">
-            <span className="star-display">
+        <Card key={review.id} variant="outlined" padding="md">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-1)" }}>
+            <div className="review-stars-display">
               {Array.from({ length: 5 }, (_, i) => (
-                <span key={i} className={i < review.rating ? "star-filled" : "star-empty"}>
-                  {i < review.rating ? "\u2605" : "\u2606"}
-                </span>
+                <Star
+                  key={i}
+                  size={14}
+                  fill={i < review.rating ? "var(--color-warning)" : "none"}
+                  color={i < review.rating ? "var(--color-warning)" : "var(--color-border)"}
+                />
               ))}
-            </span>
+            </div>
             <span className="muted" style={{ fontSize: "var(--fs-xs)" }}>
               {formatDateTime(new Date(review.createdAt * 1000).toISOString())}
             </span>
           </div>
-          {review.comment ? <p className="review-comment-text">{review.comment}</p> : null}
-          <div className="review-item-meta">
-            <span className="muted">{toDisplayId(review.authorPubkey)}</span>
-            <span className="muted">
-              {review.role === "student" ? "Student" : "Tutor"}
+          {review.comment ? (
+            <p style={{ marginBottom: "var(--space-1)" }}>{review.comment}</p>
+          ) : null}
+          <div style={{ display: "flex", gap: "var(--space-1)", alignItems: "center" }}>
+            <span className="muted" style={{ fontSize: "var(--fs-xs)" }}>
+              {toDisplayId(review.authorPubkey)}
             </span>
+            <Badge variant="info">
+              {review.role === "student"
+                ? t("account.roles.student")
+                : t("account.roles.tutor")}
+            </Badge>
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );
