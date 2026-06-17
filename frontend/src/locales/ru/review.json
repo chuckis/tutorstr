@@ -1,0 +1,21 @@
+{
+  "review": {
+    "title": "Оставить отзыв",
+    "rating": "Оценка",
+    "comment": "Комментарий (необязательно)",
+    "commentPlaceholder": "Расскажите об уроке...",
+    "submit": "Опубликовать отзыв",
+    "warning": "Отзыв публикуется в сеть Nostr и не может быть удалён",
+    "alreadyReviewed": "Вы уже оставили отзыв об этом уроке",
+    "noReviews": "Отзывов пока нет",
+    "lessonsCount_one": "{{count}} урок проведён",
+    "lessonsCount_few": "{{count}} урока проведено",
+    "lessonsCount_many": "{{count}} уроков проведено",
+    "lessonsCount_other": "{{count}} уроков проведено",
+    "errors": {
+      "notCompleted": "Отзыв можно оставить только после завершённого урока",
+      "selfReview": "Нельзя оставить отзыв о себе",
+      "alreadyExists": "Вы уже оставили отзыв об этом уроке"
+    }
+  }
+}

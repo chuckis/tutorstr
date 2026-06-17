@@ -1,0 +1,21 @@
+{
+  "review": {
+    "title": "Leave a review",
+    "rating": "Rating",
+    "comment": "Comment (optional)",
+    "commentPlaceholder": "Tell about the lesson...",
+    "submit": "Publish review",
+    "warning": "The review is published to the Nostr network and cannot be deleted",
+    "alreadyReviewed": "You have already left a review for this lesson",
+    "noReviews": "No reviews yet",
+    "lessonsCount_one": "{{count}} lesson completed",
+    "lessonsCount_few": "{{count}} lessons completed",
+    "lessonsCount_many": "{{count}} lessons completed",
+    "lessonsCount_other": "{{count}} lessons completed",
+    "errors": {
+      "notCompleted": "Reviews can only be left for completed lessons",
+      "selfReview": "You cannot leave a review about yourself",
+      "alreadyExists": "You have already left a review for this lesson"
+    }
+  }
+}

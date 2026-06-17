@@ -10,6 +10,7 @@ import { createNostrRelayManager } from "../adapters/nostr/relayManager";
 import { createNostrLessonNoteRepository } from "../adapters/nostr/lessonNoteRepository";
 import { blossomMediaRepository } from "../adapters/nostr/blossomMediaRepository";
 import { startGlobalSubscription, stopGlobalSubscription } from "../adapters/nostr/subscriptionManager";
+import { createNostrReviewRepository } from "../adapters/nostr/reviewRepository";
 import { BookingEventsRepository } from "../ports/bookingEventsRepository";
 import { LessonAgreementEventsRepository } from "../ports/lessonAgreementEventsRepository";
 import { PrivateMessagingRepository } from "../ports/privateMessagingRepository";
@@ -24,6 +25,7 @@ import { createNostrBlogRepository } from "../adapters/nostr/blogRepository";
 import { createLocalStorageDraftRepository } from "../adapters/localStorageDraftRepository";
 import { BlogRepository } from "../ports/blogRepository";
 import { DraftRepository } from "../ports/draftRepository";
+import { ReviewRepository } from "../ports/reviewRepository";
 
 
 export { createNostrBookingRepository, mapNostrBookings } from "../adapters/nostr/bookingRepository";
@@ -42,6 +44,7 @@ type RepoContextValue = {
   mediaUploadRepository: MediaUploadRepository;
   blogRepository: BlogRepository;
   draftRepository: DraftRepository;
+  reviewRepository: ReviewRepository;
 };
 
 const RepoContext = createContext<RepoContextValue | null>(null);
@@ -61,6 +64,7 @@ export function RepoProvider({ children }: { children: ReactNode }) {
       blogRepository: createNostrBlogRepository(),
       draftRepository: createLocalStorageDraftRepository(),
       mediaUploadRepository: blossomMediaRepository,
+      reviewRepository: createNostrReviewRepository(),
     }),
     []
   );
