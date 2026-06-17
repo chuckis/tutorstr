@@ -17,7 +17,7 @@ export async function createNewProfile(
   const nsec = dependencies.keyMaterial.encodeNsec(secretKeyHex);
 
   return {
-    session: { pubkey, npub, role: input.role },
+    session: { pubkey, npub, role: input.role, method: "vault" },
     nsec,
     secretKeyHex
   };

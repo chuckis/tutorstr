@@ -7,10 +7,13 @@ import {
 
 export const AUTH_VAULT_VERSION = 2;
 
+export type AuthMethod = "vault" | "nip07" | "nip46" | "nip55";
+
 export type AuthSession = {
   pubkey: string;
   npub: string;
   role: AccountRole;
+  method: AuthMethod;
 };
 
 export type VaultRecord = {

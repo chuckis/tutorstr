@@ -54,7 +54,8 @@ describe("restoreStoredSession", () => {
     expect(session).toEqual({
       pubkey: "pubkey",
       npub: "npub",
-      role: "student"
+      role: "student",
+      method: "vault"
     });
     expect(saveSpy).not.toHaveBeenCalled();
   });

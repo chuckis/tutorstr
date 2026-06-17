@@ -34,5 +34,5 @@ export async function importExistingKey(
     npub
   });
 
-  return { pubkey, npub, role };
+  return { pubkey, npub, role, method: "vault" };
 }

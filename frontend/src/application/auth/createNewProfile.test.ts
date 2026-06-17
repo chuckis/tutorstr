@@ -32,7 +32,8 @@ describe("createNewProfile", () => {
     expect(result.session).toEqual({
       pubkey: FIXTURES.pubkey,
       npub: FIXTURES.npub,
-      role: "tutor"
+      role: "tutor",
+      method: "vault",
     });
     expect(result.nsec).toBe(FIXTURES.nsec);
     expect(result.secretKeyHex).toBe(FIXTURES.secretKeyHex);

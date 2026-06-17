@@ -4,9 +4,11 @@ import { createNewProfile } from "../application/auth/createNewProfile";
 import { exportSecretKey } from "../application/auth/exportSecretKey";
 import { importExistingKey } from "../application/auth/importExistingKey";
 import { logout as logoutUseCase } from "../application/auth/logout";
-import { restoreStoredSession } from "../application/auth/restoreStoredSession";
+import { restoreStoredSession, restoreNip46Signer } from "../application/auth/restoreStoredSession";
 import { saveGeneratedProfile } from "../application/auth/saveGeneratedProfile";
 import { unlockVault } from "../application/auth/unlockVault";
+import { saveNip07Session } from "../application/auth/saveNip07Session";
+import { parseBunkerInput } from "../application/auth/parseBunkerInput";
 import { AccountRole } from "../domain/account";
 import { AuthError, AuthSession } from "../domain/auth";
 import { useI18n } from "../i18n/I18nProvider";
@@ -17,7 +19,13 @@ import { NostrSigner } from "../ports/nostrSigner";
 import { SignerManager } from "../ports/signerManager";
 import { nostrClient } from "../nostr/client";
 import { createNip07Signer } from "../adapters/nostr/nip07Signer";
+import { Nip55Signer } from "../adapters/nostr/nip55Signer";
+import { Nip46Signer } from "../adapters/nostr/nip46Signer";
 import type { WindowNostr } from "nostr-tools/nip07";
+
+const NIP55_CALLBACK_URL = typeof window !== "undefined"
+  ? `${window.location.origin}${window.location.pathname}`
+  : "";
 
 type AuthMode =
   | "loading"
@@ -38,6 +46,16 @@ type PendingRolePick = {
 };
 
 type Nip07Pending = {
+  pubkey: string;
+  npub: string;
+};
+
+type Nip55Pending = {
+  pubkey: string;
+  npub: string;
+};
+
+type Nip46Pending = {
   pubkey: string;
   npub: string;
 };
@@ -78,6 +96,8 @@ export function useAuthController(
     useState<PendingGeneratedProfile | null>(null);
   const [pendingRolePick, setPendingRolePick] = useState<PendingRolePick | null>(null);
   const [nip07Pending, setNip07Pending] = useState<Nip07Pending | null>(null);
+  const [nip55Pending, setNip55Pending] = useState<Nip55Pending | null>(null);
+  const [nip46Pending, setNip46Pending] = useState<Nip46Pending | null>(null);
   const nip07SubRef = useRef<(() => void) | null>(null);
   const nip07TimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -91,6 +111,30 @@ export function useAuthController(
     }
 
     setSession(restored);
+
+    if (restored.method === "nip07") {
+      const signer = createNip07Signer(restored);
+      authDeps.signerManager.setSigner(signer);
+      setMode("authenticated");
+      return;
+    }
+
+    if (restored.method === "nip46") {
+      const signer = restoreNip46Signer();
+      if (signer && signer.isConnected()) {
+        authDeps.signerManager.setSigner(signer);
+        setMode("authenticated");
+        return;
+      }
+      // Session expired — clear and go to welcome
+      Nip46Signer.clearPersistedSession();
+      authDeps.signerManager.setSigner(null);
+      setSession(null);
+      setMode("welcome");
+      return;
+    }
+
+    // Vault-based session requires unlock
     setMode("unlock");
   }, [authDeps.signerManager, authDeps.vaultRepository]);
 
@@ -151,11 +195,32 @@ export function useAuthController(
   }
 
   function finishNip07Auth(pubkey: string, npub: string, role: AccountRole) {
-    const nextSession: AuthSession = { pubkey, npub, role };
+    const nextSession: AuthSession = { pubkey, npub, role, method: "nip07" };
     const signer = createNip07Signer(nextSession);
     authDeps.signerManager.setSigner(signer);
+    saveNip07Session(pubkey, npub, role);
     setSession(nextSession);
     setNip07Pending(null);
+    setStatus("");
+    setMode("authenticated");
+  }
+
+  function finishNip55Auth(pubkey: string, npub: string, role: AccountRole) {
+    const nextSession: AuthSession = { pubkey, npub, role, method: "nip55" };
+    const signer = new Nip55Signer(NIP55_CALLBACK_URL);
+    signer.setSession(pubkey);
+    authDeps.signerManager.setSigner(signer);
+    setSession(nextSession);
+    setNip55Pending(null);
+    setStatus("");
+    setMode("authenticated");
+  }
+
+  function finishNip46Auth(pubkey: string, npub: string, role: AccountRole) {
+    const nextSession: AuthSession = { pubkey, npub, role, method: "nip46" };
+    // Signer is already set via connectBunker, just update session
+    setSession(nextSession);
+    setNip46Pending(null);
     setStatus("");
     setMode("authenticated");
   }
@@ -168,6 +233,19 @@ export function useAuthController(
         setMode("role-pick");
       },
       async chooseRole(role: AccountRole) {
+        // NIP-46 role-pick branch
+        if (nip46Pending) {
+          finishNip46Auth(nip46Pending.pubkey, nip46Pending.npub, role);
+          return;
+        }
+
+        // NIP-55 role-pick branch
+        if (nip55Pending) {
+          setStatus(t("auth.connecting"));
+          finishNip55Auth(nip55Pending.pubkey, nip55Pending.npub, role);
+          return;
+        }
+
         // NIP-07 role-pick branch
         if (nip07Pending) {
           setStatus(t("auth.connecting"));
@@ -201,7 +279,22 @@ export function useAuthController(
         }
       },
       cancelRolePick() {
-        // NIP-07 cancel
+        if (nip46Pending) {
+          setNip46Pending(null);
+          Nip46Signer.clearPersistedSession();
+          authDeps.signerManager.setSigner(null);
+          setStatus("");
+          setMode("welcome");
+          return;
+        }
+
+        if (nip55Pending) {
+          setNip55Pending(null);
+          setStatus("");
+          setMode("welcome");
+          return;
+        }
+
         if (nip07Pending) {
           setNip07Pending(null);
           setStatus("");
@@ -209,7 +302,6 @@ export function useAuthController(
           return;
         }
 
-        // Vault create cancel
         setPendingRolePick(null);
         setStatus("");
         setMode("welcome");
@@ -231,6 +323,70 @@ export function useAuthController(
           startNip07RoleDiscovery(pubkey, npub);
         } catch (error) {
           setStatus(toLocalizedErrorMessage(error, t) || t("auth.connectionFailed"));
+          setMode("welcome");
+        }
+      },
+      async connectNip55() {
+        setStatus(t("auth.connecting"));
+        setMode("nip07-connecting");
+
+        try {
+          const signer = new Nip55Signer(NIP55_CALLBACK_URL);
+          await signer.requestPublicKey();
+        } catch (error) {
+          setStatus(toLocalizedErrorMessage(error, t) || t("auth.connectionFailed"));
+          setMode("welcome");
+        }
+      },
+      completeNip55Auth(pubkey: string) {
+        const npub = nip19.npubEncode(pubkey);
+        const signer = new Nip55Signer(NIP55_CALLBACK_URL);
+        signer.setSession(pubkey);
+        authDeps.signerManager.setSigner(signer);
+        setNip55Pending({ pubkey, npub });
+        setMode("role-pick");
+        setStatus("");
+      },
+      async connectBunker(bunkerUri: string) {
+        const parsed = parseBunkerInput(bunkerUri);
+        if (!parsed) {
+          setStatus("Invalid bunker URI or Nostr address");
+          return;
+        }
+
+        if (parsed.type === "nip05") {
+          // NIP-05 resolution not yet implemented — require direct bunker URI
+          setStatus("Direct bunker:// URI required. NIP-05 resolution coming soon.");
+          setMode("welcome");
+          return;
+        }
+
+        const relayUrl = parsed.relayUrls[0];
+        if (!relayUrl) {
+          setStatus("Bunker URI must include a relay parameter (?relay=wss://...)");
+          setMode("welcome");
+          return;
+        }
+
+        setStatus(t("auth.bunkerConnecting"));
+        setMode("nip07-connecting");
+
+        try {
+          const signer = new Nip46Signer(parsed.bunkerPubkey, relayUrl);
+          const userPubkey = await signer.connect();
+          const npub = nip19.npubEncode(userPubkey);
+
+          authDeps.signerManager.setSigner(signer);
+
+          setNip46Pending({ pubkey: userPubkey, npub });
+          setMode("role-pick");
+          setStatus("");
+        } catch (error) {
+          setStatus(
+            error instanceof Error
+              ? error.message
+              : "Bunker connection failed"
+          );
           setMode("welcome");
         }
       },
@@ -281,11 +437,14 @@ export function useAuthController(
         nip07SubRef.current?.();
         if (nip07TimerRef.current) clearTimeout(nip07TimerRef.current);
         logoutUseCase(authDeps.vaultRepository);
+        Nip46Signer.clearPersistedSession();
         authDeps.signerManager.setSigner(null);
         setGeneratedNsec("");
         setPendingGeneratedProfile(null);
         setPendingRolePick(null);
         setNip07Pending(null);
+        setNip55Pending(null);
+        setNip46Pending(null);
         setSession(null);
         setStatus("");
         setMode("welcome");
@@ -323,7 +482,7 @@ export function useAuthController(
         }
       },
     }),
-    [authDeps, createSigner, pendingGeneratedProfile, pendingRolePick, nip07Pending, t]
+    [authDeps, createSigner, pendingGeneratedProfile, pendingRolePick, nip07Pending, nip55Pending, nip46Pending, t]
   );
 
   return {

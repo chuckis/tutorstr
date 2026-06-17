@@ -1,6 +1,6 @@
 import "./App.css";
 import "@mdxeditor/editor/style.css";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { AuthScreen } from "./components/AuthScreen";
 import { BottomNav } from "./components/BottomNav";
 import { DashboardSettingsDrawer } from "./components/DashboardSettingsDrawer";
@@ -29,6 +29,10 @@ import { nostrKeyMaterial } from "./adapters/auth/nostrKeyMaterial";
 import { createVaultNostrSigner } from "./adapters/nostr/vaultNostrSigner";
 import { createNostrSignerManager } from "./adapters/nostr/nostrSignerManager";
 import { NostrSigner } from "./ports/nostrSigner";
+import { detectPlatform } from "./adapters/env/platformDetector";
+import { parseNip55Callback, cleanNip55CallbackUrl } from "./hooks/useNip55Callback";
+import type { Platform } from "./adapters/env/platformDetector";
+import type { AwaitingSigner } from "./components/AuthScreen";
 
 const authDeps = {
   vaultRepository: authVaultRepository,
@@ -37,6 +41,8 @@ const authDeps = {
   signerManager: createNostrSignerManager()
 };
 
+const platform: Platform = detectPlatform().platform;
+
 function createSigner(session: AuthSession, passphrase: string): NostrSigner {
   return createVaultNostrSigner(session, passphrase);
 }
@@ -44,6 +50,20 @@ function createSigner(session: AuthSession, passphrase: string): NostrSigner {
 export default function App() {
   const auth = useAuthController(authDeps, createSigner);
   const { t } = useI18n();
+  const [awaitingSigner, setAwaitingSigner] = useState<AwaitingSigner | null>(null);
+
+  // Detect NIP-55 callback on mount (return from Amber/Nowser)
+  useEffect(() => {
+    if (auth.isAuthenticated) return;
+    const data = parseNip55Callback();
+    if (!data) return;
+    cleanNip55CallbackUrl();
+
+    if (data.type === "pubkey") {
+      auth.actions.completeNip55Auth(data.pubkey);
+    }
+    // data.type === "error" is handled by showing auth.status
+  }, [auth.isAuthenticated, auth.actions]);
 
   if (auth.mode === "loading") {
     return (
@@ -70,7 +90,9 @@ export default function App() {
         }
         status={auth.status}
         generatedNsec={auth.generatedNsec}
+        platform={platform}
         nip07ExtensionAvailable={auth.nip07ExtensionAvailable}
+        awaitingSigner={awaitingSigner}
         onCreateProfile={auth.actions.createProfile}
         onChooseRole={auth.actions.chooseRole}
         onCancelRolePick={auth.actions.cancelRolePick}
@@ -78,6 +100,8 @@ export default function App() {
         onUnlock={auth.actions.unlock}
         onDismissGeneratedSecret={auth.actions.dismissGeneratedSecret}
         onConnectNip07={auth.actions.connectNip07}
+        onConnectNip55={auth.actions.connectNip55}
+        onConnectBunker={auth.actions.connectBunker}
       />
     );
   }

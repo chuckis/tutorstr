@@ -43,6 +43,7 @@ export async function unlockVault(
   return {
     pubkey: vault.pubkey,
     npub: vault.npub,
-    role: vault.role
+    role: vault.role,
+    method: "vault"
   };
 }
