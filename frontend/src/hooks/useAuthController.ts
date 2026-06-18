@@ -18,10 +18,10 @@ import { NostrKeyMaterial } from "../ports/nostrKeyMaterial";
 import { NostrSigner } from "../ports/nostrSigner";
 import { SignerManager } from "../ports/signerManager";
 import { nostrClient } from "../nostr/client";
-import { createNip07Signer } from "../adapters/nostr/nip07Signer";
+import { createNip07Signer, isNip07Available } from "../adapters/nostr/nip07Signer";
+import type { WindowNostr } from "nostr-tools/nip07";
 import { Nip55Signer } from "../adapters/nostr/nip55Signer";
 import { Nip46Signer } from "../adapters/nostr/nip46Signer";
-import type { WindowNostr } from "nostr-tools/nip07";
 
 const NIP55_CALLBACK_URL = typeof window !== "undefined"
   ? `${window.location.origin}${window.location.pathname}`
@@ -119,6 +119,9 @@ export function useAuthController(
     setSession(restored);
 
     if (restored.method === "nip07") {
+      // createNip07Signer no longer throws on construction —
+      // window.nostr access is lazy, so this is safe even if
+      // the extension hasn't injected yet.
       const signer = createNip07Signer(restored);
       authDeps.signerManager.setSigner(signer);
       setMode("authenticated");
@@ -153,9 +156,7 @@ export function useAuthController(
 
   const isAuthenticated = mode === "authenticated" && session !== null;
 
-  const nip07ExtensionAvailable =
-    typeof window !== "undefined" &&
-    (window as unknown as { nostr?: WindowNostr }).nostr !== undefined;
+  const nip07ExtensionAvailable = isNip07Available();
 
   function startNip07RoleDiscovery(pubkey: string, npub: string) {
     let resolved = false;
@@ -341,8 +342,7 @@ export function useAuthController(
         setMode("welcome");
       },
       async connectNip07() {
-        const nostr = (window as unknown as { nostr?: WindowNostr }).nostr;
-        if (!nostr) {
+        if (!isNip07Available()) {
           setStatus(t("auth.extensionNotFound") || "NIP-07 extension not found");
           return;
         }
@@ -351,6 +351,7 @@ export function useAuthController(
         setMode("nip07-connecting");
 
         try {
+          const nostr = (window as unknown as { nostr?: WindowNostr }).nostr!;
           const pubkey = await nostr.getPublicKey();
           const npub = nip19.npubEncode(pubkey);
           setStatus(t("auth.checkingProfile"));
