@@ -4,7 +4,7 @@ import { useRepo } from "./RepoContext";
 import { Role, UserProfile, PROFILE_SCHEMA_VERSION } from "../domain/profile";
 import { emptyProfile, normalizeProfile, serializeProfile } from "../utils/normalize";
 
-const AUTOPUBLISH_TIMEOUT_MS = 3000;
+const AUTOPUBLISH_TIMEOUT_MS = 8000;
 
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   if (!(error instanceof Error)) {
@@ -83,13 +83,20 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
           localStorage.setItem(profileStorageKey, JSON.stringify(parsed));
           setLastEventId(event.id);
           setLoading(false);
+
+          if (profileReceived) return;
           profileReceived = true;
 
-          // If viewerRole is set and the received profile doesn't have it,
-          // publish an updated profile with the role merged in.
-          // This ensures existing Nostr profiles get app-specific data added,
-          // not overwritten.
-          if (viewerRole && parsed.role !== viewerRole && !autoPublishStartedRef.current) {
+          if (autoPublishStartedRef.current) {
+            // Auto-publish already fired (slow relay). The relay now
+            // responded with real data — re-publish to fix the empty
+            // profile we just overwritten on the relay.
+            autoPublishStartedRef.current = false;
+            const merged = viewerRole ? { ...parsed, role: viewerRole } : parsed;
+            void publishProfile(merged);
+          } else if (viewerRole && parsed.role !== viewerRole) {
+            // Existing profile received in time, but it lacks our
+            // app role — publish an updated version with role merged in.
             autoPublishStartedRef.current = true;
             const merged = { ...parsed, role: viewerRole };
             void publishProfile(merged);
