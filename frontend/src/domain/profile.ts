@@ -44,6 +44,7 @@ export type UserProfile = {
   role?: Role;
   timezone?: string;
   workHours?: string;
+  nostrName?: string;
 };
 
 export function hasRoleTag(tags: string[][], role: "tutor" | "student"): boolean {

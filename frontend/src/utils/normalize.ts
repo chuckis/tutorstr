@@ -22,8 +22,10 @@ export const emptySchedule: TutorSchedule = {
 export function normalizeProfile(input: Record<string, unknown> | null | undefined): UserProfile {
   const rawMode = input?.availabilityMode;
   const rawRole = input?.role;
+  const rawName = typeof input?.name === "string" ? input.name : "";
+  const rawDisplayName = typeof input?.display_name === "string" ? input.display_name : "";
   return {
-    name: typeof input?.name === "string" ? input.name : "",
+    name: rawDisplayName || rawName,
     bio: typeof input?.bio === "string" ? input.bio : typeof input?.about === "string" ? input.about : "",
     subjects: Array.isArray(input?.subjects) ? input.subjects as string[] : [],
     languages: Array.isArray(input?.languages) ? input.languages as string[] : [],
@@ -32,7 +34,8 @@ export function normalizeProfile(input: Record<string, unknown> | null | undefin
     availabilityMode: typeof rawMode === "string" && isAvailabilityMode(rawMode) ? rawMode : undefined,
     role: typeof rawRole === "string" && isRole(rawRole) ? rawRole : undefined,
     timezone: typeof input?.timezone === "string" ? input.timezone : undefined,
-    workHours: typeof input?.workHours === "string" ? input.workHours : undefined
+    workHours: typeof input?.workHours === "string" ? input.workHours : undefined,
+    nostrName: rawName || undefined
   };
 }
 
@@ -50,7 +53,8 @@ export function isProfileEmpty(profile: UserProfile) {
 /** Serialize internal UserProfile to NIP-01 kind:0 wire format. */
 export function serializeProfile(profile: UserProfile): Record<string, unknown> {
   const out: Record<string, unknown> = {
-    name: profile.name,
+    name: profile.nostrName || profile.name,
+    display_name: profile.name,
     about: profile.bio,
     picture: profile.avatarUrl,
     subjects: profile.subjects,
