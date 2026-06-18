@@ -45,6 +45,11 @@ type PendingRolePick = {
   passphrase: string;
 };
 
+type PendingImportProfile = {
+  secret: string;
+  passphrase: string;
+};
+
 type Nip07Pending = {
   pubkey: string;
   npub: string;
@@ -95,6 +100,7 @@ export function useAuthController(
   const [pendingGeneratedProfile, setPendingGeneratedProfile] =
     useState<PendingGeneratedProfile | null>(null);
   const [pendingRolePick, setPendingRolePick] = useState<PendingRolePick | null>(null);
+  const [pendingImportProfile, setPendingImportProfile] = useState<PendingImportProfile | null>(null);
   const [nip07Pending, setNip07Pending] = useState<Nip07Pending | null>(null);
   const [nip55Pending, setNip55Pending] = useState<Nip55Pending | null>(null);
   const [nip46Pending, setNip46Pending] = useState<Nip46Pending | null>(null);
@@ -253,6 +259,27 @@ export function useAuthController(
           return;
         }
 
+        // Import existing key branch
+        if (pendingImportProfile) {
+          setStatus(t("auth.importPanelTitle"));
+          try {
+            const nextSession = await importExistingKey(authDeps, {
+              secret: pendingImportProfile.secret,
+              passphrase: pendingImportProfile.passphrase,
+              role
+            });
+            const signer = createSigner(nextSession, pendingImportProfile.passphrase);
+            authDeps.signerManager.setSigner(signer);
+            setSession(nextSession);
+            setPendingImportProfile(null);
+            setMode("authenticated");
+            setStatus("");
+          } catch (error) {
+            setStatus(toLocalizedErrorMessage(error, t) || t("auth.importTitle"));
+          }
+          return;
+        }
+
         // Vault create branch
         if (!pendingRolePick) {
           return;
@@ -297,6 +324,13 @@ export function useAuthController(
 
         if (nip07Pending) {
           setNip07Pending(null);
+          setStatus("");
+          setMode("welcome");
+          return;
+        }
+
+        if (pendingImportProfile) {
+          setPendingImportProfile(null);
           setStatus("");
           setMode("welcome");
           return;
@@ -394,15 +428,10 @@ export function useAuthController(
         setStatus(t("auth.importPanelTitle"));
 
         try {
-          const nextSession = await importExistingKey(authDeps, {
-            secret,
-            passphrase
-          });
-          const signer = createSigner(nextSession, passphrase);
-          authDeps.signerManager.setSigner(signer);
-          setGeneratedNsec("");
-          setSession(nextSession);
-          setMode("authenticated");
+          // Validate the key first, then show role-pick
+          await authDeps.keyMaterial.parseSecretInput(secret);
+          setPendingImportProfile({ secret, passphrase });
+          setMode("role-pick");
           setStatus("");
         } catch (error) {
           setStatus(toLocalizedErrorMessage(error, t) || t("auth.importTitle"));
@@ -442,6 +471,7 @@ export function useAuthController(
         setGeneratedNsec("");
         setPendingGeneratedProfile(null);
         setPendingRolePick(null);
+        setPendingImportProfile(null);
         setNip07Pending(null);
         setNip55Pending(null);
         setNip46Pending(null);
@@ -482,7 +512,7 @@ export function useAuthController(
         }
       },
     }),
-    [authDeps, createSigner, pendingGeneratedProfile, pendingRolePick, nip07Pending, nip55Pending, nip46Pending, t]
+    [authDeps, createSigner, pendingGeneratedProfile, pendingRolePick, pendingImportProfile, nip07Pending, nip55Pending, nip46Pending, t]
   );
 
   return {

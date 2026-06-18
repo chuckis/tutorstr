@@ -4,6 +4,8 @@ import { useRepo } from "./RepoContext";
 import { Role, UserProfile, PROFILE_SCHEMA_VERSION } from "../domain/profile";
 import { emptyProfile, normalizeProfile, serializeProfile } from "../utils/normalize";
 
+const AUTOPUBLISH_TIMEOUT_MS = 3000;
+
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   if (!(error instanceof Error)) {
     return "";
@@ -22,6 +24,7 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
   const [loading, setLoading] = useState(true);
   const latestProfileRef = useRef<UserProfile>(emptyProfile);
   const autoPublishStartedRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     latestProfileRef.current = profile;
@@ -81,15 +84,25 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
           setLastEventId(event.id);
           setLoading(false);
           profileReceived = true;
+
+          // If viewerRole is set and the received profile doesn't have it,
+          // publish an updated profile with the role merged in.
+          // This ensures existing Nostr profiles get app-specific data added,
+          // not overwritten.
+          if (viewerRole && parsed.role !== viewerRole && !autoPublishStartedRef.current) {
+            autoPublishStartedRef.current = true;
+            const merged = { ...parsed, role: viewerRole };
+            void publishProfile(merged);
+          }
         } catch {
           // ignore malformed content
         }
       },
     );
 
-    // After the synchronous store replay, check if we got a profile.
-    // If not — auto-publish (new user, no profile on relay yet).
-    const timer = setTimeout(() => {
+    // Give the relay time to respond with existing kind 0 before
+    // considering auto-publish for a new user.
+    timerRef.current = setTimeout(() => {
       setLoading(false);
 
       if (profileReceived || autoPublishStartedRef.current) {
@@ -102,10 +115,11 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
         profileForPublish.role = viewerRole;
       }
       void publishProfile(profileForPublish);
-    }, 0);
+    }, AUTOPUBLISH_TIMEOUT_MS);
 
     return () => {
-      clearTimeout(timer);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = null;
       unsubscribe();
     };
   }, [pubkey]);
