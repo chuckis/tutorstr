@@ -77,7 +77,7 @@ type SignerFactory = (
   passphrase: string
 ) => NostrSigner;
 
-const NIP07_ROLE_DISCOVERY_TIMEOUT = 3000;
+const NIP07_ROLE_DISCOVERY_TIMEOUT = 8000;
 
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   if (!(error instanceof Error)) {

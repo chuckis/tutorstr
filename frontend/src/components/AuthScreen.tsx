@@ -319,6 +319,9 @@ export function AuthScreen({
                   {nsecSpoilerOpen ? (
                     <div className="auth-nsec-section">
                       <p className="warning-text">{t("auth.nsecWarning")}</p>
+                      <p className="muted" style={{ fontSize: "0.85em", marginTop: "0.5em" }}>
+                        {t("auth.betaWarning")}
+                      </p>
                       <div className="auth-card-grid">
                         <Card
                           hoverable
