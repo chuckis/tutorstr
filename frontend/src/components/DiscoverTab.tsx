@@ -28,6 +28,7 @@ import { useReviewsForSubject } from "../hooks/useReviewsForSubject";
 import { useState } from "react";
 import { BlogPostList } from "./blog/BlogPostList";
 import { useTutorBlog } from "../hooks/useTutorBlog";
+import { useCurrentTime } from "../hooks/useCurrentTime";
 
 type DiscoverTabProps = {
   selectedTutor: UserProfileEvent | null;
@@ -79,6 +80,7 @@ export function DiscoverTab({
 }: DiscoverTabProps) {
   const { t, formatDateTime, formatNumber } = useI18n();
   const isNewcomerProfile = isProfileEmpty(profile);
+  const _now = useCurrentTime();
   const isStudent = role === "student";
   const selectedTutorPubkey = selectedTutor?.pubkey ?? "";
   const { reviews, reputation } = useReviewsForSubject(selectedTutorPubkey);

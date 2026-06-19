@@ -4,5 +4,5 @@ export type TimeSlot = {
 };
 
 export function isSlotInPast(slot: TimeSlot): boolean {
-  return new Date(slot.end) < new Date();
+  return new Date(slot.start) <= new Date();
 }
