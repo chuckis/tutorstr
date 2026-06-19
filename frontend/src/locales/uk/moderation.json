@@ -1,0 +1,19 @@
+{
+  "block": "Заблокувати",
+  "unblock": "Розблокувати",
+  "blockedUsers": "Заблоковані користувачі",
+  "blockedUsersEmpty": "Немає заблокованих",
+  "reportUser": "Поскаржитися",
+  "reportReason": "Причина",
+  "reportSent": "Скаргу надіслано",
+  "blockConfirm": "Заблокувати {name}? Він не зможе зв'язатися з вами.",
+  "reportedBy": "Поскаржились {count} користувач(ів)",
+  "rateLimitError": "Забагато дій. Спробуйте пізніше.",
+  "reportLabel": {
+    "spam": "Спам",
+    "nudity": "Оголеність",
+    "profanity": "Ненормативна лексика",
+    "illegal": "Нелегальний контент",
+    "impersonation": "Видача себе за іншого"
+  }
+}

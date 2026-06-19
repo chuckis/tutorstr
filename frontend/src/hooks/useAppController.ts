@@ -23,6 +23,7 @@ import { useRelays } from "./useRelays";
 import { useTutorBlog } from "./useTutorBlog";
 import { useMyBlog } from "./useMyBlog";
 import { useI18n } from "../i18n/I18nProvider";
+import { useModeration } from "./useModeration";
 import { useNotification } from "./NotificationContext";
 import { useRepo } from "./RepoContext";
 import { BookingStatusPayload } from "../ports/bookingEventsRepository";
@@ -55,6 +56,7 @@ export function useAppController(
   const [publishReviewLoading, setPublishReviewLoading] = useState(false);
   const [publishReviewError, setPublishReviewError] = useState<string | null>(null);
   const keypair = useNostrKeypair();
+  const moderation = useModeration(keypair.pubkey, viewerRole);
   const profileState = useTutorProfile(keypair.pubkey, viewerRole);
   const scheduleState = useTutorSchedule(keypair.pubkey, viewerRole);
   const relay = useRelays();
@@ -361,6 +363,7 @@ export function useAppController(
     messageIndicators,
     stateLoading,
     actions,
+    moderation,
     requestActions: {
       respondToRequestById,
       cancelRequestById

@@ -37,6 +37,9 @@ type RequestsTabProps = {
   messageStatus: string;
   role: "tutor" | "student";
   loading: boolean;
+  mutedPubkeys: Set<string>;
+  onBlockUser: (pubkey: string) => Promise<void>;
+  onReportUser: (targetPubkey: string, reason: string, options?: { eventId?: string; label?: string }) => Promise<void>;
 };
 
 type RequestItemActions = {
@@ -248,7 +251,10 @@ export function RequestsTab({
   onViewProfile,
   messageStatus,
   role,
-  loading
+  loading,
+  mutedPubkeys,
+  onBlockUser,
+  onReportUser,
 }: RequestsTabProps) {
   const { t } = useI18n();
   const isStudent = role === "student";
@@ -264,6 +270,8 @@ export function RequestsTab({
         onSendMessage={onSendMessage}
         onSendMessageWithFiles={onSendMessageWithFiles}
         onViewProfile={onViewProfile}
+        onBlockUser={onBlockUser}
+        onReportUser={onReportUser}
         messageStatus={messageStatus}
       />
     );

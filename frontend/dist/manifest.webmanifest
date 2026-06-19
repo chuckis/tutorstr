@@ -1,6 +1,6 @@
 {
-  "name": "Tutorstr",
-  "short_name": "Tutorstr",
+  "name": "TutorHub",
+  "short_name": "TutorHub",
   "start_url": "/tutorstr/",
   "display": "standalone",
   "background_color": "#ffffff",

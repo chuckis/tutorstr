@@ -5,6 +5,8 @@ import { emitEvent } from "./eventBus";
 const ALL_KINDS = [
   TutorHubKind.DirectMessage,     // 4
   0,                              // Metadata (NIP-01)
+  TutorHubKind.MuteList,          // 10000
+  TutorHubKind.Report,            // 1984
   TutorHubKind.TutorSchedule,     // 30001
   TutorHubKind.BookingRequest,    // 30002
   TutorHubKind.BookingStatus,     // 30003

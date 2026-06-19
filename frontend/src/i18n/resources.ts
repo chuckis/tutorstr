@@ -10,6 +10,7 @@ import requestsEn from "../locales/en/requests.json";
 import scheduleEn from "../locales/en/schedule.json";
 import blogEn from "../locales/en/blog.json";
 import reviewEn from "../locales/en/review.json";
+import moderationEn from "../locales/en/moderation.json";
 import accountUk from "../locales/uk/account.json";
 import authUk from "../locales/uk/auth.json";
 import commonUk from "../locales/uk/common.json";
@@ -22,6 +23,7 @@ import requestsUk from "../locales/uk/requests.json";
 import scheduleUk from "../locales/uk/schedule.json";
 import blogUk from "../locales/uk/blog.json";
 import reviewUk from "../locales/uk/review.json";
+import moderationUk from "../locales/uk/moderation.json";
 import accountRu from "../locales/ru/account.json";
 import authRu from "../locales/ru/auth.json";
 import commonRu from "../locales/ru/common.json";
@@ -34,6 +36,7 @@ import requestsRu from "../locales/ru/requests.json";
 import scheduleRu from "../locales/ru/schedule.json";
 import blogRu from "../locales/ru/blog.json";
 import reviewRu from "../locales/ru/review.json";
+import moderationRu from "../locales/ru/moderation.json";
 import { AppLocale } from "../domain/locale";
 
 export const resources: Record<AppLocale, Record<string, unknown>> = {
@@ -50,6 +53,7 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     progress: progressEn,
     blog: blogEn,
     review: reviewEn,
+    moderation: moderationEn,
   },
   uk: {
     account: accountUk,
@@ -64,6 +68,7 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     progress: progressUk,
     blog: blogUk,
     review: reviewUk,
+    moderation: moderationUk,
   },
   ru: {
     account: accountRu,
@@ -78,5 +83,6 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
     progress: progressRu,
     blog: blogRu,
     review: reviewRu,
+    moderation: moderationRu,
   }
 };

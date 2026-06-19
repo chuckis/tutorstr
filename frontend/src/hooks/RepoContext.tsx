@@ -11,6 +11,8 @@ import { createNostrLessonNoteRepository } from "../adapters/nostr/lessonNoteRep
 import { blossomMediaRepository } from "../adapters/nostr/blossomMediaRepository";
 import { startGlobalSubscription, stopGlobalSubscription } from "../adapters/nostr/subscriptionManager";
 import { createNostrReviewRepository } from "../adapters/nostr/reviewRepository";
+import { createNostrMuteListRepository } from "../adapters/nostr/muteListEventRepository";
+import { createNostrReportRepository } from "../adapters/nostr/reportEventRepository";
 import { BookingEventsRepository } from "../ports/bookingEventsRepository";
 import { LessonAgreementEventsRepository } from "../ports/lessonAgreementEventsRepository";
 import { PrivateMessagingRepository } from "../ports/privateMessagingRepository";
@@ -26,6 +28,8 @@ import { createLocalStorageDraftRepository } from "../adapters/localStorageDraft
 import { BlogRepository } from "../ports/blogRepository";
 import { DraftRepository } from "../ports/draftRepository";
 import { ReviewRepository } from "../ports/reviewRepository";
+import { MuteListRepository } from "../ports/muteListRepository";
+import { ReportRepository } from "../ports/reportRepository";
 
 
 export { createNostrBookingRepository, mapNostrBookings } from "../adapters/nostr/bookingRepository";
@@ -45,6 +49,8 @@ type RepoContextValue = {
   blogRepository: BlogRepository;
   draftRepository: DraftRepository;
   reviewRepository: ReviewRepository;
+  muteListRepository: MuteListRepository;
+  reportRepository: ReportRepository;
 };
 
 const RepoContext = createContext<RepoContextValue | null>(null);
@@ -65,6 +71,8 @@ export function RepoProvider({ children }: { children: ReactNode }) {
       draftRepository: createLocalStorageDraftRepository(),
       mediaUploadRepository: blossomMediaRepository,
       reviewRepository: createNostrReviewRepository(),
+      muteListRepository: createNostrMuteListRepository(),
+      reportRepository: createNostrReportRepository(),
     }),
     []
   );

@@ -1,0 +1,19 @@
+{
+  "block": "Block",
+  "unblock": "Unblock",
+  "blockedUsers": "Blocked Users",
+  "blockedUsersEmpty": "No blocked users",
+  "reportUser": "Report User",
+  "reportReason": "Reason",
+  "reportSent": "Report submitted",
+  "blockConfirm": "Block {name}? They will not be able to contact you.",
+  "reportedBy": "Reported by {count} user(s)",
+  "rateLimitError": "Too many actions. Please try later.",
+  "reportLabel": {
+    "spam": "Spam",
+    "nudity": "Nudity",
+    "profanity": "Profanity",
+    "illegal": "Illegal content",
+    "impersonation": "Impersonation"
+  }
+}

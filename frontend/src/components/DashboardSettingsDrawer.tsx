@@ -1,4 +1,4 @@
-import { X, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Settings, User, HelpCircle, Info, ChevronRight, Moon, Sun } from "lucide-react";
+import { X, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Settings, User, HelpCircle, Info, ChevronRight, Moon, Sun, Ban } from "lucide-react";
 import { useState } from "react";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
@@ -13,12 +13,14 @@ import { Theme } from "../domain/theme";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Toggle } from "./ui/Toggle";
+import { BlockedUsersList } from "./BlockedUsersList";
 
-type DrawerSection = "menu" | "settings" | "profile" | "faq" | "about";
+type DrawerSection = "menu" | "settings" | "profile" | "faq" | "about" | "blocked";
 
 type DashboardSettingsDrawerProps = {
   isOpen: boolean;
   npub: string;
+  pubkey: string;
   profile: UserProfile;
   onClose: () => void;
   onProfileChange: (profile: UserProfile) => void;
@@ -38,6 +40,7 @@ type DashboardSettingsDrawerProps = {
 const MENU_ITEMS: { section: DrawerSection; icon: React.ReactNode; labelKey: string }[] = [
   { section: "settings", icon: <Settings size={18} />, labelKey: "profile.drawer.settings" },
   { section: "profile", icon: <User size={18} />, labelKey: "profile.drawer.profile" },
+  { section: "blocked", icon: <Ban size={18} />, labelKey: "profile.drawer.blocked" },
   { section: "faq", icon: <HelpCircle size={18} />, labelKey: "profile.drawer.faq" },
   { section: "about", icon: <Info size={18} />, labelKey: "profile.drawer.about" },
 ];
@@ -45,6 +48,7 @@ const MENU_ITEMS: { section: DrawerSection; icon: React.ReactNode; labelKey: str
 export function DashboardSettingsDrawer({
   isOpen,
   npub,
+  pubkey,
   profile,
   onClose,
   onProfileChange,
@@ -217,6 +221,9 @@ export function DashboardSettingsDrawer({
             </article>
           </>
         );
+
+      case "blocked":
+        return <BlockedUsersList pubkey={pubkey} viewerRole={role} />;
 
       case "faq":
         return <SettingsFAQ />;

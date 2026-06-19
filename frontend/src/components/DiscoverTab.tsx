@@ -26,6 +26,7 @@ import { ReputationBadge } from "./ReputationBadge";
 import { ReviewList } from "./ReviewList";
 import { useReviewsForSubject } from "../hooks/useReviewsForSubject";
 import { useState } from "react";
+import { useMemo } from "react";
 import { BlogPostList } from "./blog/BlogPostList";
 import { useTutorBlog } from "../hooks/useTutorBlog";
 import { useCurrentTime } from "../hooks/useCurrentTime";
@@ -54,6 +55,9 @@ type DiscoverTabProps = {
   winnerByAllocationKey: Record<string, SlotOccupancy>;
   role: AccountRole;
   loading: boolean;
+  mutedPubkeys: Set<string>;
+  onBlockUser: (pubkey: string) => Promise<void>;
+  onReportUser: (targetPubkey: string, reason: string, options?: { eventId?: string; label?: string }) => Promise<void>;
   onSelectBlogPost?: (data: { post: any; authorId: string }) => void;
 };
 
@@ -77,11 +81,18 @@ export function DiscoverTab({
   role,
   loading,
   onSelectBlogPost,
+  mutedPubkeys,
+  onBlockUser,
+  onReportUser,
 }: DiscoverTabProps) {
   const { t, formatDateTime, formatNumber } = useI18n();
   const isNewcomerProfile = isProfileEmpty(profile);
   const _now = useCurrentTime();
   const isStudent = role === "student";
+  const visibleTutors = useMemo(
+    () => filteredTutors.filter((t) => !mutedPubkeys.has(t.pubkey)),
+    [filteredTutors, mutedPubkeys]
+  );
   const selectedTutorPubkey = selectedTutor?.pubkey ?? "";
   const { reviews, reputation } = useReviewsForSubject(selectedTutorPubkey);
 
@@ -143,8 +154,20 @@ export function DiscoverTab({
               <p className="muted">
                 {selectedTutor.profile.languages.join(", ") || t("common.states.notSet")}
               </p>
-            </div>
           </div>
+          <div className="request-actions" style={{ marginTop: "0.5rem" }}>
+            <Button variant="ghost" size="sm"
+              onClick={() => onBlockUser(selectedTutor.pubkey)}
+            >
+              {t("moderation.block")}
+            </Button>
+            <Button variant="ghost" size="sm"
+              onClick={() => onReportUser(selectedTutor.pubkey, "Spam")}
+            >
+              {t("moderation.reportUser")}
+            </Button>
+          </div>
+            </div>
           <p>{selectedTutor.profile.bio || t("common.states.noBioYet")}</p>
           {selectedTutor.profile.subjects.length > 0 ? (
             <div className="chips">
@@ -256,10 +279,10 @@ export function DiscoverTab({
           <Spinner label={t("common.states.loading")} />
         ) : (
           <div className="card-grid">
-            {filteredTutors.length === 0 ? (
+            {visibleTutors.length === 0 ? (
               <EmptyState description={t("discover.noTutors")} />
             ) : (
-              filteredTutors.map((entry) => (
+              visibleTutors.map((entry) => (
                 <TutorCard
                   key={entry.pubkey}
                   entry={entry}

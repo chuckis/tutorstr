@@ -8,12 +8,16 @@ type CounterpartyCardProps = {
   profile?: UserProfileEvent;
   role: "tutor" | "student";
   onViewProfile?: () => void;
+  onBlockUser?: (pubkey: string) => Promise<void>;
+  onReportUser?: (targetPubkey: string, reason: string) => Promise<void>;
 };
 
 export function CounterpartyCard({
   profile,
   role,
-  onViewProfile
+  onViewProfile,
+  onBlockUser,
+  onReportUser,
 }: CounterpartyCardProps) {
   const { t } = useI18n();
 
@@ -54,11 +58,23 @@ export function CounterpartyCard({
           ))}
         </div>
       ) : null}
-      {onViewProfile ? (
-        <Button variant="ghost" onClick={onViewProfile}>
-          {t("requests.viewProfile")}
-        </Button>
-      ) : null}
+      <div className="request-actions" style={{ marginTop: "0.5rem" }}>
+        {onViewProfile ? (
+          <Button variant="ghost" size="sm" onClick={onViewProfile}>
+            {t("requests.viewProfile")}
+          </Button>
+        ) : null}
+        {onBlockUser ? (
+          <Button variant="ghost" size="sm" onClick={() => onBlockUser(profile.pubkey)}>
+            {t("moderation.block")}
+          </Button>
+        ) : null}
+        {onReportUser ? (
+          <Button variant="ghost" size="sm" onClick={() => onReportUser(profile.pubkey, "Spam")}>
+            {t("moderation.reportUser")}
+          </Button>
+        ) : null}
+      </div>
     </Card>
   );
 }

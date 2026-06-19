@@ -1,5 +1,8 @@
 export enum TutorHubKind {
   Metadata = 0,
+  DirectMessage = 4,
+  MuteList = 10000,
+  Report = 1984,
   /** @deprecated Use Metadata (kind 0) instead. Kept for backward compat. */
   Profile = 30000,
   TutorSchedule = 30001,
@@ -9,5 +12,4 @@ export enum TutorHubKind {
   TutorBlogPost = 30005,
   LessonAgreement = 30006,
   Review = 32267,
-  DirectMessage = 4,
 }

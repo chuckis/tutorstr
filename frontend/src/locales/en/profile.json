@@ -77,7 +77,8 @@
     "faq": "FAQ",
     "about": "About",
     "back": "Back",
-    "darkMode": "Dark Mode"
+    "darkMode": "Dark Mode",
+    "blocked": "Blocked Users"
   },
   "faq": {
     "dataStorage_q": "How is my data stored?",

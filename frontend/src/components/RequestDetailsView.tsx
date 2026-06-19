@@ -23,6 +23,8 @@ type RequestDetailsViewProps = {
   ) => void | Promise<void>;
   onViewProfile: () => void;
   messageStatus: string;
+  onBlockUser?: (pubkey: string) => Promise<void>;
+  onReportUser?: (targetPubkey: string, reason: string) => Promise<void>;
 };
 
 export function RequestDetailsView({
@@ -34,7 +36,9 @@ export function RequestDetailsView({
   onSendMessage,
   onSendMessageWithFiles,
   onViewProfile,
-  messageStatus
+  messageStatus,
+  onBlockUser,
+  onReportUser,
 }: RequestDetailsViewProps) {
   const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
 
@@ -51,6 +55,8 @@ export function RequestDetailsView({
         profile={selectedRequest.counterpartyProfile}
         role={selectedRequest.viewerRole === "tutor" ? "student" : "tutor"}
         onViewProfile={onViewProfile}
+        onBlockUser={onBlockUser ? (pk) => onBlockUser(pk) : undefined}
+        onReportUser={onReportUser ? (pk, reason) => onReportUser(pk, reason) : undefined}
       />
 
       <article className="panel">
