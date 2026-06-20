@@ -67,7 +67,9 @@ export class NostrClient {
       throw new Error("common.runtime.noRelaysConfigured");
     }
 
-    await Promise.any(this.pool.publish(this.relays, event as unknown as Event));
+    const results = this.pool.publish(this.relays, event as unknown as Event);
+    results.forEach(p => p.catch(() => {}));
+    await Promise.any(results);
   }
 
   setSigner(signer: NostrSigner | null) {

@@ -1,120 +1,85 @@
-import { useCallback, useState } from "react";
-import { useRepo } from "./RepoContext";
-import { AttachmentMessagePayload } from "../ports/privateMessagingRepository";
-import { MessageAttachment } from "../domain/messaging";
-import { UploadResult } from "../ports/mediaUploadRepository";
+import { useCallback, useState, useRef } from "react";
 
 export type MessageComposerState = {
   text: string;
   files: File[];
-  uploadProgress: number;
-  isUploading: boolean;
+  filePreviews: string[];
   isSending: boolean;
 };
 
 export type UseMessageComposerReturn = MessageComposerState & {
   setText: (text: string) => void;
-  addFiles: (files: FileList | File[]) => void;
+  addFiles: (input: FileList | File[]) => void;
   removeFile: (index: number) => void;
   clearFiles: () => void;
-  send: (recipientPubkey: string, threadKey?: string) => Promise<void>;
+  send: () => Promise<void>;
 };
 
+function createPreviewUrl(file: File): string {
+  if (file.type.startsWith("image/")) {
+    return URL.createObjectURL(file);
+  }
+  return "";
+}
+
 export function useMessageComposer(
-  blossomUrl: string
+  onSendText: (text: string) => void | Promise<void>,
+  onSendWithFiles?: (text: string, files: File[]) => void | Promise<void>,
 ): UseMessageComposerReturn {
-  const { signerManager, mediaUploadRepository, privateMessagingRepository } = useRepo();
   const [text, setText] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
+  const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const previewUrlsRef = useRef<string[]>([]);
 
   const addFiles = useCallback((input: FileList | File[]) => {
     const newFiles = Array.from(input).filter((f) => f.size > 0);
+    if (newFiles.length === 0) return;
+    const newPreviews = newFiles.map(createPreviewUrl);
     setFiles((prev) => [...prev, ...newFiles]);
+    setFilePreviews((prev) => [...prev, ...newPreviews]);
+    previewUrlsRef.current = [...previewUrlsRef.current, ...newPreviews];
   }, []);
 
   const removeFile = useCallback((index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setFiles((prev) => {
+      const preview = previewUrlsRef.current[index];
+      if (preview) URL.revokeObjectURL(preview);
+      previewUrlsRef.current = previewUrlsRef.current.filter((_, i) => i !== index);
+      return prev.filter((_, i) => i !== index);
+    });
+    setFilePreviews((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const clearFiles = useCallback(() => {
+    previewUrlsRef.current.forEach((url) => {
+      if (url) URL.revokeObjectURL(url);
+    });
+    previewUrlsRef.current = [];
     setFiles([]);
-    setUploadProgress(0);
+    setFilePreviews([]);
   }, []);
 
-  const send = useCallback(
-    async (recipientPubkey: string, threadKey?: string) => {
-      if (!text.trim() && files.length === 0) {
-        return;
+  const send = useCallback(async () => {
+    if (!text.trim() && files.length === 0) return;
+    setIsSending(true);
+    try {
+      if (files.length > 0 && onSendWithFiles) {
+        await onSendWithFiles(text, files);
+      } else {
+        await onSendText(text);
       }
-
-      setIsSending(true);
-
-      try {
-        let uploadResults: UploadResult[] = [];
-
-        if (files.length > 0) {
-          setIsUploading(true);
-          setUploadProgress(0);
-
-          const signer = signerManager.getSigner();
-          if (!signer) {
-            throw new Error("No signer available");
-          }
-
-          uploadResults = await mediaUploadRepository.uploadMultiple(
-            files,
-            blossomUrl,
-            signer
-          );
-
-          setUploadProgress(100);
-          setIsUploading(false);
-        }
-
-        if (uploadResults.length > 0) {
-          const attachments: MessageAttachment[] = uploadResults.map((result, index) => ({
-            url: result.url,
-            thumbnailUrl: result.thumbnailUrl,
-            mimeType: files[index]?.type || "application/octet-stream",
-            fileName: files[index]?.name,
-            size: files[index]?.size,
-          }));
-          const payload: AttachmentMessagePayload = {
-            text: text.trim() || undefined,
-            attachments,
-          };
-          await privateMessagingRepository.sendAttachmentMessage(
-            recipientPubkey,
-            payload,
-            threadKey
-          );
-        } else if (text.trim()) {
-          await privateMessagingRepository.sendMessage(
-            recipientPubkey,
-            text,
-            threadKey
-          );
-        }
-
-        setText("");
-        setFiles([]);
-        setUploadProgress(0);
-      } finally {
-        setIsUploading(false);
-        setIsSending(false);
-      }
-    },
-    [text, files, blossomUrl, signerManager, mediaUploadRepository, privateMessagingRepository]
-  );
+      clearFiles();
+      setText("");
+    } finally {
+      setIsSending(false);
+    }
+  }, [text, files, onSendText, onSendWithFiles, clearFiles]);
 
   return {
     text,
     files,
-    uploadProgress,
-    isUploading,
+    filePreviews,
     isSending,
     setText,
     addFiles,

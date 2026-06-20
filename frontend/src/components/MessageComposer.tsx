@@ -1,11 +1,7 @@
 import { useState, useRef, useCallback, DragEvent } from "react";
 import { useI18n } from "../i18n/I18nProvider";
+import { useMessageComposer } from "../hooks/useMessageComposer";
 import { Button } from "./ui/Button";
-
-type FilePreview = {
-  file: File;
-  previewUrl: string;
-};
 
 type MessageComposerProps = {
   onSend: (text: string) => void | Promise<void>;
@@ -14,81 +10,53 @@ type MessageComposerProps = {
 
 type FileStatus = "idle" | "selected" | "uploading" | "sent" | "failed";
 
-function createPreviewUrl(file: File): string {
-  if (file.type.startsWith("image/")) {
-    return URL.createObjectURL(file);
-  }
-  return "";
-}
-
 export function MessageComposer({
   onSend,
   onSendWithFiles,
 }: MessageComposerProps) {
-  const [text, setText] = useState("");
-  const [files, setFiles] = useState<FilePreview[]>([]);
+  const {
+    text,
+    setText,
+    files,
+    filePreviews,
+    isSending,
+    addFiles,
+    removeFile,
+    clearFiles,
+    send,
+  } = useMessageComposer(onSend, onSendWithFiles);
+
   const [isDragOver, setIsDragOver] = useState(false);
   const [fileStatus, setFileStatus] = useState<FileStatus>("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useI18n();
 
-  const addFiles = useCallback((fileList: FileList) => {
-    const newPreviews = Array.from(fileList)
-      .filter((f) => f.size > 0)
-      .map((file) => ({
-        file,
-        previewUrl: createPreviewUrl(file),
-      }));
-    setFiles((prev) => [...prev, ...newPreviews]);
-    if (newPreviews.length > 0) {
-      setFileStatus("selected");
-    }
-  }, []);
-
-  const removeFile = useCallback((index: number) => {
-    setFiles((prev) => {
-      const entry = prev[index];
-      if (entry?.previewUrl) {
-        URL.revokeObjectURL(entry.previewUrl);
-      }
-      const next = prev.filter((_, i) => i !== index);
-      if (next.length === 0) {
-        setFileStatus("idle");
-      }
-      return next;
-    });
-  }, []);
+  const hasContent = text.trim().length > 0 || files.length > 0;
+  const canSendFiles = files.length === 0 || Boolean(onSendWithFiles);
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent) => {
       event.preventDefault();
+      if (!hasContent) return;
 
-      if (files.length > 0 && onSendWithFiles) {
-        try {
-          setFileStatus("uploading");
-          await onSendWithFiles(
-            text,
-            files.map((f) => f.file)
-          );
-          setFileStatus("sent");
-          setText("");
-          files.forEach((f) => {
-            if (f.previewUrl) {
-              URL.revokeObjectURL(f.previewUrl);
-            }
-          });
-          setFiles([]);
-          window.setTimeout(() => setFileStatus("idle"), 2500);
-        } catch {
-          setFileStatus("failed");
-        }
-        return;
+      const hadFiles = files.length > 0;
+      if (hadFiles) {
+        setFileStatus("uploading");
       }
 
-      await onSend(text);
-      setText("");
+      try {
+        await send();
+        if (hadFiles) {
+          setFileStatus("sent");
+          window.setTimeout(() => setFileStatus("idle"), 2500);
+        }
+      } catch {
+        if (hadFiles) {
+          setFileStatus("failed");
+        }
+      }
     },
-    [text, files, onSend, onSendWithFiles]
+    [hasContent, files.length, send]
   );
 
   const handleDragOver = useCallback((e: DragEvent) => {
@@ -121,10 +89,6 @@ export function MessageComposer({
     [addFiles]
   );
 
-  const hasContent = text.trim().length > 0 || files.length > 0;
-  const isUploading = fileStatus === "uploading";
-  const canSendFiles = files.length === 0 || Boolean(onSendWithFiles);
-
   function getFileStatusLabel() {
     if (fileStatus === "selected") {
       return t("common.messages.filesSelected", { count: files.length });
@@ -151,19 +115,19 @@ export function MessageComposer({
     >
       {files.length > 0 ? (
         <div className="composer-file-previews">
-          {files.map((entry, index) => (
-            <div key={`${entry.file.name}-${index}`} className="composer-file-chip">
-              {entry.previewUrl ? (
-                <img src={entry.previewUrl} alt="" className="chip-preview" />
+          {files.map((file, index) => (
+            <div key={`${file.name}-${index}`} className="composer-file-chip">
+              {filePreviews[index] ? (
+                <img src={filePreviews[index]} alt="" className="chip-preview" />
               ) : (
                 <span className="chip-icon">FILE</span>
               )}
-              <span className="chip-name">{entry.file.name}</span>
+              <span className="chip-name">{file.name}</span>
               <Button variant="ghost" size="sm"
                 type="button"
                 className="chip-remove"
                 onClick={() => removeFile(index)}
-                disabled={isUploading}
+                disabled={isSending}
                 aria-label={t("common.actions.remove")}
               >
                 ×
@@ -179,7 +143,7 @@ export function MessageComposer({
         </p>
       ) : null}
 
-      {isUploading ? (
+      {fileStatus === "uploading" || isSending ? (
         <div className="upload-progress-bar">
           <div className="upload-progress-fill" />
         </div>
@@ -191,19 +155,19 @@ export function MessageComposer({
           value={text}
           onChange={(event) => setText(event.target.value)}
           placeholder={t("common.messages.placeholder")}
-          disabled={isUploading}
+          disabled={isSending}
         />
         <Button variant="ghost" size="sm"
           type="button"
           className="composer-attach-btn"
           onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
+          disabled={isSending}
           aria-label={t("common.messages.attach")}
         >
           +
         </Button>
-        <Button variant="primary" type="submit" disabled={!hasContent || isUploading || !canSendFiles}>
-          {isUploading
+        <Button variant="primary" type="submit" disabled={!hasContent || isSending || !canSendFiles}>
+          {isSending
             ? t("common.states.uploading")
             : t("common.buttons.sendMessage")}
         </Button>
