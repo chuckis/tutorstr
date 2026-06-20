@@ -50,9 +50,11 @@ export function MessageComposer({
           setFileStatus("sent");
           window.setTimeout(() => setFileStatus("idle"), 2500);
         }
-      } catch {
+      } catch (err) {
         if (hadFiles) {
           setFileStatus("failed");
+        } else {
+          console.error("Message send failed:", err);
         }
       }
     },

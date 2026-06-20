@@ -67,7 +67,8 @@
   },
   "runtime": {
     "noRelaysConfigured": "No relays configured.",
-    "authenticationRequired": "Authentication required."
+    "authenticationRequired": "Authentication required.",
+    "encryptionFailed": "Encryption failed."
   },
   "status": {
     "pending": "Pending",

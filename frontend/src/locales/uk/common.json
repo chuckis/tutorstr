@@ -64,7 +64,8 @@
   },
   "runtime": {
     "noRelaysConfigured": "Реле не налаштовано.",
-    "authenticationRequired": "Потрібна автентифікація."
+    "authenticationRequired": "Потрібна автентифікація.",
+    "encryptionFailed": "Помилка шифрування."
   },
   "status": {
     "pending": "Очікує",

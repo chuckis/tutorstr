@@ -64,7 +64,8 @@
   },
   "runtime": {
     "noRelaysConfigured": "Рели не настроены.",
-    "authenticationRequired": "Требуется аутентификация."
+    "authenticationRequired": "Требуется аутентификация.",
+    "encryptionFailed": "Ошибка шифрования."
   },
   "status": {
     "pending": "Ожидает",

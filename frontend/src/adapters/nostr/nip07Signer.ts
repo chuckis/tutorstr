@@ -36,7 +36,11 @@ export function createNip07Signer(session: AuthSession): NostrSigner {
       if (!nostr?.nip04?.encrypt) {
         throw new Error("NIP-07 nip04 encrypt not available");
       }
-      return nostr.nip04.encrypt(recipientPubkey, plaintext);
+      try {
+        return await nostr.nip04.encrypt(recipientPubkey, plaintext);
+      } catch {
+        throw new Error("common.runtime.encryptionFailed");
+      }
     },
     async decrypt(senderPubkey: string, ciphertext: string): Promise<string | null> {
       const nostr = getNostr();
