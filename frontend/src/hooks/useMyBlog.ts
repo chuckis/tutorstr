@@ -6,17 +6,25 @@ import { SaveDraft } from "../application/usecases/saveDraft";
 import { DeleteBlogPost } from "../application/usecases/deleteBlogPost";
 import { GetMyDrafts } from "../application/usecases/getMyDrafts";
 import { GetTutorBlog } from "../application/usecases/getTutorBlog";
+import { useBlogStore } from "../stores/blogStore";
 import { useRepo } from "./RepoContext";
 
 export function useMyBlog(pubkey: string, viewerRole: AccountRole) {
   const { blogRepository, draftRepository } = useRepo();
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [drafts, setDrafts] = useState<BlogDraft[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const publishBlogPost = useMemo(
-    () => new PublishBlogPost(blogRepository, draftRepository),
+    () => new PublishBlogPost(
+      blogRepository,
+      draftRepository,
+      (post) => {
+        useBlogStore.getState().optimisticAddPost(post);
+      },
+      (postId) => {
+        useBlogStore.getState().optimisticRemovePost(postId);
+      },
+    ),
     [blogRepository, draftRepository]
   );
   const saveDraft = useMemo(
@@ -44,8 +52,7 @@ export function useMyBlog(pubkey: string, viewerRole: AccountRole) {
         getTutorBlog.execute(pubkey),
         getMyDrafts.execute(viewerRole),
       ]);
-      setPosts(fetchedPosts);
-      setDrafts(fetchedDrafts);
+      useBlogStore.getState().hydrate(fetchedPosts, fetchedDrafts);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -83,15 +90,21 @@ export function useMyBlog(pubkey: string, viewerRole: AccountRole) {
 
   const deletePost = useCallback(
     async (postId: string) => {
-      await deleteBlogPost.execute(postId, pubkey, viewerRole);
-      await refresh();
+      const snapshot = useBlogStore.getState().snapshotPosts();
+      useBlogStore.getState().optimisticRemovePost(postId);
+      try {
+        await deleteBlogPost.execute(postId, pubkey, viewerRole);
+      } catch (error) {
+        useBlogStore.getState().restorePosts(snapshot);
+        throw error;
+      }
     },
-    [deleteBlogPost, pubkey, viewerRole, refresh]
+    [deleteBlogPost, pubkey, viewerRole]
   );
 
   return {
-    posts,
-    drafts,
+    posts: useBlogStore((s) => s.posts),
+    drafts: useBlogStore((s) => s.drafts),
     loading,
     publish,
     saveDraft: saveDraftAction,

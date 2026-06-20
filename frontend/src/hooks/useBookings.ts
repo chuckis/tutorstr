@@ -17,6 +17,8 @@ import { useBookingRequestsForTutor } from "./useBookingRequestsForTutor";
 import { useBookingStatusesForUser } from "./useBookingStatusesForUser";
 import { useMyBookingRequests } from "./useMyBookingRequests";
 import { useLessonRepository } from "./useLessonRepository";
+import { useLessonStore } from "../stores/lessonStore";
+import { LessonAgreementEvent } from "../ports/lessonAgreementEventsRepository";
 
 export function useBookings(userId: string, lessonDefaults?: {
   durationMin?: number;
@@ -108,8 +110,33 @@ export function useBookings(userId: string, lessonDefaults?: {
 
   const acceptBooking = useMemo(
     () =>
-      new AcceptBooking(bookingRepository, lessonRepository, acceptedLessonFactory),
-    [acceptedLessonFactory, bookingRepository, lessonRepository]
+      new AcceptBooking(
+        bookingRepository,
+        lessonRepository,
+        acceptedLessonFactory,
+        (_bookingId, lesson, _rejectedCompetitorIds) => {
+          useLessonStore.getState().optimisticAddLesson({
+            id: `opt-${lesson.id}`,
+            created_at: Math.floor(Date.now() / 1000),
+            pubkey: userId,
+            lessonId: lesson.id,
+            tutorPubkey: lesson.tutorId,
+            studentPubkey: lesson.studentId,
+            bookingEventId: lesson.bookingId,
+            agreement: {
+              lessonId: lesson.id,
+              bookingId: lesson.bookingId,
+              subject: lesson.subject,
+              scheduledAt: lesson.scheduledAt,
+              durationMin: lesson.durationMin,
+              price: lessonDefaults?.price || 0,
+              currency: lessonDefaults?.currency || "USD",
+              status: "scheduled",
+            },
+          } as LessonAgreementEvent);
+        },
+      ),
+    [acceptedLessonFactory, bookingRepository, lessonRepository, userId, lessonDefaults]
   );
 
   const loading = loadingIncoming || loadingOutgoing || loadingStatuses;

@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { useRepo } from "./RepoContext";
 import { DEFAULT_RELAYS } from "../nostr/config";
+import { createNostrRelayListRepository } from "../adapters/nostr/relayListRepository";
+import { useLessonStore } from "../stores/lessonStore";
+import { clearRelayListCache } from "../adapters/nostr/crossRelayResolver";
 
 const RELAY_STORAGE_KEY = "tutorhub:relays";
 
@@ -27,6 +30,24 @@ export function useRelays() {
   const [relayInput, setRelayInput] = useState("");
   const [relayStatus, setRelayStatus] = useState("");
 
+  const publishRelayList = useCallback(async (updated: string[]) => {
+    const state = useLessonStore.getState();
+    const firstLesson = Object.values(state.byId)[0];
+    if (!firstLesson) return;
+
+    const repo = createNostrRelayListRepository();
+    const relays = updated.map((url) => ({
+      url,
+      purpose: "write" as const,
+    }));
+    try {
+      await repo.publishRelayList(relays);
+      clearRelayListCache();
+    } catch {
+      // best effort
+    }
+  }, []);
+
   function addRelay() {
     const url = relayInput.trim();
     if (!url.startsWith("wss://") && !url.startsWith("ws://")) {
@@ -43,6 +64,7 @@ export function useRelays() {
     relayManager.setRelays(updated);
     setRelayInput("");
     setRelayStatus(t("profile.relayAdded"));
+    publishRelayList(updated);
   }
 
   function removeRelay(url: string) {
@@ -51,6 +73,7 @@ export function useRelays() {
     persistRelays(updated);
     relayManager.setRelays(updated);
     setRelayStatus(t("profile.relayRemoved"));
+    publishRelayList(updated);
   }
 
   return {

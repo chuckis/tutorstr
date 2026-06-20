@@ -83,6 +83,9 @@ export function DashboardSettingsDrawer({
 
   function handleClose() {
     setActiveSection("menu");
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     onClose();
   }
 
@@ -268,7 +271,7 @@ export function DashboardSettingsDrawer({
   return (
     <div
       className={`dashboard-drawer-shell ${isOpen ? "open" : ""}`}
-      aria-hidden={isOpen ? "false" : "true"}
+      inert={!isOpen ? true : undefined}
     >
       <button
         type="button"

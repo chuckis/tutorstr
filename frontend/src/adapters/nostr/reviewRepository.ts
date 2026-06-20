@@ -2,7 +2,7 @@ import { Review, ReviewAuthorRole, ReviewRating } from "../../domain/review";
 import { ReviewRepository } from "../../ports/reviewRepository";
 import { TutorHubKind } from "../../nostr/kinds";
 import { nostrClient } from "../../nostr/client";
-import { addKindListener } from "./eventBus";
+import { addKindListener, useEventBusStore } from "./eventBus";
 import { getTagValue } from "../../utils/nostrTags";
 
 function parseReviewEvent(event: {
@@ -56,6 +56,19 @@ export function createNostrReviewRepository(): ReviewRepository {
     },
 
     async getReviewByAuthorAndLesson(authorPubkey, lessonId) {
+      const cachedEvents = useEventBusStore.getState().eventsByKind[TutorHubKind.Review];
+      if (cachedEvents) {
+        for (const event of Object.values(cachedEvents)) {
+          if (event.pubkey === authorPubkey && getTagValue(event.tags, "d") === lessonId) {
+            try {
+              return parseReviewEvent(event);
+            } catch {
+              return null;
+            }
+          }
+        }
+      }
+
       return new Promise<Review | null>((resolve) => {
         let resolved = false;
         const unsub = nostrClient.subscribe(

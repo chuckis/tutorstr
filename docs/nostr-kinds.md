@@ -124,3 +124,16 @@ Tags:
 - `["p", "<student_pubkey>"]` (required)
 - `["e", "<booking_request_event_id>"]` (required)
 - Optional: `["t", "lesson:agreement"]`
+
+## Kind 32267 — Review (public, addressable)
+
+Purpose: Publish a rating and comment for a completed lesson.
+
+Content: Plain text (the review comment).
+
+Tags:
+- `["p", "<subject_pubkey>"]` (required) — the person being reviewed (tutor or student)
+- `["d", "<lesson_id>"]` (required) — addressable dedup key (1 review per lesson per author)
+- `["e", "<lesson_agreement_event_id>"]` (optional) — link to the lesson agreement event
+- `["rating", "<1-5>"]` (required) — numeric rating
+- `["role", "<tutor|student>"]` (required) — role of the review author

@@ -3,7 +3,11 @@ import { assertRole } from "../account/assertRole";
 import type { BlogRepository } from "../../ports/blogRepository";
 
 export class DeleteBlogPost {
-  constructor(private blogRepo: BlogRepository) {}
+  constructor(
+    private blogRepo: BlogRepository,
+    private onOptimisticUpdate?: (postId: string) => void,
+    private onRollback?: (postId: string) => void,
+  ) {}
 
   async execute(
     postId: string,
@@ -11,6 +15,13 @@ export class DeleteBlogPost {
     viewerRole: AccountRole
   ): Promise<void> {
     assertRole(viewerRole, "tutor");
-    await this.blogRepo.requestDeletion(postId, authorId);
+
+    this.onOptimisticUpdate?.(postId);
+    try {
+      await this.blogRepo.requestDeletion(postId, authorId);
+    } catch (error) {
+      this.onRollback?.(postId);
+      throw error;
+    }
   }
 }

@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import { PublishMuteList, RateLimitError } from "./publishMuteList";
-import { RoleMismatchError } from "../account/assertRole";
 import type { MuteListRepository } from "../../ports/muteListRepository";
 
 function makeRepo(): MuteListRepository {
@@ -22,15 +21,14 @@ describe("PublishMuteList", () => {
     expect(repo.publish).toHaveBeenCalledWith("tutor-1", ["student-1", "student-2"]);
   });
 
-  it("throws RoleMismatchError when viewer is a student", async () => {
+  it("publishes the mute list when viewer is a student", async () => {
     const repo = makeRepo();
     const useCase = new PublishMuteList(repo);
 
-    await expect(
-      useCase.execute("student-1", ["tutor-1"], "student"),
-    ).rejects.toBeInstanceOf(RoleMismatchError);
+    const id = await useCase.execute("student-1", ["tutor-1"], "student");
 
-    expect(repo.publish).not.toHaveBeenCalled();
+    expect(id).toBe("event-1");
+    expect(repo.publish).toHaveBeenCalledWith("student-1", ["tutor-1"]);
   });
 
   it("throws RateLimitError when too many pubkeys in one action", async () => {

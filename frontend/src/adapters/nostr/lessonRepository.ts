@@ -40,6 +40,13 @@ type CreateNostrLessonRepositoryParams = {
   updateLessonAgreementStatus: UpdateLessonAgreementStatus;
 };
 
+export class LessonAgreementNotFoundError extends Error {
+  constructor(public readonly lessonId: string) {
+    super(`Lesson agreement not found in store: ${lessonId}`);
+    this.name = "LessonAgreementNotFoundError";
+  }
+}
+
 export function createNostrLessonRepository({
   userId,
   list,
@@ -77,7 +84,7 @@ export function createNostrLessonRepository({
     async updateStatus(id: string, status: Lesson["status"]) {
       const event = agreements[id];
       if (!event) {
-        return;
+        throw new LessonAgreementNotFoundError(id);
       }
 
       await updateLessonAgreementStatus(event.tutorPubkey, event.studentPubkey, {

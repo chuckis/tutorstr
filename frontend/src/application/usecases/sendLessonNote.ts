@@ -13,7 +13,11 @@ export type SendLessonNoteInput = {
 };
 
 export class SendLessonNote {
-  constructor(private lessonNoteRepository: LessonNoteRepository) {}
+  constructor(
+    private lessonNoteRepository: LessonNoteRepository,
+    private onOptimisticUpdate?: (lessonId: string, note: LessonNote) => void,
+    private onRollback?: (lessonId: string, noteId: string) => void,
+  ) {}
 
   async execute(input: SendLessonNoteInput, viewerRole: AccountRole): Promise<void> {
     assertRole(viewerRole, input.noteType === "tutor" ? "tutor" : "student");
@@ -28,10 +32,16 @@ export class SendLessonNote {
       attachments: input.attachments ?? [],
     };
 
-    await this.lessonNoteRepository.publishNote(
-      input.lessonId,
-      note,
-      input.viewerPubkey
-    );
+    this.onOptimisticUpdate?.(input.lessonId, note);
+    try {
+      await this.lessonNoteRepository.publishNote(
+        input.lessonId,
+        note,
+        input.viewerPubkey
+      );
+    } catch (error) {
+      this.onRollback?.(input.lessonId, note.id);
+      throw error;
+    }
   }
 }

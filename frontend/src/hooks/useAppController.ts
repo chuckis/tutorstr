@@ -27,6 +27,7 @@ import { useModeration } from "./useModeration";
 import { useNotification } from "./NotificationContext";
 import { useRepo } from "./RepoContext";
 import { BookingStatusPayload } from "../ports/bookingEventsRepository";
+import { usePublishRelayList } from "./usePublishRelayList";
 
 function isRequestVisibleForBadge(
   request: { id: string; status: string },
@@ -72,6 +73,8 @@ export function useAppController(
   const blogState = useMyBlog(keypair.pubkey, viewerRole);
   const publicAllocationState = usePublicAllocatedSlots();
   const schedulesState = useTutorSchedules();
+
+  usePublishRelayList(keypair.pubkey, viewerRole);
 
   const winnerByAllocationKey = {
     ...publicAllocationState.allocatedSlotsByKey,

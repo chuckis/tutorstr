@@ -1,6 +1,7 @@
 import { AccountRole } from "../../domain/account";
 import { assertRole } from "../account/assertRole";
 import { TimeSlot } from "../../domain/TimeSlot";
+import { BookingRequestEvent } from "../../ports/bookingEventsRepository";
 
 export type BookingRequestPayload = {
   tutorPubkey: string;
@@ -16,11 +17,31 @@ export type BookingRequestPublisher = (
 ) => Promise<unknown>;
 
 export class CreateBookingRequest {
-  constructor(private publishBookingRequest: BookingRequestPublisher) {}
+  constructor(
+    private publishBookingRequest: BookingRequestPublisher,
+    private onOptimisticUpdate?: (request: BookingRequestEvent) => void,
+    private onRollback?: (bookingId: string) => void,
+  ) {}
 
-  async execute(input: BookingRequestPayload, viewerRole: AccountRole): Promise<unknown> {
+  async execute(
+    input: BookingRequestPayload,
+    viewerRole: AccountRole,
+    bookingRequestEvent?: BookingRequestEvent,
+  ): Promise<unknown> {
     assertRole(viewerRole, "student");
     const { tutorPubkey, ...rest } = input;
-    return this.publishBookingRequest(tutorPubkey, rest);
+
+    if (bookingRequestEvent) {
+      this.onOptimisticUpdate?.(bookingRequestEvent);
+    }
+
+    try {
+      return await this.publishBookingRequest(tutorPubkey, rest);
+    } catch (error) {
+      if (bookingRequestEvent) {
+        this.onRollback?.(bookingRequestEvent.id);
+      }
+      throw error;
+    }
   }
 }

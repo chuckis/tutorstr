@@ -12,7 +12,11 @@ export type PublishReviewResult =
   | { ok: false; error: PublishReviewError };
 
 export class PublishReview {
-  constructor(private reviews: ReviewRepository) {}
+  constructor(
+    private reviews: ReviewRepository,
+    private onOptimisticUpdate?: (review: Review) => void,
+    private onRollback?: (reviewId: string) => void,
+  ) {}
 
   async execute(
     lessonAgreementEvent: LessonAgreementEvent,
@@ -42,7 +46,9 @@ export class PublishReview {
       return { ok: false, error: { type: "already_exists" } };
     }
 
-    const eventId = await this.reviews.publishReview({
+    const tempId = `opt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const tempReview: Review = {
+      id: tempId,
       authorPubkey: viewerPubkey,
       subjectPubkey,
       lessonId: lessonAgreementEvent.lessonId,
@@ -50,8 +56,24 @@ export class PublishReview {
       role: viewerRole,
       rating: payload.rating,
       comment: payload.comment,
-    });
+      createdAt: Math.floor(Date.now() / 1000),
+    };
 
-    return { ok: true, eventId };
+    this.onOptimisticUpdate?.(tempReview);
+    try {
+      const eventId = await this.reviews.publishReview({
+        authorPubkey: viewerPubkey,
+        subjectPubkey,
+        lessonId: lessonAgreementEvent.lessonId,
+        lessonEventId: lessonAgreementEvent.id,
+        role: viewerRole,
+        rating: payload.rating,
+        comment: payload.comment,
+      });
+      return { ok: true, eventId };
+    } catch (error) {
+      this.onRollback?.(tempId);
+      throw error;
+    }
   }
 }

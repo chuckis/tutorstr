@@ -8,7 +8,9 @@ import type { DraftRepository } from "../../ports/draftRepository";
 export class PublishBlogPost {
   constructor(
     private blogRepo: BlogRepository,
-    private draftRepo: DraftRepository
+    private draftRepo: DraftRepository,
+    private onOptimisticUpdate?: (post: BlogPost) => void,
+    private onRollback?: (postId: string) => void,
   ) {}
 
   async execute(
@@ -36,7 +38,13 @@ export class PublishBlogPost {
       updatedAt: now,
     };
 
-    await this.blogRepo.publish(post);
-    await this.draftRepo.delete(draft.id);
+    this.onOptimisticUpdate?.(post);
+    try {
+      await this.blogRepo.publish(post);
+      await this.draftRepo.delete(draft.id);
+    } catch (error) {
+      this.onRollback?.(post.id);
+      throw error;
+    }
   }
 }

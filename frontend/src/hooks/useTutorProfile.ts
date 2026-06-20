@@ -3,6 +3,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { useRepo } from "./RepoContext";
 import { Role, UserProfile, PROFILE_SCHEMA_VERSION } from "../domain/profile";
 import { emptyProfile, normalizeProfile, serializeProfile } from "../utils/normalize";
+import { useProfileStore } from "../stores/profileStore";
 
 const AUTOPUBLISH_TIMEOUT_MS = 8000;
 
@@ -18,13 +19,19 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
 export function useTutorProfile(pubkey: string, viewerRole?: Role) {
   const { t } = useI18n();
   const { profileEventRepository } = useRepo();
-  const [profile, setProfile] = useState<UserProfile>(emptyProfile);
+  const storeProfile = useProfileStore((s) => s.byPubkey[pubkey]?.profile ?? emptyProfile);
+  const [profile, setProfile] = useState<UserProfile>(storeProfile);
   const [status, setStatus] = useState<string>("");
   const [lastEventId, setLastEventId] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const latestProfileRef = useRef<UserProfile>(emptyProfile);
+  const latestProfileRef = useRef<UserProfile>(profile);
   const autoPublishStartedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync with store when new profile arrives
+  useEffect(() => {
+    setProfile(storeProfile);
+  }, [storeProfile]);
 
   useEffect(() => {
     latestProfileRef.current = profile;
@@ -64,6 +71,14 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
         const normalized = normalizeProfile(parsed);
         latestProfileRef.current = normalized;
         setProfile(normalized);
+        
+        // Immediate auto-publish if profile has meaningful data
+        if (normalized.name || normalized.subjects?.length || normalized.hourlyRate) {
+          autoPublishStartedRef.current = true;
+          const forPublish = { ...normalized };
+          if (viewerRole) forPublish.role = viewerRole;
+          void publishProfile(forPublish);
+        }
       } catch {
         // ignore invalid cache
       }
@@ -88,15 +103,10 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
           profileReceived = true;
 
           if (autoPublishStartedRef.current) {
-            // Auto-publish already fired (slow relay). The relay now
-            // responded with real data — re-publish to fix the empty
-            // profile we just overwritten on the relay.
             autoPublishStartedRef.current = false;
             const merged = viewerRole ? { ...parsed, role: viewerRole } : parsed;
             void publishProfile(merged);
           } else if (viewerRole && parsed.role !== viewerRole) {
-            // Existing profile received in time, but it lacks our
-            // app role — publish an updated version with role merged in.
             autoPublishStartedRef.current = true;
             const merged = { ...parsed, role: viewerRole };
             void publishProfile(merged);
@@ -107,8 +117,6 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
       },
     );
 
-    // Give the relay time to respond with existing kind 0 before
-    // considering auto-publish for a new user.
     timerRef.current = setTimeout(() => {
       setLoading(false);
 

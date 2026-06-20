@@ -3,6 +3,6 @@ export type TimeSlot = {
   end: string;
 };
 
-export function isSlotInPast(slot: TimeSlot): boolean {
-  return new Date(slot.start) <= new Date();
+export function isSlotInPast(slot: TimeSlot, now?: number): boolean {
+  return new Date(slot.start).getTime() <= (now ?? Date.now());
 }

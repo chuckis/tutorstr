@@ -4,11 +4,13 @@ import { AccountRole } from "../domain/account";
 import { PublishMuteList } from "../application/usecases/publishMuteList";
 import { parseMutedPubkeysFromTags } from "../domain/moderation";
 import type { MuteListEvent } from "../ports/muteListRepository";
+import { useI18n } from "../i18n/I18nProvider";
 
 export function useModeration(
   pubkey: string | undefined,
   viewerRole: AccountRole,
 ) {
+  const { t } = useI18n();
   const { muteListRepository, reportRepository } = useRepo();
   const [mutedPubkeys, setMutedPubkeys] = useState<Set<string>>(new Set());
   const [muteListEvents, setMuteListEvents] = useState<MuteListEvent[]>([]);
@@ -34,10 +36,15 @@ export function useModeration(
   const addMute = useCallback(
     async (targetPubkey: string) => {
       if (!pubkey) return;
+      const snapshot = new Set(mutedPubkeys);
       const updated = new Set(mutedPubkeys);
       updated.add(targetPubkey);
-      await publishMuteList.execute(pubkey, Array.from(updated), viewerRole);
       setMutedPubkeys(updated);
+      try {
+        await publishMuteList.execute(pubkey, Array.from(updated), viewerRole);
+      } catch {
+        setMutedPubkeys(snapshot);
+      }
     },
     [pubkey, mutedPubkeys, publishMuteList, viewerRole],
   );
@@ -45,10 +52,15 @@ export function useModeration(
   const removeMute = useCallback(
     async (targetPubkey: string) => {
       if (!pubkey) return;
+      const snapshot = new Set(mutedPubkeys);
       const updated = new Set(mutedPubkeys);
       updated.delete(targetPubkey);
-      await publishMuteList.execute(pubkey, Array.from(updated), viewerRole);
       setMutedPubkeys(updated);
+      try {
+        await publishMuteList.execute(pubkey, Array.from(updated), viewerRole);
+      } catch {
+        setMutedPubkeys(snapshot);
+      }
     },
     [pubkey, mutedPubkeys, publishMuteList, viewerRole],
   );

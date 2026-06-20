@@ -15,7 +15,7 @@ a PWA frontend and a custom relay optimized for tutor discovery and scheduling.
 ## 3. Out of Scope (MVP)
 - Built-in crypto escrow
 - Video/audio calls
-- Reputation and rating system
+- Reputation and rating system (— implemented, see `docs/plans/reputation_system.md`)
 - Arbitration and dispute resolution
 
 ## 4. User Roles
@@ -143,6 +143,7 @@ Storage:
 | 30004 | Progress Log (encrypted) |
 | 30005 | Tutor Blog Post (reserved; tutor-only publish) |
 | 30006 | Lesson Agreement (replaceable per lesson) |
+| 32267 | Review (addressable; rating + comment per lesson per author)
 
 See `docs/nostr-kinds.md` for full NIP-style definitions, tags, and schemas.
 The role may appear in the user's `kind 0` profile (content and tags) but not

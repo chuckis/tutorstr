@@ -12,7 +12,6 @@ import {
 import { UserProfileEvent, TutorScheduleEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { isProfileEmpty } from "../utils/normalize";
-import { isSlotInPast } from "../domain/TimeSlot";
 import { slotDurationMinutes } from "../utils/dateTimeLocal";
 import { Avatar } from "./Avatar";
 import { FilterBar } from "./FilterBar";
@@ -25,11 +24,10 @@ import { EmptyState } from "./ui/EmptyState";
 import { ReputationBadge } from "./ReputationBadge";
 import { ReviewList } from "./ReviewList";
 import { useReviewsForSubject } from "../hooks/useReviewsForSubject";
-import { useState } from "react";
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { BlogPostList } from "./blog/BlogPostList";
 import { useTutorBlog } from "../hooks/useTutorBlog";
-import { useCurrentTime } from "../hooks/useCurrentTime";
+import { useSlotFilter } from "../hooks/useSlotFilter";
 
 type DiscoverTabProps = {
   selectedTutor: UserProfileEvent | null;
@@ -87,7 +85,6 @@ export function DiscoverTab({
 }: DiscoverTabProps) {
   const { t, formatDateTime, formatNumber } = useI18n();
   const isNewcomerProfile = isProfileEmpty(profile);
-  const _now = useCurrentTime();
   const isStudent = role === "student";
   const visibleTutors = useMemo(
     () => filteredTutors.filter((t) => !mutedPubkeys.has(t.pubkey)),
@@ -95,6 +92,27 @@ export function DiscoverTab({
   );
   const selectedTutorPubkey = selectedTutor?.pubkey ?? "";
   const { reviews, reputation } = useReviewsForSubject(selectedTutorPubkey);
+
+  // ── Hooks must be unconditional (NOT inside if (selectedTutor)) ──
+  const occupiedKeys = useMemo(
+    () => new Set(Object.keys(winnerByAllocationKey)),
+    [winnerByAllocationKey]
+  );
+  const tutorSchedule = selectedTutor ? schedules[selectedTutor.pubkey]?.schedule : undefined;
+  const { futureSlots } = useSlotFilter(
+    tutorSchedule,
+    selectedTutor?.pubkey ?? "",
+    occupiedKeys
+  );
+  const displaySlots = useMemo(
+    () => futureSlots.filter((s) => {
+      const key = makeSlotAllocationKey(selectedTutor?.pubkey ?? "", s);
+      const occ = winnerByAllocationKey[key];
+      if (occ && occ.studentId === studentPubkey) return false;
+      return true;
+    }),
+    [futureSlots, selectedTutor?.pubkey, winnerByAllocationKey, studentPubkey]
+  );
 
   function getSlotState(tutorPubkey: string, slot: TimeSlot) {
     const slotBidKey = makeSlotBidKey(tutorPubkey, studentPubkey, slot);
@@ -192,19 +210,9 @@ export function DiscoverTab({
           <div className="stack">
             <h3>{t("discover.publishedSlots")}</h3>
             {(() => {
-              const futureSlots =
-                schedules[selectedTutor.pubkey]?.schedule.slots.filter(
-                  (s) => {
-                    if (isSlotInPast(s)) return false;
-                    const key = makeSlotAllocationKey(selectedTutor.pubkey, s);
-                    const occ = winnerByAllocationKey[key];
-                    if (occ && occ.studentId === studentPubkey) return false;
-                    return true;
-                  }
-                ) ?? [];
-              return futureSlots.length > 0 ? (
+              return displaySlots.length > 0 ? (
                 <ul className="slot-list">
-                  {futureSlots.map((slot, index) => {
+                  {displaySlots.map((slot, index) => {
                     const slotState = getSlotState(
                       selectedTutor.pubkey,
                       slot

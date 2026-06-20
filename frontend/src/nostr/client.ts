@@ -2,6 +2,7 @@ import { SimplePool } from "nostr-tools/pool";
 import { DEFAULT_RELAYS } from "./config";
 import { NostrSigner } from "../ports/nostrSigner";
 import type { Filter } from "nostr-tools";
+import type { Event } from "nostr-tools";
 
 export type NostrFilter = Filter;
 
@@ -38,6 +39,10 @@ function logIncomingEvent(event: NostrEvent) {
   console.groupEnd();
 }
 
+function filtersToSingleFilter(filters: NostrFilter | NostrFilter[]): NostrFilter {
+  return Array.isArray(filters) ? filters[0] : filters;
+}
+
 export class NostrClient {
   private pool: SimplePool;
   private relays: string[];
@@ -62,7 +67,7 @@ export class NostrClient {
       throw new Error("common.runtime.noRelaysConfigured");
     }
 
-    await Promise.any(this.pool.publish(this.relays, event));
+    await Promise.any(this.pool.publish(this.relays, event as unknown as Event));
   }
 
   setSigner(signer: NostrSigner | null) {
@@ -149,12 +154,13 @@ export class NostrClient {
   ) {
 
     const filter = Array.isArray(filters) ? filters[0] : filters;
-    const subscription = this.pool.subscribeMany(this.relays, filter, {
+    const subscription = this.pool.subscribeMany(this.relays, filter as unknown as Parameters<SimplePool['subscribeMany']>[1], {
       onevent: (event) => {
-        onEvent(event);
+        onEvent(event as unknown as NostrEvent);
       },
       oneose: options.onEose
     });
+
 
     return () => subscription.close();
   }
@@ -172,9 +178,49 @@ export class NostrClient {
     return this.subscribe(filter, onEvent, { onEose: options.onEose });
   }
 
+  async query(filters: NostrFilter | NostrFilter[]): Promise<NostrEvent[]> {
+    const filter = filtersToSingleFilter(filters);
+    const events = await this.pool.querySync(this.relays, filter as unknown as Parameters<SimplePool['querySync']>[1]);
+    return events as unknown as NostrEvent[];
+  }
+
+  subscribeToRelays(
+    relays: string[],
+    filter: NostrFilter,
+    onEvent: (event: NostrEvent) => void,
+    onEose?: () => void,
+  ): () => void {
+    const pool = new SimplePool({ enableReconnect: false });
+    const sub = pool.subscribeMany(relays, filter as unknown as Parameters<SimplePool['subscribeMany']>[1], {
+      onevent: (event) => {
+        onEvent(event as unknown as NostrEvent);
+      },
+      oneose: onEose,
+    });
+    return () => {
+      sub.close();
+      pool.close(relays);
+    };
+  }
+
+  async queryRelays(
+    relays: string[],
+    filters: NostrFilter | NostrFilter[],
+  ): Promise<NostrEvent[]> {
+    const pool = new SimplePool({ enableReconnect: false });
+    const filter = filtersToSingleFilter(filters);
+    try {
+      const events = await pool.querySync(relays, filter as unknown as Parameters<SimplePool['querySync']>[1]);
+      return events as unknown as NostrEvent[];
+    } finally {
+      pool.close(relays);
+    }
+  }
+
   close() {
     this.pool.close(this.relays);
   }
 }
+
 
 export const nostrClient = new NostrClient();

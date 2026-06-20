@@ -67,15 +67,16 @@ export function isSlotAvailable(
 export function tutorHasFreeSlotsThisWeek(
   schedule: TutorSchedule | undefined,
   tutorPubkey: string,
-  occupiedKeys: Set<string>
+  occupiedKeys: Set<string>,
+  now?: number,
 ): boolean {
   if (!schedule) return false;
-  const now = new Date();
-  const weekStart = startOfWeek(now);
-  const weekEnd = endOfWeek(now);
+  const d = now ? new Date(now) : new Date();
+  const weekStart = startOfWeek(d);
+  const weekEnd = endOfWeek(d);
   return schedule.slots.some(
     (slot) =>
-      !isSlotInPast(slot) &&
+      !isSlotInPast(slot, now) &&
       isSlotWithinRange(slot, weekStart, weekEnd) &&
       isSlotAvailable(slot, tutorPubkey, occupiedKeys)
   );
@@ -84,16 +85,17 @@ export function tutorHasFreeSlotsThisWeek(
 export function tutorIsAvailableNow(
   schedule: TutorSchedule | undefined,
   tutorPubkey: string,
-  occupiedKeys: Set<string>
+  occupiedKeys: Set<string>,
+  now?: number,
 ): boolean {
   if (!schedule) return false;
-  const now = Date.now();
+  const ms = now ?? Date.now();
   return schedule.slots.some((slot) => {
     const start = new Date(slot.start).getTime();
     const end = new Date(slot.end).getTime();
     return (
-      start <= now &&
-      now < end &&
+      start <= ms &&
+      ms < end &&
       isSlotAvailable(slot, tutorPubkey, occupiedKeys)
     );
   });

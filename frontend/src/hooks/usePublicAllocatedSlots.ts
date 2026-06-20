@@ -1,70 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { getSlotEndFromDuration, makeSlotAllocationKey } from "../domain/slotAllocation";
 import { SlotOccupancy } from "../domain/slotOccupancy";
-import { useRepo } from "./RepoContext";
-import { LessonAgreement } from "../domain/lesson";
-import { LessonAgreementEvent } from "../ports/lessonAgreementEventsRepository";
-import { getTagValue, getTagValues } from "../utils/nostrTags";
-
-const LOAD_TIMEOUT = 8000;
+import { useLessonStore } from "../stores/lessonStore";
 
 export function usePublicAllocatedSlots() {
-  const { publicLessonRepository } = useRepo();
-  const [agreements, setAgreements] = useState<Record<string, LessonAgreementEvent>>(
-    {}
-  );
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), LOAD_TIMEOUT);
-
-    const unsubscribe = publicLessonRepository.subscribeAll(
-      (event) => {
-        try {
-          const parsed = JSON.parse(event.content) as LessonAgreement;
-          const lessonId = parsed.lessonId || getTagValue(event.tags, "d") || event.id;
-          const participants = getTagValues(event.tags, "p");
-          const tutorPubkey = participants[0] || event.pubkey;
-          const studentPubkey =
-            participants.find((participant) => participant !== tutorPubkey) || "";
-
-          setAgreements((prev) => {
-            const existing = prev[lessonId];
-            if (existing && existing.created_at >= event.created_at) {
-              return prev;
-            }
-
-            return {
-              ...prev,
-              [lessonId]: {
-                id: event.id,
-                created_at: event.created_at,
-                pubkey: event.pubkey,
-                lessonId,
-                tutorPubkey,
-                studentPubkey,
-                bookingEventId: getTagValue(event.tags, "e"),
-                agreement: {
-                  ...parsed,
-                  lessonId
-                }
-              }
-            };
-          });
-          setLoading(false);
-          clearTimeout(timer);
-        } catch {
-          // ignore malformed payloads
-        }
-      }
-    );
-
-    return () => {
-      clearTimeout(timer);
-      unsubscribe();
-    };
-  }, []);
+  const agreements = useLessonStore((s) => s.byId);
+  const hydrated = useLessonStore((s) => s.hydrated);
 
   const allocatedSlotsByKey = useMemo(() => {
     return Object.values(agreements).reduce<Record<string, SlotOccupancy>>(
@@ -93,6 +34,6 @@ export function usePublicAllocatedSlots() {
 
   return {
     allocatedSlotsByKey,
-    loading
+    loading: !hydrated
   };
 }

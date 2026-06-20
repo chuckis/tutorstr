@@ -5,8 +5,11 @@ import { LessonNote, LessonNoteType, LessonNoteWithVisibility, NoteVisibility } 
 import { MessageAttachment } from "../domain/messaging";
 import { SendLessonNote } from "../application/usecases/sendLessonNote";
 import { ShareLessonNote } from "../application/usecases/shareLessonNote";
+import { useLessonNoteStore } from "../stores/lessonNoteStore";
 import { UploadResult } from "../ports/mediaUploadRepository";
 import { useRepo } from "./RepoContext";
+
+const EMPTY_NOTES: LessonNote[] = [];
 
 function toMessageAttachments(files: File[], results: UploadResult[]): MessageAttachment[] {
   return results.map((result, index) => {
@@ -63,8 +66,6 @@ export function useLessonNote(
 ) {
   const { lessonNoteRepository, mediaUploadRepository, signerManager } = useRepo();
   const [lessonNote, setLessonNote] = useState("");
-  const [nostrNotes, setNostrNotes] = useState<Record<string, LessonNote[]>>({});
-  const [sharedNotes, setSharedNotes] = useState<LessonNote[]>([]);
   const [sharedNotesStatus, setSharedNotesStatus] = useState<"idle" | "loading" | "empty" | "received" | "error">("idle");
   const [lessonNoteError, setLessonNoteError] = useState("");
   const [migratedLessons, setMigratedLessons] = useState<Set<string>>(new Set());
@@ -77,10 +78,39 @@ export function useLessonNote(
 
   const noteType: LessonNoteType = viewerRole === "tutor" ? "tutor" : "student";
 
+  const storeNotes = useLessonNoteStore((s) =>
+    selectedLesson ? (s.notesByLesson[selectedLesson.id] ?? EMPTY_NOTES) : EMPTY_NOTES,
+  );
+
+  const sendLessonNote = useMemo(
+    () => new SendLessonNote(
+      lessonNoteRepository,
+      (lessonId, note) => {
+        useLessonNoteStore.getState().optimisticAddNote(lessonId, note);
+      },
+      (lessonId, noteId) => {
+        useLessonNoteStore.getState().optimisticRemoveNote(lessonId, noteId);
+      },
+    ),
+    [lessonNoteRepository],
+  );
+
+  const shareLessonNote = useMemo(
+    () => new ShareLessonNote(
+      lessonNoteRepository,
+      (lessonId, note) => {
+        useLessonNoteStore.getState().optimisticAddNote(lessonId, note);
+      },
+      (lessonId, noteId) => {
+        useLessonNoteStore.getState().optimisticRemoveNote(lessonId, noteId);
+      },
+    ),
+    [lessonNoteRepository],
+  );
+
   useEffect(() => {
     if (!selectedLesson) {
       setLessonNote("");
-      setSharedNotes([]);
       setSharedNotesStatus("idle");
       setLessonNoteError("");
       setSelectedFiles([]);
@@ -104,17 +134,7 @@ export function useLessonNote(
       selectedLesson.id,
       viewerPubkey,
       (note) => {
-        setNostrNotes((prev) => {
-          const existing = prev[note.lessonId] || [];
-          const exists = existing.some((n) => n.id === note.id);
-          if (exists) {
-            return prev;
-          }
-          return {
-            ...prev,
-            [note.lessonId]: [...existing, note],
-          };
-        });
+        useLessonNoteStore.getState().addNote(note.lessonId, note);
       },
       () => {
         setSharedNotesStatus((current) => current === "received" ? current : "empty");
@@ -137,7 +157,7 @@ export function useLessonNote(
     }
 
     const stored = loadStoredLessonNote(selectedLesson.id, viewerPubkey);
-    const lessonNotes = nostrNotes[selectedLesson.id] || [];
+    const lessonNotes = storeNotes;
     const ownNote = lessonNotes
       .filter((note) => note.authorPubkey === viewerPubkey)
       .sort((a, b) => b.createdAt - a.createdAt)[0];
@@ -158,14 +178,18 @@ export function useLessonNote(
       .filter((note) => note.authorPubkey !== viewerPubkey)
       .sort((a, b) => b.createdAt - a.createdAt);
 
-    setSharedNotes(fromCounterparty);
-    setSharedNotesStatus((current) => {
-      if (fromCounterparty.length > 0) {
-        return "received";
-      }
-      return current === "loading" ? current : "empty";
-    });
-  }, [selectedLesson, viewerPubkey, nostrNotes, migratedLessons]);
+    if (fromCounterparty.length > 0) {
+      setSharedNotesStatus("received");
+    } else {
+      setSharedNotesStatus((current) => current === "loading" ? "empty" : current);
+    }
+  }, [selectedLesson, viewerPubkey, storeNotes, migratedLessons]);
+
+  const sharedNotes = useMemo(() => {
+    return storeNotes
+      .filter((note) => note.authorPubkey !== viewerPubkey)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }, [storeNotes, viewerPubkey]);
 
   const noteList = useMemo((): LessonNoteWithVisibility[] => {
     if (!selectedLesson) {
@@ -173,7 +197,7 @@ export function useLessonNote(
     }
 
     const lessonId = selectedLesson.id;
-    const lessonNotes = nostrNotes[lessonId] || [];
+    const lessonNotes = storeNotes;
     const map = new Map<string, LessonNoteWithVisibility>();
 
     const stored = loadStoredLessonNote(lessonId, viewerPubkey);
@@ -216,7 +240,7 @@ export function useLessonNote(
     }
 
     return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
-  }, [selectedLesson, nostrNotes, viewerPubkey, noteType]);
+  }, [selectedLesson, storeNotes, viewerPubkey, noteType]);
 
   const uploadFiles = useCallback(
     async (files: File[]): Promise<MessageAttachment[]> => {
@@ -278,7 +302,6 @@ export function useLessonNote(
           attachments = await uploadFiles(files);
         }
 
-        const sendLessonNote = new SendLessonNote(lessonNoteRepository);
         await sendLessonNote.execute({
           lessonId: selectedLesson.id,
           viewerPubkey,
@@ -299,7 +322,7 @@ export function useLessonNote(
 
       setTimeout(() => setPublishStatus("idle"), 3000);
     },
-    [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, lessonNoteRepository, noteAttachments, uploadFiles]
+    [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, sendLessonNote, noteAttachments, uploadFiles]
   );
 
   const shareNoteWithCounterparty = useCallback(
@@ -316,7 +339,6 @@ export function useLessonNote(
           attachments = await uploadFiles(files);
         }
 
-        const shareLessonNote = new ShareLessonNote(lessonNoteRepository);
         await shareLessonNote.execute({
           lessonId: selectedLesson.id,
           viewerPubkey,
@@ -337,7 +359,7 @@ export function useLessonNote(
 
       setTimeout(() => setShareStatus("idle"), 3000);
     },
-    [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, lessonNoteRepository, noteAttachments, uploadFiles]
+    [selectedLesson, viewerPubkey, viewerRole, lessonNote, noteType, shareLessonNote, noteAttachments, uploadFiles]
   );
 
   return {
@@ -352,9 +374,9 @@ export function useLessonNote(
     publishStatus,
     shareNoteWithCounterparty,
     shareStatus,
+    noteList,
     sharedNotes,
     sharedNotesStatus,
     lessonNoteError,
-    noteList,
   };
 }

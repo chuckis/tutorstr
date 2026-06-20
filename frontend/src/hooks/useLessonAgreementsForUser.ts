@@ -1,37 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
-import { LessonAgreementEvent } from "../ports/lessonAgreementEventsRepository";
-import { useLessonAgreementEventsRepository } from "./useLessonAgreementEventsRepository";
+import { useMemo } from "react";
+import { useLessonStore } from "../stores/lessonStore";
 
 export function useLessonAgreementsForUser(pubkey: string) {
-  const [agreements, setAgreements] = useState<
-    Record<string, LessonAgreementEvent>
-  >({});
-  const lessonAgreementEventsRepository = useLessonAgreementEventsRepository();
+  const byId = useLessonStore((s) => s.byId);
+  const hydrated = useLessonStore((s) => s.hydrated);
 
-  useEffect(() => {
-    return lessonAgreementEventsRepository.subscribeForUser(pubkey, (agreement) => {
-      setAgreements((prev) => {
-        const existing = prev[agreement.lessonId];
-        if (existing && existing.created_at >= agreement.created_at) {
-          return prev;
-        }
-        return {
-          ...prev,
-          [agreement.lessonId]: agreement
-        };
-      });
-    });
-  }, [lessonAgreementEventsRepository, pubkey]);
-
-  const list = useMemo(
+  const filtered = useMemo(
     () =>
-      Object.values(agreements).sort((a, b) => {
-        const left = Date.parse(a.agreement.scheduledAt);
-        const right = Date.parse(b.agreement.scheduledAt);
-        return (Number.isNaN(left) ? 0 : left) - (Number.isNaN(right) ? 0 : right);
-      }),
-    [agreements]
+      Object.values(byId).filter(
+        (a) => a.tutorPubkey === pubkey || a.studentPubkey === pubkey
+      ),
+    [byId, pubkey]
   );
 
-  return { agreements, list };
+  return {
+    agreements: filtered,
+    list: filtered,
+    agreementMap: byId,
+    loading: !hydrated
+  };
 }

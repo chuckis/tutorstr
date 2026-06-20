@@ -3,6 +3,7 @@ export enum TutorHubKind {
   DirectMessage = 4,
   MuteList = 10000,
   Report = 1984,
+  RelayListMetadata = 10002,
   /** @deprecated Use Metadata (kind 0) instead. Kept for backward compat. */
   Profile = 30000,
   TutorSchedule = 30001,

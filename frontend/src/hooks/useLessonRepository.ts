@@ -11,7 +11,7 @@ export function useLessonRepository(
     currency?: string;
   }
 ) {
-  const { agreements, list } = useLessonAgreementsForUser(userId);
+  const { agreementMap: agreements, list } = useLessonAgreementsForUser(userId);
   const lessonAgreementEventsRepository = useLessonAgreementEventsRepository();
 
   return useMemo<LessonRepository>(() => {

@@ -14,10 +14,14 @@ import { useI18n } from "../i18n/I18nProvider";
 import { ChangeLessonStatus } from "../application/usecases/changeLessonStatus";
 import { CancelBooking } from "../application/usecases/cancelBooking";
 import { PublishReview } from "../application/usecases/publishReview";
+import { useReviewStore } from "../stores/reviewStore";
 import {
   CreateBookingRequest,
   BookingRequestPayload
 } from "../application/usecases/createBookingRequest";
+import { useLessonStore } from "../stores/lessonStore";
+import { useBookingStore } from "../stores/bookingStore";
+import { PublishTutorSchedule } from "../application/usecases/publishTutorSchedule";
 
 type AcceptBookingUseCase = {
   execute: (bookingId: string, viewerRole: AccountRole) => Promise<void>;
@@ -93,17 +97,56 @@ export function useAppActions({
 
   const changeLessonStatusUseCase = new ChangeLessonStatus(
     lessonRepository,
-    bookingRepository
+    bookingRepository,
+    (lessonId, status) => {
+      useLessonStore.getState().optimisticStatusUpdate(lessonId, status);
+    },
+    (lessonId, snapshot) => {
+      if (snapshot) useLessonStore.getState().optimisticStatusUpdate(lessonId, snapshot.status);
+    },
   );
-  const cancelBookingUseCase = new CancelBooking(bookingRepository);
+
+  const cancelBookingUseCase = new CancelBooking(
+    bookingRepository,
+    (bookingId, status) => {
+      useBookingStore.getState().optimisticSetStatus(bookingId, status as "accepted" | "rejected" | "completed" | "cancelled");
+    },
+    (bookingId) => {
+      const snapshot = useBookingStore.getState().snapshotStatus(bookingId);
+      useBookingStore.getState().restoreStatus(bookingId, snapshot);
+    },
+  );
+
   const createBookingRequestUseCase = new CreateBookingRequest(
-    publishBookingRequest
+    publishBookingRequest,
   );
-  const publishReviewUseCase = new PublishReview(reviewRepository);
+  const publishReviewUseCase = new PublishReview(
+    reviewRepository,
+    (review) => {
+      useReviewStore.getState().addReview(review.subjectPubkey, review);
+    },
+    (reviewId) => {
+      const state = useReviewStore.getState();
+      for (const [subject, reviews] of Object.entries(state.bySubject)) {
+        const found = reviews.find((r) => r.id === reviewId);
+        if (found) {
+          state.removeReview(subject, reviewId);
+          break;
+        }
+      }
+    },
+  );
 
   async function respondToBooking(request: Booking, nextStatus: "accepted" | "rejected") {
     if (nextStatus !== "accepted") {
-      await bookingRepository.updateStatus(request.id, nextStatus);
+      const snapshot = useBookingStore.getState().snapshotStatus(request.id);
+      useBookingStore.getState().optimisticSetStatus(request.id, nextStatus);
+      try {
+        await bookingRepository.updateStatus(request.id, nextStatus);
+      } catch (error) {
+        useBookingStore.getState().restoreStatus(request.id, snapshot);
+        throw error;
+      }
       return;
     }
 
@@ -198,9 +241,22 @@ export function useAppActions({
   ) {
     setMessageStatus("");
 
+    const key = threadKey ?? [studentPubkey, recipientPubkey].sort().join(":");
+    const optimisticMsg = {
+      id: `opt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      created_at: Math.floor(Date.now() / 1000),
+      pubkey: studentPubkey,
+      kind: 4,
+      tags: [["p", recipientPubkey]],
+      content: text,
+    };
+    const snapshot = useMessageStore.getState().snapshotThread(key);
+    useMessageStore.getState().optimisticAddMessage(key, optimisticMsg);
+
     try {
       await sendMessage(recipientPubkey, text, threadKey);
     } catch (error) {
+      useMessageStore.getState().restoreThread(key, snapshot);
       setMessageStatus(
         toLocalizedErrorMessage(error, translate) || translate("common.buttons.sendMessage")
       );
@@ -215,10 +271,23 @@ export function useAppActions({
   ) {
     setMessageStatus("");
 
+    const key = threadKey ?? [studentPubkey, recipientPubkey].sort().join(":");
+    const optimisticMsg = {
+      id: `opt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      created_at: Math.floor(Date.now() / 1000),
+      pubkey: studentPubkey,
+      kind: 4,
+      tags: [["p", recipientPubkey]],
+      content: text,
+    };
+    const snapshot = useMessageStore.getState().snapshotThread(key);
+    useMessageStore.getState().optimisticAddMessage(key, optimisticMsg);
+
     try {
       await sendMessageWithFiles(recipientPubkey, text, files, blossomUrl, threadKey);
       setMessageStatus(translate("common.messages.attachmentsSent"));
     } catch (error) {
+      useMessageStore.getState().restoreThread(key, snapshot);
       setMessageStatus(
         toLocalizedErrorMessage(error, translate) || translate("common.messages.uploadFailed")
       );

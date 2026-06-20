@@ -339,7 +339,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             messageStatus={messageStatus}
             loading={stateLoading.lessons}
-            lessonAgreements={lessonsState.lessonAgreements.agreements}
+            lessonAgreements={lessonsState.lessonAgreements.agreementMap}
             onPublishReview={publishReview}
             publishReviewLoading={publishReviewLoading}
             publishReviewError={publishReviewError}

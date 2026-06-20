@@ -1,21 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Review, ReputationSummary } from "../domain/review";
 import { computeReputation } from "../application/usecases/computeReputation";
 import { useRepo } from "./RepoContext";
-import { useLessons } from "./useLessons";
+import { useLessonStore } from "../stores/lessonStore";
+import { useReviewStore } from "../stores/reviewStore";
+
+const EMPTY_REVIEWS: Review[] = [];
 
 export function useReviewsForSubject(subjectPubkey: string) {
   const { reviewRepository } = useRepo();
-  const { lessons } = useLessons(subjectPubkey);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [subscriptionReviews, setSubscriptionReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const storeReviews = useReviewStore((s) => {
+    const r = s.bySubject[subjectPubkey];
+    return r ?? EMPTY_REVIEWS;
+  });
+
+  const completedLessonsCount = useLessonStore((s) =>
+    Object.values(s.byId).filter(
+      (a) => a.tutorPubkey === subjectPubkey && a.agreement.status === "completed"
+    ).length
+  );
+
   useEffect(() => {
-    setReviews([]);
+    setSubscriptionReviews([]);
     setLoading(true);
 
     const unsub = reviewRepository.subscribeReviewsForSubject(subjectPubkey, (review) => {
-      setReviews((prev) => {
+      setSubscriptionReviews((prev) => {
         const exists = prev.some((r) => r.id === review.id);
         return exists ? prev : [...prev, review];
       });
@@ -26,9 +39,12 @@ export function useReviewsForSubject(subjectPubkey: string) {
     return unsub;
   }, [reviewRepository, subjectPubkey]);
 
-  const completedLessonsCount = lessons.filter(
-    (l) => l.status === "completed" && l.tutorId === subjectPubkey
-  ).length;
+  const reviews = useMemo(() => {
+    const map = new Map<string, Review>();
+    for (const r of storeReviews) map.set(r.id, r);
+    for (const r of subscriptionReviews) map.set(r.id, r);
+    return Array.from(map.values());
+  }, [storeReviews, subscriptionReviews]);
 
   const reputation: ReputationSummary = computeReputation(
     subjectPubkey,

@@ -5,6 +5,8 @@ import { Booking } from "../domain/booking";
 import { Lesson } from "../domain/lesson";
 import { BlogPost } from "../domain/blog";
 import { UserProfileEvent } from "../ports/eventTypes";
+import { useLessonStore } from "../stores/lessonStore";
+import { lessonFromNostr } from "../adapters/nostr/lessonAdapter";
 
 export type MainTab = "discover" | "requests" | "lessons" | "profile";
 export type RequestSegment = "incoming" | "outgoing";
@@ -33,8 +35,26 @@ export function useAppNavigation(role: AccountRole = "tutor") {
   const [blogEditorDraftId, setBlogEditorDraftId] = useState<string | null | undefined>(undefined);
   const [pendingReturnRequest, setPendingReturnRequest] = useState<SelectedRequestData | null>(null);
 
+  // Sync selectedLesson status with lessonStore (optimistic updates + relay echoes)
+  useEffect(() => {
+    if (!selectedLesson?.id) return;
+    const lessonId = selectedLesson.id;
+    const unsub = useLessonStore.subscribe((state) => {
+      const entry = state.byId[lessonId];
+      if (!entry) return;
+      const updated = lessonFromNostr(entry);
+      setSelectedLesson((prev) => {
+        if (!prev || prev.status === updated.status) return prev;
+        return updated;
+      });
+    });
+    return unsub;
+  }, [selectedLesson?.id]);
+
   const requestSegment = effectiveRequestSegment(role, storedRequestSegment);
   const detailActive = selectedTutor !== null || selectedRequest !== null || selectedLesson !== null || selectedBlogPost !== null || myBlogOpen || blogEditorDraftId !== undefined;
+
+  let scrollPositions = useRef<Record<string, number>>({});
 
   function selectTab(tab: MainTab) {
     setActiveTab(tab);

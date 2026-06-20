@@ -1,5 +1,10 @@
 import { create } from "zustand";
 import type { NostrEvent } from "../../nostr/client";
+import { useProfileStore } from "../../stores/profileStore";
+import { useScheduleStore } from "../../stores/scheduleStore";
+import { useBookingStore } from "../../stores/bookingStore";
+import { useLessonStore } from "../../stores/lessonStore";
+import { useMessageStore } from "../../stores/messageStore";
 
 interface EventBusState {
   eventsByKind: Record<number, Record<string, NostrEvent>>;
@@ -21,8 +26,7 @@ export function addKindListener(
   }
   kindListeners.get(kind)!.add(listener);
 
-   const events = useEventBusStore.getState().eventsByKind[kind];
-  // console.log('[LISTENER ADDED] kind:', kind, 'events in store:', events ? Object.keys(events).length : 0);
+  const events = useEventBusStore.getState().eventsByKind[kind];
 console.log('[LISTENER ADDED] kind:', kind, 'total now:', kindListeners.get(kind)?.size);
 console.log('[LISTENER ADDED] kind:', kind, 'events in store:', events ? Object.keys(events).length : 0);
 
@@ -38,9 +42,6 @@ console.log('[LISTENER ADDED] kind:', kind, 'events in store:', events ? Object.
 }
 
 export function emitEvent(event: NostrEvent): void {
-  
-  console.log('[EMIT]', event.kind, new Date(event.created_at * 1000).toLocaleDateString(), kindListeners.get(event.kind)?.size ?? 0, 'listeners');
-  console.log('[EMIT]', event.kind, kindListeners.get(event.kind)?.size ?? 0, 'listeners');
   let isNew = false;
 
   useEventBusStore.setState((state) => {
@@ -62,6 +63,14 @@ export function emitEvent(event: NostrEvent): void {
   });
 
   if (isNew) {
+    // Feed into domain stores (SSOT)
+    useProfileStore.getState().ingest(event);
+    useScheduleStore.getState().ingest(event);
+    useBookingStore.getState().ingest(event);
+    useLessonStore.getState().ingest(event);
+    useMessageStore.getState().ingest(event);
+
+    // Legacy kind listeners (kept for backward compat during migration)
     kindListeners.get(event.kind)?.forEach((listener) => {
       listener(event);
     });

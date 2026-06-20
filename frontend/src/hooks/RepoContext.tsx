@@ -10,6 +10,8 @@ import { createNostrRelayManager } from "../adapters/nostr/relayManager";
 import { createNostrLessonNoteRepository } from "../adapters/nostr/lessonNoteRepository";
 import { blossomMediaRepository } from "../adapters/nostr/blossomMediaRepository";
 import { startGlobalSubscription, stopGlobalSubscription } from "../adapters/nostr/subscriptionManager";
+import { startHydration, stopHydration } from "../adapters/nostr/hydrationService";
+import { startPolling, stopPolling } from "../adapters/nostr/pollingService";
 import { createNostrReviewRepository } from "../adapters/nostr/reviewRepository";
 import { createNostrMuteListRepository } from "../adapters/nostr/muteListEventRepository";
 import { createNostrReportRepository } from "../adapters/nostr/reportEventRepository";
@@ -30,7 +32,6 @@ import { DraftRepository } from "../ports/draftRepository";
 import { ReviewRepository } from "../ports/reviewRepository";
 import { MuteListRepository } from "../ports/muteListRepository";
 import { ReportRepository } from "../ports/reportRepository";
-
 
 export { createNostrBookingRepository, mapNostrBookings } from "../adapters/nostr/bookingRepository";
 export { createNostrLessonRepository } from "../adapters/nostr/lessonRepository";
@@ -77,10 +78,15 @@ export function RepoProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  // ── Global Nostr subscription (single bus for all event kinds) ──
   useEffect(() => {
     startGlobalSubscription();
-    return () => stopGlobalSubscription();
+    startHydration();
+    startPolling();
+    return () => {
+      stopGlobalSubscription();
+      stopHydration();
+      stopPolling();
+    };
   }, []);
 
   return <RepoContext.Provider value={value}>{children}</RepoContext.Provider>;

@@ -1,6 +1,7 @@
 import { nostrClient } from "../../nostr/client";
 import { TutorHubKind } from "../../nostr/kinds";
 import { emitEvent } from "./eventBus";
+import type { NostrFilter } from "../../nostr/client";
 
 const ALL_KINDS = [
   TutorHubKind.DirectMessage,     // 4
@@ -18,6 +19,8 @@ const ALL_KINDS = [
 
 let shutdown: (() => void) | null = null;
 
+const perUserSubscriptions = new Map<string, () => void>();
+
 export function startGlobalSubscription(): void {
   if (shutdown) return;
 
@@ -34,4 +37,42 @@ export function startGlobalSubscription(): void {
 
 export function stopGlobalSubscription(): void {
   shutdown?.();
+}
+
+export function addPerUserSubscription(
+  pubkey: string,
+  relays: string[],
+  kinds: number[],
+  since?: number,
+): () => void {
+  removePerUserSubscription(pubkey);
+
+  const filter: NostrFilter = { kinds };
+  if (since) {
+    filter.since = since;
+  }
+
+  const unsubscribe = nostrClient.subscribeToRelays(
+    relays,
+    filter,
+    (event) => { emitEvent(event); },
+  );
+
+  perUserSubscriptions.set(pubkey, unsubscribe);
+
+  return () => removePerUserSubscription(pubkey);
+}
+
+export function removePerUserSubscription(pubkey: string): void {
+  const unsub = perUserSubscriptions.get(pubkey);
+  if (unsub) {
+    unsub();
+    perUserSubscriptions.delete(pubkey);
+  }
+}
+
+export function clearAllPerUserSubscriptions(): void {
+  for (const [pubkey] of perUserSubscriptions) {
+    removePerUserSubscription(pubkey);
+  }
 }

@@ -14,7 +14,11 @@ export type ShareLessonNoteInput = {
 };
 
 export class ShareLessonNote {
-  constructor(private lessonNoteRepository: LessonNoteRepository) {}
+  constructor(
+    private lessonNoteRepository: LessonNoteRepository,
+    private onOptimisticUpdate?: (lessonId: string, note: LessonNote) => void,
+    private onRollback?: (lessonId: string, noteId: string) => void,
+  ) {}
 
   async execute(input: ShareLessonNoteInput, viewerRole: AccountRole): Promise<void> {
     const expectedRole = input.noteType === "tutor" ? "tutor" : "student";
@@ -30,10 +34,16 @@ export class ShareLessonNote {
       attachments: input.attachments ?? [],
     };
 
-    await this.lessonNoteRepository.publishNote(
-      input.lessonId,
-      note,
-      input.recipientPubkey
-    );
+    this.onOptimisticUpdate?.(input.lessonId, note);
+    try {
+      await this.lessonNoteRepository.publishNote(
+        input.lessonId,
+        note,
+        input.recipientPubkey
+      );
+    } catch (error) {
+      this.onRollback?.(input.lessonId, note.id);
+      throw error;
+    }
   }
 }
