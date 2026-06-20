@@ -282,9 +282,12 @@ export class Nip46Signer implements NostrSigner {
         },
       );
 
-      this.encryptAndSend("nip04.encrypt", [recipientPubkey, plaintext]).catch((err) => {
-        sub.close();
-        reject(err);
+      // Try NIP-44 first, fall back to NIP-04
+      this.encryptAndSend("nip44.encrypt", [recipientPubkey, plaintext]).catch(() => {
+        this.encryptAndSend("nip04.encrypt", [recipientPubkey, plaintext]).catch((err) => {
+          sub.close();
+          reject(err);
+        });
       });
 
       setTimeout(() => {
@@ -335,9 +338,12 @@ export class Nip46Signer implements NostrSigner {
         },
       );
 
-      this.encryptAndSend("nip04.decrypt", [senderPubkey, ciphertext]).catch(() => {
-        sub.close();
-        resolve(null);
+      // Try NIP-44 first, fall back to NIP-04
+      this.encryptAndSend("nip44.decrypt", [senderPubkey, ciphertext]).catch(() => {
+        this.encryptAndSend("nip04.decrypt", [senderPubkey, ciphertext]).catch(() => {
+          sub.close();
+          resolve(null);
+        });
       });
 
       setTimeout(() => {

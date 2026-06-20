@@ -33,8 +33,13 @@ export function createNip07Signer(session: AuthSession): NostrSigner {
     },
     async encrypt(recipientPubkey: string, plaintext: string): Promise<string> {
       const nostr = getNostr();
+      if (nostr?.nip44?.encrypt) {
+        try {
+          return await nostr.nip44.encrypt(recipientPubkey, plaintext);
+        } catch {}
+      }
       if (!nostr?.nip04?.encrypt) {
-        throw new Error("NIP-07 nip04 encrypt not available");
+        throw new Error("common.runtime.encryptionFailed");
       }
       try {
         return await nostr.nip04.encrypt(recipientPubkey, plaintext);
@@ -44,6 +49,11 @@ export function createNip07Signer(session: AuthSession): NostrSigner {
     },
     async decrypt(senderPubkey: string, ciphertext: string): Promise<string | null> {
       const nostr = getNostr();
+      if (nostr?.nip44?.decrypt) {
+        try {
+          return await nostr.nip44.decrypt(senderPubkey, ciphertext);
+        } catch {}
+      }
       if (!nostr?.nip04?.decrypt) {
         return null;
       }

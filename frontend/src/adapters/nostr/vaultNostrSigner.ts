@@ -1,4 +1,4 @@
-import { nip04 } from "nostr-tools";
+import { nip04, nip44 } from "nostr-tools";
 import { finalizeEvent } from "nostr-tools/pure";
 import { AuthSession, MissingVaultError } from "../../domain/auth";
 import { authVaultRepository } from "../auth/localStorageVaultRepository";
@@ -44,16 +44,22 @@ export function createVaultNostrSigner(
       );
     },
     async encrypt(recipientPubkey, plaintext) {
-      return withSecretKey((secretKey) =>
-        nip04.encrypt(secretKey, recipientPubkey, plaintext)
-      );
+      return withSecretKey((secretKey) => {
+        const conversationKey = nip44.v2.utils.getConversationKey(secretKey, recipientPubkey);
+        return nip44.v2.encrypt(plaintext, conversationKey);
+      });
     },
     async decrypt(senderPubkey, ciphertext) {
       return withSecretKey(async (secretKey) => {
+        const conversationKey = nip44.v2.utils.getConversationKey(secretKey, senderPubkey);
         try {
-          return await nip04.decrypt(secretKey, senderPubkey, ciphertext);
+          return await nip44.v2.decrypt(ciphertext, conversationKey);
         } catch {
-          return null;
+          try {
+            return await nip04.decrypt(secretKey, senderPubkey, ciphertext);
+          } catch {
+            return null;
+          }
         }
       });
     }
