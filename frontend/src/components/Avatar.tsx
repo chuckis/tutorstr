@@ -35,7 +35,8 @@ export function Avatar({
   const [imgError, setImgError] = useState(false);
   const px = SIZE_MAP[size];
   const defaultSrc = role === "tutor" ? DEFAULT_TUTOR : DEFAULT_STUDENT;
-  const imgSrc = imgError || !url?.trim() ? defaultSrc : url.trim();
+  const src = typeof url === "string" ? url.trim() : "";
+  const imgSrc = imgError || !src ? defaultSrc : src;
 
   function handleClick() {
     if (editable && onChange) {

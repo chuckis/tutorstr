@@ -41,9 +41,9 @@ export function useBlossomConfig() {
       if (!signer) throw new Error("No signer available");
       const serverUrl = blossomUrl || localStorage.getItem(BLOSSOM_STORAGE_KEY);
       if (!serverUrl) throw new Error("No Blossom server configured");
-      const url = await blossomMediaRepository.upload(file, serverUrl, signer);
-      onProfileChange({ ...profile, avatarUrl: url });
-      setUploadStatus({ type: "success", url });
+      const result = await blossomMediaRepository.upload(file, serverUrl, signer);
+      onProfileChange({ ...profile, avatarUrl: result.url });
+      setUploadStatus({ type: "success", url: result.url });
     } catch (error) {
       setUploadStatus({ type: "error", message: error instanceof Error ? error.message : "Upload failed" });
       throw error;
