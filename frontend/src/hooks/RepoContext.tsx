@@ -82,6 +82,8 @@ export function RepoProvider({ children }: { children: ReactNode }) {
     startGlobalSubscription();
     startHydration();
     startPolling();
+    // Targeted one-shot query for schedule events to complement hydration
+    value.scheduleEventRepository.fetchAll().catch(() => {});
     return () => {
       stopGlobalSubscription();
       stopHydration();

@@ -1,4 +1,4 @@
-import { nostrClient } from "../../nostr/client";
+import { nostrClient, NostrFilter } from "../../nostr/client";
 import { TutorHubKind } from "../../nostr/kinds";
 import { emitEvent, useEventBusStore } from "./eventBus";
 
@@ -32,13 +32,12 @@ async function pollOnce(): Promise<void> {
   for (const kind of POLLING_KINDS) {
     try {
       const since = maxTimestamp(kind);
-      if (since === 0) continue;
+      const filter: NostrFilter = { kinds: [kind], limit: 100 };
+      if (since > 0) {
+        filter.since = since;
+      }
 
-      const events = await nostrClient.query({
-        kinds: [kind],
-        since,
-        limit: 100,
-      });
+      const events = await nostrClient.query(filter);
 
       for (const event of events) {
         emitEvent(event);

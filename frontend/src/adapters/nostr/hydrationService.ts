@@ -40,14 +40,16 @@ export function startHydration(): void {
   eoseCount = 0;
 
   const unsub = nostrClient.subscribe(
-    { kinds: HYDRATION_KINDS, limit: 500 },
+    HYDRATION_KINDS.map(kind => ({ kinds: [kind], limit: 100 })),
     (event) => { emitEvent(event); },
     {
       onEose: () => {
         eoseCount++;
-        // All subscriptions settled — mark stores as hydrated
-        // (nostr-tools fires one EOSE per filter, so we aggregate)
-        markAllHydrated();
+        // Wait for all kinds to settle before marking hydrated
+        // (nostr-tools fires one EOSE per filter)
+        if (eoseCount >= EXPECTED_EOSE) {
+          markAllHydrated();
+        }
       },
     },
   );

@@ -155,8 +155,8 @@ export class NostrClient {
     options: SubscribeOptions = {}
   ) {
 
-    const filter = Array.isArray(filters) ? filters[0] : filters;
-    const subscription = this.pool.subscribeMany(this.relays, filter as unknown as Parameters<SimplePool['subscribeMany']>[1], {
+    const filterArray = Array.isArray(filters) ? filters : [filters];
+    const subscription = this.pool.subscribeMany(this.relays, filterArray as unknown as Parameters<SimplePool['subscribeMany']>[1], {
       onevent: (event) => {
         onEvent(event as unknown as NostrEvent);
       },
