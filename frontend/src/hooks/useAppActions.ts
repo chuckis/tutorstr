@@ -21,6 +21,7 @@ import {
 } from "../application/usecases/createBookingRequest";
 import { useLessonStore } from "../stores/lessonStore";
 import { useBookingStore } from "../stores/bookingStore";
+import { useMessageStore } from "../stores/messageStore";
 import { PublishTutorSchedule } from "../application/usecases/publishTutorSchedule";
 
 type AcceptBookingUseCase = {

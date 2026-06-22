@@ -40,6 +40,7 @@ type RequestsTabProps = {
   mutedPubkeys: Set<string>;
   onBlockUser: (pubkey: string) => Promise<void>;
   onReportUser: (targetPubkey: string, reason: string, options?: { eventId?: string; label?: string }) => Promise<void>;
+  currentPubkey?: string;
 };
 
 type RequestItemActions = {
@@ -254,6 +255,7 @@ export function RequestsTab({
   loading,
   mutedPubkeys,
   onBlockUser,
+  currentPubkey,
   onReportUser,
 }: RequestsTabProps) {
   const { t } = useI18n();
@@ -271,6 +273,7 @@ export function RequestsTab({
         onSendMessageWithFiles={onSendMessageWithFiles}
         onViewProfile={onViewProfile}
         onBlockUser={onBlockUser}
+        currentPubkey={currentPubkey}
         onReportUser={onReportUser}
         messageStatus={messageStatus}
       />

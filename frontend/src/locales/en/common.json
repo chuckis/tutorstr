@@ -63,7 +63,8 @@
     "loadMore": "Load {{count}} older messages",
     "filesSelected": "{{count}} file(s) selected",
     "attachmentsSent": "Attachments sent",
-    "uploadFailed": "Upload failed"
+    "uploadFailed": "Upload failed",
+    "you": "You"
   },
   "runtime": {
     "noRelaysConfigured": "No relays configured.",

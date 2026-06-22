@@ -60,7 +60,8 @@
     "loadMore": "Завантажити {{count}} старіших повідомлень",
     "filesSelected": "Вибрано {{count}} файл(ів)",
     "attachmentsSent": "Вкладення надіслано",
-    "uploadFailed": "Помилка завантаження"
+    "uploadFailed": "Помилка завантаження",
+    "you": "Ви"
   },
   "runtime": {
     "noRelaysConfigured": "Реле не налаштовано.",

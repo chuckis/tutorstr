@@ -325,6 +325,11 @@ export function LessonsTab({
           <MessageThread
             messages={messagesByThread[threadInfo.threadKey] || []}
             currentPubkey={currentPubkey}
+            resolveSenderName={(pubkey) =>
+              pubkey === currentPubkey
+                ? t("common.messages.you")
+                : counterpartyLabel
+            }
           />
           <MessageComposer
             onSend={(text) => onSendMessage(counterpartyPubkey, text, threadInfo.threadKey)}

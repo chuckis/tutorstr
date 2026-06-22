@@ -60,7 +60,8 @@
     "loadMore": "Загрузить {{count}} более старых сообщений",
     "filesSelected": "Выбрано {{count}} файл(ов)",
     "attachmentsSent": "Вложения отправлены",
-    "uploadFailed": "Ошибка загрузки"
+    "uploadFailed": "Ошибка загрузки",
+    "you": "Вы"
   },
   "runtime": {
     "noRelaysConfigured": "Рели не настроены.",

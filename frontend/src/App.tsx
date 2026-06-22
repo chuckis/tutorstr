@@ -254,6 +254,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onSendMessage={actions.sendEncryptedMessage}
             onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             messageStatus={messageStatus}
+            currentPubkey={keypair.pubkey}
             studentPubkey={keypair.pubkey}
             activeBidBySlotAndStudent={bookingsState.activeBidBySlotAndStudent}
             winnerByAllocationKey={{
@@ -293,6 +294,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
               }
             }}
             messageStatus={messageStatus}
+            currentPubkey={keypair.pubkey}
             role={viewerRole}
             onBlockUser={moderation.addMute}
             onReportUser={moderation.publishReport}
@@ -338,6 +340,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onSendMessage={actions.sendEncryptedMessage}
             onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             messageStatus={messageStatus}
+            currentPubkey={keypair.pubkey}
             loading={stateLoading.lessons}
             lessonAgreements={lessonsState.lessonAgreements.agreementMap}
             onPublishReview={publishReview}

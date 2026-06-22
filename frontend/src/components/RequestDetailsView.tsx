@@ -7,6 +7,7 @@ import { MessageThread } from "./MessageThread";
 import { CounterpartyCard } from "./CounterpartyCard";
 import { RequestActionBar } from "./RequestActionBar";
 import { RequestStatusHistory } from "./RequestStatusHistory";
+import { toDisplayId } from "../utils/display";
 
 type RequestDetailsViewProps = {
   selectedRequest: SelectedRequestViewModel;
@@ -23,6 +24,7 @@ type RequestDetailsViewProps = {
   ) => void | Promise<void>;
   onViewProfile: () => void;
   messageStatus: string;
+  currentPubkey?: string;
   onBlockUser?: (pubkey: string) => Promise<void>;
   onReportUser?: (targetPubkey: string, reason: string) => Promise<void>;
 };
@@ -37,62 +39,41 @@ export function RequestDetailsView({
   onSendMessageWithFiles,
   onViewProfile,
   messageStatus,
+  currentPubkey,
   onBlockUser,
   onReportUser,
 }: RequestDetailsViewProps) {
   const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
 
   const requestSubtitle = `${selectedRequest.counterpartyProfile?.profile.name || t("common.states.unknown")} · ${formatLocalizedDateTime(selectedRequest.request.scheduledAt)}`;
+  const counterpartyName = selectedRequest.counterpartyProfile?.profile.name;
 
   return (
     <DetailPageLayout
       backLabel={t("requests.backToRequests")}
       onBack={onBack}
-      title={t("requests.detailsTitle")}
-      subtitle={requestSubtitle}
     >
       <CounterpartyCard
-        profile={selectedRequest.counterpartyProfile}
-        role={selectedRequest.viewerRole === "tutor" ? "student" : "tutor"}
+        counterpartyProfile={selectedRequest.counterpartyProfile}
+        recipientPubkey={selectedRequest.recipientPubkey}
+        status={selectedRequest.request.status}
+        reasonLabel={selectedRequest.reasonLabel}
         onViewProfile={onViewProfile}
-        onBlockUser={onBlockUser ? (pk) => onBlockUser(pk) : undefined}
-        onReportUser={onReportUser ? (pk, reason) => onReportUser(pk, reason) : undefined}
+        onBlockUser={onBlockUser}
+        onReportUser={onReportUser}
       />
 
-      <article className="panel">
-        <p>
-          <strong>{t("requests.scheduled")}:</strong>{" "}
-          {formatLocalizedDateTime(selectedRequest.request.scheduledAt)}
-        </p>
-        {selectedRequest.request.scheduledEnd ? (
-          <p>
-            <strong>{t("requests.ends")}:</strong>{" "}
-            {formatLocalizedDateTime(selectedRequest.request.scheduledEnd)}
-          </p>
-        ) : null}
-        <p>
-          <strong>{t("requests.status")}:</strong>{" "}
-          <span className={`status-pill status-${selectedRequest.statusLabel}`}>
-            {t(`common.status.${selectedRequest.statusLabel}`)}
-          </span>
-        </p>
-      </article>
-
-      <RequestStatusHistory entries={selectedRequest.statusHistory} />
+      <RequestStatusHistory statusHistory={selectedRequest.statusHistory} />
 
       <RequestActionBar
         canAccept={selectedRequest.canAccept}
         canDecline={selectedRequest.canDecline}
         canCancel={selectedRequest.canCancel}
         onAccept={() =>
-          Promise.resolve(
-            onRespondToRequest(selectedRequest.id, "accepted")
-          ).then(onBack)
+          Promise.resolve(onRespondToRequest(selectedRequest.id, "accepted")).then(onBack)
         }
         onDecline={() =>
-          Promise.resolve(
-            onRespondToRequest(selectedRequest.id, "rejected")
-          ).then(onBack)
+          Promise.resolve(onRespondToRequest(selectedRequest.id, "rejected")).then(onBack)
         }
         onCancel={() =>
           Promise.resolve(onCancelRequest(selectedRequest.id)).then(onBack)
@@ -101,7 +82,15 @@ export function RequestDetailsView({
 
       <div className="stack">
         <h3>{t("common.messages.title")}</h3>
-        <MessageThread messages={messagesByThread[selectedRequest.threadKey] || []} />
+        <MessageThread
+          messages={messagesByThread[selectedRequest.threadKey] || []}
+          currentPubkey={currentPubkey}
+          resolveSenderName={(pubkey) =>
+            pubkey === currentPubkey
+              ? t("common.messages.you")
+              : counterpartyName || toDisplayId(pubkey, t("common.states.unknown"))
+          }
+        />
         <MessageComposer
           onSend={(text) =>
             onSendMessage(

@@ -9,9 +9,10 @@ const PAGE_SIZE = 20;
 type MessageThreadProps = {
   messages: EncryptedMessage[];
   currentPubkey?: string;
+  resolveSenderName?: (pubkey: string) => string;
 };
 
-export function MessageThread({ messages, currentPubkey }: MessageThreadProps) {
+export function MessageThread({ messages, currentPubkey, resolveSenderName }: MessageThreadProps) {
   const { t, formatDateTime } = useI18n();
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -47,6 +48,9 @@ export function MessageThread({ messages, currentPubkey }: MessageThreadProps) {
       ) : null}
       {visibleMessages.map((message) => {
         const isOwn = message.pubkey === currentPubkey;
+        const senderName = isOwn
+          ? t("common.messages.you")
+          : resolveSenderName?.(message.pubkey);
 
         return (
           <div
@@ -58,6 +62,7 @@ export function MessageThread({ messages, currentPubkey }: MessageThreadProps) {
               <MessageAttachmentPreview attachments={message.attachments} />
             </div>
             <span className="muted message-timestamp">
+              {senderName ? <>{senderName} · </> : null}
               {formatDateTime(new Date(message.created_at * 1000).toISOString())}
             </span>
           </div>
