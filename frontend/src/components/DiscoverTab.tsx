@@ -28,6 +28,7 @@ import { useState, useMemo } from "react";
 import { BlogPostList } from "./blog/BlogPostList";
 import { useTutorBlog } from "../hooks/useTutorBlog";
 import { useSlotFilter } from "../hooks/useSlotFilter";
+import { KebabMenu } from "./ui/KebabMenu";
 
 type DiscoverTabProps = {
   selectedTutor: UserProfileEvent | null;
@@ -152,6 +153,8 @@ export function DiscoverTab({
           onSendMessageWithFiles={onSendMessageWithFiles}
           messagesByThread={messagesByThread}
           messageStatus={messageStatus}
+          onBlockUser={onBlockUser}
+          onReportUser={onReportUser}
         />
       );
     }
@@ -164,7 +167,7 @@ export function DiscoverTab({
         <article className="panel">
           <div className="tutor-profile-header">
             <Avatar url={selectedTutor.profile.avatarUrl} role={selectedTutor.profile.role ?? "tutor"} size="lg" />
-            <div>
+            <div className="tutor-info">
               <h2>
                 {selectedTutor.profile.name || t("common.states.unnamedTutor")}
               </h2>
@@ -173,19 +176,13 @@ export function DiscoverTab({
                 {selectedTutor.profile.languages.join(", ") || t("common.states.notSet")}
               </p>
           </div>
-          <div className="request-actions" style={{ marginTop: "0.5rem" }}>
-            <Button variant="ghost" size="sm"
-              onClick={() => onBlockUser(selectedTutor.pubkey)}
-            >
-              {t("moderation.block")}
-            </Button>
-            <Button variant="ghost" size="sm"
-              onClick={() => onReportUser(selectedTutor.pubkey, "Spam")}
-            >
-              {t("moderation.reportUser")}
-            </Button>
+          <div className="kebab-wrapper">
+            <KebabMenu items={[
+              { label: t("moderation.block"), onClick: () => onBlockUser(selectedTutor.pubkey), danger: true },
+              { label: t("moderation.reportUser"), onClick: () => onReportUser(selectedTutor.pubkey, "Spam"), danger: true },
+            ]} />
           </div>
-            </div>
+          </div>
           <p>{selectedTutor.profile.bio || t("common.states.noBioYet")}</p>
           {selectedTutor.profile.subjects.length > 0 ? (
             <div className="chips">

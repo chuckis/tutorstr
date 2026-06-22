@@ -95,7 +95,7 @@
 
 .topbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: space-between;
   gap: var(--space-2);
 }
@@ -108,7 +108,7 @@
 }
 
 .screen {
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -149,7 +149,7 @@
 
 .detail-topbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-2);
   padding: var(--space-1) 0;
   background: var(--color-bg);
@@ -160,14 +160,14 @@
 
 .detail-topbar-left {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   min-width: 0;
   flex-shrink: 0;
 }
 
 .detail-back-button {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   gap: var(--space-1);
   padding: 4px;
@@ -188,7 +188,7 @@
 }
 
 .detail-title {
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
   text-align: center;
   font-size: 1rem;
   font-weight: 700;
@@ -199,10 +199,10 @@
 }
 
 .detail-title-spacer {
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
 }
 .detail-title-block {
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
   text-align: center;
   overflow: hidden;
 }
@@ -218,14 +218,14 @@
 
 .detail-topbar-right {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-2);
   min-width: 0;
   flex-shrink: 0;
 }
 
 .detail-content {
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -279,7 +279,7 @@
 
 .dashboard-hero-profile {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-4);
 }
 
@@ -299,7 +299,7 @@
 
 .profile-badge-button {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   width: 40px;
   height: 40px;
@@ -404,7 +404,7 @@
 
 .dashboard-status-pill {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   min-height: 32px;
   padding: 0 12px;
   border-radius: 999px;
@@ -442,7 +442,7 @@
 
 .relay-list-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: space-between;
   padding: var(--space-2);
   background: var(--color-glass);
@@ -512,7 +512,7 @@
 
 .dashboard-drawer-header {
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
 }
 
 .dashboard-drawer-header--sub {
@@ -540,7 +540,7 @@
   border-radius: var(--radius);
   padding: var(--space-3);
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-3);
   text-align: left;
   font: inherit;
@@ -557,7 +557,7 @@
 
 .settings-menu-item-icon {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   width: 2rem;
   height: 2rem;
@@ -568,7 +568,7 @@
 }
 
 .settings-menu-item-label {
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
   font-weight: 500;
 }
 
@@ -599,7 +599,7 @@
   border: none;
   padding: var(--space-3);
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: space-between;
   gap: var(--space-3);
   text-align: left;
@@ -751,7 +751,7 @@ p {
 
 .schedule-unsaved {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-2);
   padding: 6px 12px;
   border-radius: 999px;
@@ -794,7 +794,7 @@ p {
 
 .tutor-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-3);
 }
 
@@ -874,7 +874,7 @@ p {
   font-size: 0.92rem;
   font-weight: 600;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
 }
 
@@ -930,7 +930,7 @@ p {
 .request-actions,
 .action-buttons {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-2);
   flex-wrap: wrap;
 }
@@ -1129,14 +1129,14 @@ button:active {
 
 .auth-divider-rule {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-3);
   margin: var(--space-3) 0;
 }
 .auth-divider-rule::before,
 .auth-divider-rule::after {
   content: "";
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
   height: 1px;
   background: var(--color-border);
 }
@@ -1152,7 +1152,7 @@ button:active {
   align-items: end;
 }
 .auth-bunker-row .ui-input {
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
 }
 
 .auth-spoiler-trigger {
@@ -1197,7 +1197,7 @@ button:active {
 
 .profile-avatar-field {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-4);
   padding: var(--space-3) 0;
 }
@@ -1209,8 +1209,9 @@ button:active {
 }
 
 .tutor-profile-header {
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-4);
   padding: var(--space-2) 0;
 }
@@ -1249,7 +1250,7 @@ button:active {
 .lessons-calendar-toolbar {
   display: grid;
   grid-template-columns: auto 1fr auto auto;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-2);
 }
 
@@ -1399,7 +1400,7 @@ button:active {
   background: transparent;
   color: var(--color-muted);
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
@@ -1501,7 +1502,7 @@ button:active {
   z-index: 1000;
   background: rgba(0, 0, 0, 0.92);
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   cursor: pointer;
 }
@@ -1527,7 +1528,7 @@ button:active {
   font-size: 24px;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   z-index: 1;
 }
@@ -1544,7 +1545,7 @@ button:active {
   z-index: 1000;
   background: rgba(0, 0, 0, 0.92);
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   user-select: none;
 }
@@ -1571,7 +1572,7 @@ button:active {
   font-size: 24px;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   z-index: 1;
 }
@@ -1606,7 +1607,7 @@ button:active {
   font-size: 22px;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
 }
 
@@ -1625,7 +1626,7 @@ button:active {
 .schedule-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-2);
   flex-wrap: wrap;
 }
@@ -1654,7 +1655,7 @@ button:active {
   padding: 8px 6px;
   white-space: nowrap;
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   gap: 6px;
   position: relative;
@@ -1663,7 +1664,7 @@ button:active {
 .nav-icon-wrap {
   position: relative;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
 }
 
@@ -1680,7 +1681,7 @@ button:active {
 .tab-badge,
 .inline-indicator {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   min-height: 22px;
   border-radius: 999px;
@@ -1738,7 +1739,7 @@ button:active {
   background: transparent;
   color: var(--color-text);
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
 }
 
@@ -1750,7 +1751,7 @@ button:active {
 .spinner {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   gap: var(--space-3);
   padding: var(--space-5);
@@ -1834,7 +1835,7 @@ button:active {
   overflow: hidden;
   flex-shrink: 0;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   background: var(--color-surface);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -1888,7 +1889,7 @@ button:active {
 
 .upload-status {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: 6px;
   font-size: 0.85rem;
   margin-top: 8px;
@@ -1974,7 +1975,7 @@ button:active {
 .filter-bar__toggle {
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: space-between;
   gap: var(--space-3);
   padding: 10px 12px;
@@ -2010,7 +2011,7 @@ button:active {
 /* --- Toggle switch --- */
 .toggle-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: space-between;
   gap: var(--space-3);
   font-size: 0.92rem;
@@ -2096,7 +2097,7 @@ button:active {
 
 .counterparty-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-3);
 }
 
@@ -2209,7 +2210,7 @@ button:active {
 .note-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   margin-bottom: var(--space-2);
   font-size: 0.85rem;
 }
@@ -2304,7 +2305,7 @@ button:active {
 
 .ui-btn {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   gap: var(--space-2);
   min-height: 44px;
@@ -2409,7 +2410,7 @@ button:active {
 /* -- icon slot -- */
 .ui-btn__icon {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
 }
 
 .ui-btn--icon-only.ui-btn--sm {
@@ -2510,7 +2511,7 @@ button:active {
 .ui-input__wrapper {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
 }
 
 .ui-input__icon {
@@ -2662,7 +2663,7 @@ button:active {
 
 .ui-checkbox {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-2);
   cursor: pointer;
   font-size: 0.92rem;
@@ -2684,7 +2685,7 @@ button:active {
   background: var(--color-surface);
   transition: background var(--motion), border-color var(--motion);
   flex-shrink: 0;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
 }
 
@@ -2713,7 +2714,7 @@ button:active {
 
 .ui-toggle {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: space-between;
   gap: var(--space-3);
   cursor: pointer;
@@ -2778,7 +2779,7 @@ button:active {
 
 .ui-badge {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   padding: 2px 8px;
   font-size: 0.72rem;
   font-weight: 700;
@@ -2818,7 +2819,7 @@ button:active {
 
 .ui-tag {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-1);
   padding: 4px 10px;
   font-size: 0.82rem;
@@ -2832,7 +2833,7 @@ button:active {
 
 .ui-tag__remove {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   padding: 0;
   min-height: auto;
@@ -2856,7 +2857,7 @@ button:active {
 .ui-empty-state {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   text-align: center;
   gap: var(--space-3);
   padding: var(--space-7) var(--space-4);
@@ -2891,7 +2892,7 @@ button:active {
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
@@ -2929,14 +2930,14 @@ button:active {
 }
 
 .ui-toast__message {
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .ui-toast__close {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   padding: 4px;
   min-height: auto;
@@ -2956,7 +2957,7 @@ button:active {
 
 .ui-toast__action {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   padding: 4px 10px;
   min-height: auto;
   min-width: auto;
@@ -3009,7 +3010,7 @@ button:active {
   z-index: 900;
   background: var(--color-backdrop);
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   padding: var(--space-4);
   animation: ui-modal-fade-in 200ms ease-out;
@@ -3044,7 +3045,7 @@ button:active {
 
 .ui-modal__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: space-between;
   padding: var(--space-4) var(--space-4) 0;
 }
@@ -3057,7 +3058,7 @@ button:active {
 
 .ui-modal__close {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   padding: 6px;
   min-height: auto;
@@ -3113,7 +3114,7 @@ button:active {
 .blog-card__meta {
   display: flex;
   gap: var(--space-2);
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   font-size: var(--fs-caption);
   margin-bottom: var(--space-2);
 }
@@ -3143,7 +3144,7 @@ button:active {
 .blog-full__meta {
   display: flex;
   gap: var(--space-2);
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   font-size: var(--fs-caption);
   color: var(--color-text-muted);
 }
@@ -3255,12 +3256,12 @@ button:active {
 .tag-input-row {
   display: flex;
   gap: var(--space-2);
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   margin-bottom: var(--space-2);
 }
 
 .tag-input-row .input {
-  flex: 1;
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
 }
 
 .chip--removable {
@@ -3278,7 +3279,7 @@ button:active {
 .draft-card {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-3);
   flex-wrap: wrap;
 }
@@ -3302,7 +3303,7 @@ button:active {
 .blog-section-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   margin-bottom: var(--space-2);
 }
 
@@ -3322,13 +3323,13 @@ button:active {
 .hint-icon-wrapper {
   position: relative;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   flex-shrink: 0;
 }
 
 .hint-icon {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   width: 20px;
   height: 20px;
@@ -3444,7 +3445,7 @@ button:active {
 
 .review-rating-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   gap: var(--space-1);
   margin-bottom: var(--space-1);
 }
@@ -3456,7 +3457,7 @@ button:active {
 
 .review-star-btn {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   padding: 2px;
   border: none;
@@ -3507,5 +3508,87 @@ button:active {
 .review-stars-display {
   display: inline-flex;
   gap: 1px;
-  align-items: center;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
+}
+
+/* ── Kebab menu (three-dot action menu) ── */
+
+.kebab-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.kebab-menu__trigger {
+  display: inline-flex;
+  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background var(--motion), color var(--motion);
+}
+
+.kebab-menu__trigger:hover,
+.kebab-menu__trigger:focus-visible {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.kebab-menu__dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50;
+  min-width: 160px;
+  padding: var(--space-1);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kebab-menu__item {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  border-radius: calc(var(--radius) - 2px);
+  transition: background var(--motion);
+}
+
+.kebab-menu__item:hover,
+.kebab-menu__item:focus-visible {
+  background: var(--color-surface);
+}
+
+.kebab-menu__item--danger {
+  color: var(--color-danger);
+}
+
+.kebab-menu__item--danger:hover,
+.kebab-menu__item--danger:focus-visible {
+  background: var(--color-danger-bg, rgba(220,38,38,0.08));
+}
+
+/* ── Kebab wrapper — right-aligns action menu in flex headers ── */
+
+.kebab-wrapper {
+  margin-left: auto;
+}
+
+.tutor-info {
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
 }

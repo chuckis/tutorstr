@@ -3,6 +3,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { Avatar } from "./Avatar";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
+import { KebabMenu } from "./ui/KebabMenu";
 
 type CounterpartyCardProps = {
   profile?: UserProfileEvent;
@@ -34,6 +35,18 @@ export function CounterpartyCard({
     );
   }
 
+  const kebabItems = [
+    ...(onViewProfile
+      ? [{ label: t("requests.viewProfile"), onClick: onViewProfile }]
+      : []),
+    ...(onBlockUser
+      ? [{ label: t("moderation.block"), onClick: () => onBlockUser(profile.pubkey), danger: true as const }]
+      : []),
+    ...(onReportUser
+      ? [{ label: t("moderation.reportUser"), onClick: () => onReportUser(profile.pubkey, "Spam"), danger: true as const }]
+      : []),
+  ];
+
   return (
     <Card padding="sm" variant="elevated">
       <div className="counterparty-card-header">
@@ -47,6 +60,11 @@ export function CounterpartyCard({
             {profile.profile.name || t("common.states.unknown")}
           </strong>
         </div>
+        {kebabItems.length > 0 ? (
+          <div className="kebab-wrapper">
+            <KebabMenu items={kebabItems} />
+          </div>
+        ) : null}
       </div>
       {profile.profile.bio ? (
         <p className="muted">{profile.profile.bio}</p>
@@ -58,23 +76,13 @@ export function CounterpartyCard({
           ))}
         </div>
       ) : null}
-      <div className="request-actions" style={{ marginTop: "0.5rem" }}>
-        {onViewProfile ? (
+      {onViewProfile ? (
+        <div className="request-actions" style={{ marginTop: "0.5rem" }}>
           <Button variant="ghost" size="sm" onClick={onViewProfile}>
             {t("requests.viewProfile")}
           </Button>
-        ) : null}
-        {onBlockUser ? (
-          <Button variant="ghost" size="sm" onClick={() => onBlockUser(profile.pubkey)}>
-            {t("moderation.block")}
-          </Button>
-        ) : null}
-        {onReportUser ? (
-          <Button variant="ghost" size="sm" onClick={() => onReportUser(profile.pubkey, "Spam")}>
-            {t("moderation.reportUser")}
-          </Button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </Card>
   );
 }

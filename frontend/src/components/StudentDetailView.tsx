@@ -3,6 +3,7 @@ import { fallbackDirectMessageThreadKey } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { Avatar } from "./Avatar";
 import { DetailPageLayout } from "./DetailPageLayout";
+import { KebabMenu } from "./ui/KebabMenu";
 
 type StudentDetailViewProps = {
   profile: UserProfileEvent;
@@ -17,6 +18,8 @@ type StudentDetailViewProps = {
   ) => void | Promise<void>;
   messagesByThread: Record<string, EncryptedMessage[]>;
   messageStatus: string;
+  onBlockUser?: (pubkey: string) => Promise<void>;
+  onReportUser?: (targetPubkey: string, reason: string) => Promise<void>;
 };
 
 export function StudentDetailView({
@@ -26,12 +29,21 @@ export function StudentDetailView({
   onSendMessage,
   onSendMessageWithFiles,
   messagesByThread,
-  messageStatus
+  messageStatus,
+  onBlockUser,
+  onReportUser,
 }: StudentDetailViewProps) {
   const { t } = useI18n();
   const role = profile.profile.role ?? "student";
-  const threadInfo = fallbackDirectMessageThreadKey(profile.pubkey);
-  const chatMessages = messagesByThread[threadInfo.threadKey] || [];
+
+  const kebabItems = [
+    ...(onBlockUser
+      ? [{ label: t("moderation.block"), onClick: () => onBlockUser(profile.pubkey), danger: true as const }]
+      : []),
+    ...(onReportUser
+      ? [{ label: t("moderation.reportUser"), onClick: () => onReportUser(profile.pubkey, "Spam"), danger: true as const }]
+      : []),
+  ];
 
   return (
     <DetailPageLayout
@@ -41,7 +53,7 @@ export function StudentDetailView({
       <article className="panel">
         <div className="tutor-profile-header">
           <Avatar url={profile.profile.avatarUrl} role={role} size="lg" />
-          <div>
+          <div className="tutor-info">
             <h2>
               {profile.profile.name || t("common.states.unnamedStudent")}
             </h2>
@@ -49,6 +61,11 @@ export function StudentDetailView({
               {profile.profile.languages.join(", ") || t("common.states.notSet")}
             </p>
           </div>
+          {kebabItems.length > 0 ? (
+            <div className="kebab-wrapper">
+              <KebabMenu items={kebabItems} />
+            </div>
+          ) : null}
         </div>
         <p>{profile.profile.bio || t("common.states.noBioYet")}</p>
       </article>
