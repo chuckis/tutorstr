@@ -39,6 +39,10 @@ function logIncomingEvent(event: NostrEvent) {
   console.groupEnd();
 }
 
+// nostr-tools querySync / subscribeMany accept Filter (single object), not Filter[].
+// Passing an array makes the Pool wrap it in an outer array, producing an invalid
+// REQ message: ["REQ","id",[filter1,filter2]] instead of ["REQ","id",filter1,filter2].
+// This function is only used by query methods where a single filter is sufficient.
 function filtersToSingleFilter(filters: NostrFilter | NostrFilter[]): NostrFilter {
   return Array.isArray(filters) ? filters[0] : filters;
 }
@@ -67,6 +71,9 @@ export class NostrClient {
       throw new Error("common.runtime.noRelaysConfigured");
     }
 
+    // pool.publish returns one Promise per relay.
+    // Promise.any resolves when the first relay confirms the write.
+    // Other relays are silently caught — writing to at least one relay is enough.
     const results = this.pool.publish(this.relays, event as unknown as Event);
     results.forEach(p => p.catch(() => {}));
     await Promise.any(results);
@@ -149,24 +156,45 @@ export class NostrClient {
     return event;
   }
 
+  // Long-lived subscription on the main pool (enableReconnect: true).
+  //
+  // We don't use pool.subscribeMany(filters) because its signature is
+  // subscribeMany(relays: string[], filter: Filter, ...) — a SINGLE Filter
+  // object, not Filter[]. Passing an array makes the Pool wrap it again,
+  // sending an invalid REQ: ["REQ","id",[filter1,filter2]] instead of the
+  // correct ["REQ","id",filter1,filter2].
+  //
+  // Instead we build an array of { url, filter } records, one per (relay ×
+  // filter). Pool.subscribeMap groups them by URL and passes the relay
+  // a correct Filter[] per the Nostr protocol.
   subscribe(
     filters: NostrFilter | NostrFilter[],
     onEvent: (event: NostrEvent) => void,
     options: SubscribeOptions = {}
   ) {
+    const filterList = Array.isArray(filters) ? filters : [filters];
 
-    const filterArray = Array.isArray(filters) ? filters : [filters];
-    const subscription = this.pool.subscribeMany(this.relays, filterArray as unknown as Parameters<SimplePool['subscribeMany']>[1], {
-      onevent: (event) => {
-        onEvent(event as unknown as NostrEvent);
-      },
-      oneose: options.onEose
-    });
+    // Each filter becomes a separate entry for subscribeMap.
+    // With 3 relays × 12 filters this yields 36 entries;
+    // subscribeMap groups them into 3 groups (one per URL) with 12 filters each.
+    const requests = this.relays.flatMap(url =>
+        filterList.map(filter => ({ url, filter }))
+    );
 
+    const subscription = this.pool.subscribeMap(
+        requests as unknown as Parameters<SimplePool['subscribeMap']>[0],
+        {
+            onevent: (event) => {
+                onEvent(event as unknown as NostrEvent);
+            },
+            oneose: options.onEose
+        }
+    );
 
     return () => subscription.close();
   }
 
+  // Convenience wrapper: subscribe to a single kind.
   subscribeByKind(
     kind: number,
     onEvent: (event: NostrEvent) => void,
@@ -180,12 +208,20 @@ export class NostrClient {
     return this.subscribe(filter, onEvent, { onEose: options.onEose });
   }
 
+  // One-shot query: returns an array of events, closes the subscription.
+  // Uses filtersToSingleFilter — only the first filter is honoured.
   async query(filters: NostrFilter | NostrFilter[]): Promise<NostrEvent[]> {
     const filter = filtersToSingleFilter(filters);
     const events = await this.pool.querySync(this.relays, filter as unknown as Parameters<SimplePool['querySync']>[1]);
     return events as unknown as NostrEvent[];
   }
 
+  // Subscription to a specific set of relays with its own pool.
+  // Unlike subscribe(), doesn't use the shared pool (which may be busy with
+  // a long-lived global subscription). Each such subscription lives in its
+  // own pool that is closed on unsubscription.
+  // Used by addPerUserSubscription() for per-user event subscriptions
+  // (to avoid bloating the global REQ).
   subscribeToRelays(
     relays: string[],
     filter: NostrFilter,
@@ -205,6 +241,9 @@ export class NostrClient {
     };
   }
 
+  // One-shot query to specific relays, its own pool.
+  // Analogous to query(), but with relay selection.
+  // filtersToSingleFilter — only the first filter is used.
   async queryRelays(
     relays: string[],
     filters: NostrFilter | NostrFilter[],

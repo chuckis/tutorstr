@@ -23,8 +23,6 @@ const HYDRATION_KINDS = [
 ];
 
 let shutdownHydration: (() => void) | null = null;
-let eoseCount = 0;
-const EXPECTED_EOSE = HYDRATION_KINDS.length;
 
 function markAllHydrated(): void {
   useProfileStore.getState().setHydrated(true);
@@ -36,21 +34,11 @@ function markAllHydrated(): void {
 
 export function startHydration(): void {
   if (shutdownHydration) return;
-
-  eoseCount = 0;
-
   const unsub = nostrClient.subscribe(
     HYDRATION_KINDS.map(kind => ({ kinds: [kind], limit: 100 })),
     (event) => { emitEvent(event); },
     {
-      onEose: () => {
-        eoseCount++;
-        // Wait for all kinds to settle before marking hydrated
-        // (nostr-tools fires one EOSE per filter)
-        if (eoseCount >= EXPECTED_EOSE) {
-          markAllHydrated();
-        }
-      },
+      onEose: () => { markAllHydrated(); },
     },
   );
 
