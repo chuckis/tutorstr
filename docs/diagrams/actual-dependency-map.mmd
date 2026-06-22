@@ -18,6 +18,7 @@ flowchart LR
   AACC --> D
   AAUTH --> D
   AAUTH --> P
+  AA -.-> AD
   AA --> D
   AA --> P
   AD -.-> AAUTH
@@ -38,6 +39,7 @@ flowchart LR
   H --> D
   H --> I
   H -.-> N
+  H -.-> NK
   H --> P
   H --> U
   H -.-> UI
@@ -56,4 +58,4 @@ flowchart LR
   U --> D
 
   classDef leak stroke:#c2410c,stroke-width:2px,color:#7c2d12;
-  class A,AAUTH,AD,D,N,P,UI leak;
+  class A,AAUTH,AD,D,N,NK,P,UI leak;

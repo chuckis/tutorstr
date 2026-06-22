@@ -38,7 +38,7 @@ target/
 
 # System files
 .DS_Store
-Thumbs.db
+*.db
 
 # Coverage
 coverage/
