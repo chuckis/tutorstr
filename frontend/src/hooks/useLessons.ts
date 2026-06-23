@@ -19,6 +19,8 @@ export function useLessons(userId: string, options?: { now?: number }) {
   const [loading, setLoading] = useState(true);
   const autoCompletedRef = useRef<Set<string>>(new Set());
   const crossRelayDoneRef = useRef(false);
+  const lessonRepositoryRef = useRef(lessonRepository); // ← добавить
+  lessonRepositoryRef.current = lessonRepository;   
 
   // Bulk fetch on mount/deps change
   useEffect(() => {
@@ -110,29 +112,29 @@ export function useLessons(userId: string, options?: { now?: number }) {
   }, [userId, lessonAgreements.loading]);
 
   // Auto-complete lessons whose scheduled end time has passed
-  useEffect(() => {
-    if (loading) return;
+useEffect(() => {
+  if (loading) return;
 
-    function checkOverdue() {
-      const cutoff = Date.now();
-      for (const lesson of lessons) {
-        if (lesson.status !== "scheduled") continue;
-        if (autoCompletedRef.current.has(lesson.id)) continue;
+  function checkOverdue() {
+    const cutoff = Date.now();
+    for (const lesson of lessons) {
+      if (lesson.status !== "scheduled") continue;
+      if (autoCompletedRef.current.has(lesson.id)) continue;
 
-        const endMs = new Date(lesson.scheduledAt).getTime() + lesson.durationMin * 60_000;
-        if (endMs < cutoff) {
-          autoCompletedRef.current.add(lesson.id);
-          lessonRepository.updateStatus(lesson.id, "completed").catch(() => {
-            autoCompletedRef.current.delete(lesson.id);
-          });
-        }
+      const endMs = new Date(lesson.scheduledAt).getTime() + lesson.durationMin * 60_000;
+      if (endMs < cutoff) {
+        autoCompletedRef.current.add(lesson.id);
+        lessonRepositoryRef.current.updateStatus(lesson.id, "completed").catch(() => {
+          autoCompletedRef.current.delete(lesson.id);
+        });
       }
     }
+  }
 
-    checkOverdue();
-    const interval = setInterval(checkOverdue, 60_000);
-    return () => clearInterval(interval);
-  }, [lessons, loading, lessonRepository]);
+  checkOverdue();
+  const interval = setInterval(checkOverdue, 60_000);
+  return () => clearInterval(interval);
+}, [lessons, loading]);
 
   const lessonMap = useMemo(
     () => lessons.reduce<Record<string, Lesson>>((acc, lesson) => {
