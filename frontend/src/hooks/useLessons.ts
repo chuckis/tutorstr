@@ -24,19 +24,19 @@ export function useLessons(userId: string, options?: { now?: number }) {
 
   // Bulk fetch on mount/deps change
   useEffect(() => {
-    let isActive = true;
-    setLoading(true);
+  let isActive = true;
+  setLoading(true);
 
-    lessonRepository.getForUser(userId).then((nextLessons) => {
-      if (!isActive) return;
-      setLessons(nextLessons);
-      setLoading(false);
-    });
+  lessonRepositoryRef.current.getForUser(userId).then((nextLessons) => {
+    if (!isActive) return;
+    setLessons(nextLessons);
+    setLoading(false);
+  });
 
-    return () => {
-      isActive = false;
-    };
-  }, [lessonRepository, userId]);
+  return () => {
+    isActive = false;
+  };
+}, [userId]); // ← только userId
 
   // Merge in events arriving via live subscription
   useEffect(() => {
