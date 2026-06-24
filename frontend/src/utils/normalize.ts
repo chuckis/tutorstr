@@ -50,21 +50,29 @@ export function isProfileEmpty(profile: UserProfile) {
   );
 }
 
-/** Serialize internal UserProfile to NIP-01 kind:0 wire format. */
-export function serializeProfile(profile: UserProfile): Record<string, unknown> {
-  const out: Record<string, unknown> = {
-    name: profile.nostrName || profile.name,
-    display_name: profile.name,
-    about: profile.bio,
-    picture: profile.avatarUrl,
-    subjects: profile.subjects,
-    languages: profile.languages,
-    hourlyRate: profile.hourlyRate
-  };
+/** Serialize internal UserProfile to NIP-01 kind:0 wire format.
+ *  When existingContent is provided, unknown fields from the previous event
+ *  (e.g. lud16, nip05, website) are preserved.
+ */
+export function serializeProfile(
+  profile: UserProfile,
+  existingContent?: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = existingContent ? { ...existingContent } : {};
+
+  out.name = profile.nostrName || profile.name;
+  out.display_name = profile.name;
+  out.about = profile.bio;
+  out.picture = profile.avatarUrl;
+  out.subjects = profile.subjects;
+  out.languages = profile.languages;
+  out.hourlyRate = profile.hourlyRate;
+
   if (profile.role) out.role = profile.role;
   if (profile.availabilityMode) out.availabilityMode = profile.availabilityMode;
   if (profile.timezone) out.timezone = profile.timezone;
   if (profile.workHours) out.workHours = profile.workHours;
+
   return out;
 }
 

@@ -8,6 +8,7 @@ export type ProfileEntry = {
   pubkey: string;
   created_at: number;
   tags: string[][];
+  content: string;
   profile: UserProfile;
 };
 
@@ -42,6 +43,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
               pubkey: event.pubkey,
               created_at: event.created_at,
               tags: event.tags,
+              content: event.content,
               profile: parsed,
             },
           },
@@ -66,6 +68,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
             pubkey,
             created_at: existing?.created_at ?? Math.floor(Date.now() / 1000),
             tags: existing?.tags ?? [],
+            content: existing?.content ?? "",
             profile,
           },
         },

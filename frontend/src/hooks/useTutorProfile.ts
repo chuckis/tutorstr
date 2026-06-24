@@ -7,6 +7,9 @@ import { useProfileStore } from "../stores/profileStore";
 
 const AUTOPUBLISH_TIMEOUT_MS = 8000;
 
+// Tag prefixes that the app manages — everything else is preserved.
+const MANAGED_TAG_PREFIXES = ["schema:", "role:", "mode:", "subject:", "language:"];
+
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   if (!(error instanceof Error)) {
     return "";
@@ -37,27 +40,34 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
     latestProfileRef.current = profile;
   }, [profile]);
 
-  function buildProfileTags(nextProfile: UserProfile): string[][] {
-    const tags: string[][] = [
+  function buildProfileTags(nextProfile: UserProfile, existingTags: string[][] = []): string[][] {
+    // Preserve existing tags that are NOT managed by the app
+    const preserved = existingTags.filter(([k, v]) => {
+      if (k !== "t") return true;
+      return !MANAGED_TAG_PREFIXES.some(prefix => v.startsWith(prefix));
+    });
+
+    // Build fresh app-managed tags
+    const appTags: string[][] = [
       ["t", `schema:${PROFILE_SCHEMA_VERSION}`]
     ];
 
     if (nextProfile.role) {
-      tags.push(["t", `role:${nextProfile.role}`]);
+      appTags.push(["t", `role:${nextProfile.role}`]);
     }
 
     if (nextProfile.availabilityMode) {
-      tags.push(["t", `mode:${nextProfile.availabilityMode}`]);
+      appTags.push(["t", `mode:${nextProfile.availabilityMode}`]);
     }
 
     for (const subject of nextProfile.subjects) {
-      tags.push(["t", `subject:${subject}`]);
+      appTags.push(["t", `subject:${subject}`]);
     }
     for (const language of nextProfile.languages) {
-      tags.push(["t", `language:${language}`]);
+      appTags.push(["t", `language:${language}`]);
     }
 
-    return tags;
+    return [...preserved, ...appTags];
   }
 
   useEffect(() => {
@@ -142,11 +152,18 @@ export function useTutorProfile(pubkey: string, viewerRole?: Role) {
   async function publishProfile(nextProfile: UserProfile) {
     setStatus(t("profile.form.publish"));
 
+    // Fetch existing event data from store to preserve unknown fields/tags
+    const existingEntry = useProfileStore.getState().byPubkey[pubkey];
+    const existingContent = existingEntry?.content
+      ? JSON.parse(existingEntry.content) as Record<string, unknown>
+      : undefined;
+    const existingTags = existingEntry?.tags ?? [];
+
     try {
       const eventId = await profileEventRepository.publish(
         pubkey,
-        JSON.stringify(serializeProfile(nextProfile)),
-        buildProfileTags(nextProfile),
+        JSON.stringify(serializeProfile(nextProfile, existingContent)),
+        buildProfileTags(nextProfile, existingTags),
       );
       localStorage.setItem(`tutorhub:profile:${pubkey}`, JSON.stringify(nextProfile));
       latestProfileRef.current = nextProfile;
