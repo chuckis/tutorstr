@@ -6,7 +6,7 @@ Business workflows, identity management, and role enforcement. Depends on `domai
 
 ### `usecases/` — Business workflows
 
-See [`usecases/README.md`](./usecases/README.md) for details. Key files:
+See [`usecases/README.md`](./usecases/README.md) for full list. Key workflows:
 
 - `acceptBooking.ts` — Tutor accepts booking, creates lesson, rejects competitors
 - `createBookingRequest.ts` — Student creates a booking request
@@ -15,13 +15,15 @@ See [`usecases/README.md`](./usecases/README.md) for details. Key files:
 - `publishTutorSchedule.ts` — Tutor publishes schedule event
 - `sendLessonNote.ts` — Publish own lesson note as encrypted backup (role-gated)
 - `shareLessonNote.ts` — Share lesson note with counterparty (role-gated)
-- `buildRequestsTabViewModel.ts` — Requests tab view model
+- `publishBlogPost.ts`, `saveDraft.ts`, `deleteBlogPost.ts`, `getMyDrafts.ts`, `getTutorBlog.ts` — Blog CRUD
+- `publishMuteList.ts`, `publishReport.ts`, `publishReview.ts` — Moderation & reviews
+- `buildRequestsTabViewModel.ts`, `groupLessonsByTimeline.ts`, `groupSlotsByDay.ts` — View model builders
 
 ### `auth/` — Identity lifecycle
 
 - `createNewProfile.ts`, `importExistingKey.ts`, `unlockVault.ts`
-- `restoreStoredSession.ts`, `saveGeneratedProfile.ts`
-- `exportSecretKey.ts`, `logout.ts`
+- `restoreStoredSession.ts`, `saveGeneratedProfile.ts`, `saveNip07Session.ts`
+- `exportSecretKey.ts`, `logout.ts`, `parseBunkerInput.ts`
 
 ### `account/` — Role enforcement
 

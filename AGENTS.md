@@ -75,10 +75,24 @@ Every architectural layer in `frontend/src/` has a root `README.md` written in a
 | `application/` | `application/README.md` | Use cases, auth, role guards |
 | `hooks/` | `hooks/README.md` | React orchestration hooks |
 | `components/` | `components/README.md` | UI components and tab screens |
+| `stores/` | `stores/README.md` | Zustand state containers |
+| `i18n/` | `i18n/README.md` | Internationalization provider and resources |
+| `utils/` | `utils/README.md` | Pure helper functions |
+| `theme/` | `theme/README.md` | Light/dark mode provider |
 
 `nostr/` is a transport utility (client wrapper, config, `TutorHubKind` enum), not an architectural layer. It is imported only by `adapters/` and the composition root (`App.tsx`, `RepoContext.tsx`). See `nostr/README.md` for details.
 
-Each README lists key files with a short purpose, layer-specific rules, and dependency direction. Use them as the entry point before reading individual files.
+Each layer README must stay in sync with actual files. After creating, renaming,
+or deleting any file in `domain/`, `ports/`, `adapters/`, `application/`, `hooks/`,
+`components/`, `stores/`, `i18n/`, `utils/`, `theme/`, or `nostr/`, update the corresponding README:
+
+1. Inventory: `ls <dir>/*.ts <dir>/*.tsx 2>/dev/null | sort`, exclude `index.ts` and `README.md`
+2. Read current README, note missing files
+3. For each missing file: read first 30–50 lines, classify (utility / adapter / use case / hook / component)
+4. Update README keeping existing structure; add to appropriate group; create new group only if ≥2 members
+5. Verify: every `.ts`/`.tsx` file is mentioned in the README
+
+See `docs/plans/chores/README_context_sync.md` for full procedure.
 
 ## Nostr event kinds in use
 

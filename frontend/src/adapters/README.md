@@ -10,9 +10,20 @@ Concrete implementations of the port interfaces. The only layer that touches loc
   - `nostrKeyMaterial.ts`
 - `nostr/` — Nostr event mapping and relay I/O
   - See [`nostr/README.md`](./nostr/README.md) for full details
-- `media/` — Media upload
+- `media/` — Media upload & preprocessing
   - `blossomBlobRepository.ts`
-- `localStorageLocalePreferenceRepository.ts` — Locale in localStorage
+  - `createThumbnail.ts`
+  - `stripExif.ts`
+- `env/` — Platform detection
+  - `platformDetector.ts`
+
+## Standalone files
+
+| File | Purpose |
+|------|---------|
+| `localStorageLocalePreferenceRepository.ts` | Locale preference in localStorage |
+| `localStorageDraftRepository.ts` | Blog drafts in localStorage |
+| `notificationService.ts` | Toast/notification manager |
 
 ## Rules
 

@@ -6,24 +6,29 @@ Core types, value objects, and pure selectors. Zero dependencies outside this di
 
 | File | Purpose |
 |------|---------|
+| `account.ts` | AccountRole type, role constants |
+| `auth.ts` | AuthSession, VaultRecord, AuthError hierarchy |
+| `avatarDefaults.ts` | Default avatar generation |
+| `blog.ts` | BlogPost, BlogDraft, BlogPostStatus |
 | `booking.ts` | Booking model, BookingStatus, events |
 | `bookingSelectors.ts` | Slot allocation queries, winning bid selection |
 | `lesson.ts` | Lesson model, LessonStatus, LessonAgreement |
 | `lessonNote.ts` | LessonNote model, LessonNoteType, NoteVisibility |
-| `TimeSlot.ts` | Value object `{ start, end }` |
-| `slotAllocation.ts` | Allocation/bidding key helpers |
-| `slotOccupancy.ts` | SlotOccupancy type |
+| `locale.ts` | AppLocale, supported locales |
 | `messageThread.ts` | Thread key derivation (DMs, requests, lessons) |
 | `messaging.ts` | EncryptedMessage, MessageAttachment types |
-| `progress.ts` | ProgressEntry model |
-| `account.ts` | AccountRole type, role constants |
-| `auth.ts` | AuthSession, VaultRecord, AuthError hierarchy |
-| `locale.ts` | AppLocale, supported locales |
+| `moderation.ts` | MuteList, BlockEntry, Report, ReportLabel |
 | `profile.ts` | UserProfile, AvailabilityMode |
-| `avatarDefaults.ts` | Default avatar generation |
+| `progress.ts` | ProgressEntry model |
+| `relayList.ts` | RelayListItem, RelayList types, cache keys |
+| `review.ts` | Review, ReviewRating, ReviewAuthorRole |
+| `schedule.ts` | TutorSchedule model |
+| `slotAllocation.ts` | Allocation/bidding key helpers |
+| `slotOccupancy.ts` | SlotOccupancy type |
+| `theme.ts` | Theme type (light/dark), storage key |
+| `TimeSlot.ts` | Value object `{ start, end }` |
 | `tutorDirectoryQuery.ts` | Tutor discovery query model |
 | `tutorSelectors.ts` | Tutor selection utilities |
-| `schedule.ts` | TutorSchedule model |
 
 ## Rules
 

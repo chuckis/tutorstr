@@ -24,6 +24,12 @@ Abstract TypeScript interfaces that the application layer uses to talk to the ou
 | `relayManager.ts` | `RelayManager` | Update relay list on the client |
 | `localePreferenceRepository.ts` | `LocalePreferenceRepository` | Load/save locale preference |
 | `eventTypes.ts` | — | Shared types: `TutorProfileEvent`, `TutorScheduleEvent` |
+| `blogRepository.ts` | `BlogRepository` | Blog post CRUD against Nostr (kind 30005) |
+| `draftRepository.ts` | `DraftRepository` | Blog draft persistence (localStorage) |
+| `muteListRepository.ts` | `MuteListRepository` | Subscribe/publish mute lists (NIP-51) |
+| `notificationService.ts` | `NotificationService` | Toast/notification abstraction |
+| `reportRepository.ts` | `ReportRepository` | Publish reports (NIP-56) |
+| `reviewRepository.ts` | `ReviewRepository` | Subscribe/publish reviews (kind 32267) |
 
 ## Rules
 
