@@ -6,4 +6,6 @@ export type NostrKeyMaterial = {
   encodeNsec: (secretKeyHex: string) => string;
   encodeNpub: (pubkey: string) => string;
   parseSecretInput: (value: string) => Promise<ParsedSecretInput>;
+  generateMnemonic: () => string;
+  mnemonicToSecretKey: (mnemonic: string) => string;
 };

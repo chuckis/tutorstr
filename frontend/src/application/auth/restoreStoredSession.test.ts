@@ -60,7 +60,7 @@ describe("restoreStoredSession", () => {
     expect(saveSpy).not.toHaveBeenCalled();
   });
 
-  it("migrates a legacy v1 vault to v2 with role=tutor and persists it", () => {
+  it("migrates a legacy v1 vault to v3 with role=tutor and persists it", () => {
     const stored = legacyV1();
     const repo = makeRepo(stored);
     const saveSpy = vi.mocked(repo.save);
@@ -69,7 +69,7 @@ describe("restoreStoredSession", () => {
 
     expect(session?.role).toBe("tutor");
     expect(saveSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ role: "tutor", version: 2 })
+      expect.objectContaining({ role: "tutor", version: 3 })
     );
   });
 

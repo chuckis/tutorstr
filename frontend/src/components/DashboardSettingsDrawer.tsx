@@ -1,8 +1,9 @@
-import { X, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Settings, User, HelpCircle, Info, ChevronRight, Moon, Sun, Ban } from "lucide-react";
+import { X, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Settings, User, HelpCircle, Info, ChevronRight, Moon, Sun, Ban, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
 import { AccountRole, UserProfile } from "../hooks/hookTypes";
+import type { ExportedSecret } from "../application/auth/exportSecretKey";
 import { UploadStatus } from "../hooks/useBlossomConfig";
 import { Avatar } from "./Avatar";
 import { ProfileForm } from "./ProfileForm";
@@ -27,7 +28,7 @@ type DashboardSettingsDrawerProps = {
   onPublishProfile: (profile: UserProfile) => void;
   relay: ReturnType<typeof useRelays>;
   onLogout: () => void;
-  onRevealSecret: (passphrase: string) => Promise<string>;
+  onRevealSecret: (passphrase: string) => Promise<ExportedSecret>;
   role: AccountRole;
   onAvatarUpload?: (file: File) => Promise<void>;
   blossomUrl: string;
@@ -62,13 +63,15 @@ export function DashboardSettingsDrawer({
   onBlossomUrlChange,
   uploadStatus,
   theme,
-  onToggleTheme
+  onToggleTheme,
 }: DashboardSettingsDrawerProps) {
   const { t } = useI18n();
   const [activeSection, setActiveSection] = useState<DrawerSection>("menu");
   const [revealPassphrase, setRevealPassphrase] = useState("");
   const [revealError, setRevealError] = useState("");
-  const [revealedSecret, setRevealedSecret] = useState("");
+  const [revealedSecret, setRevealedSecret] = useState<ExportedSecret | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [expertOpen, setExpertOpen] = useState(false);
 
   const displayName = profile.name || t("common.states.unnamedTutor");
   const isSubSection = activeSection !== "menu";
@@ -91,16 +94,31 @@ export function DashboardSettingsDrawer({
 
   async function handleRevealSecret() {
     try {
-      const nsec = await onRevealSecret(revealPassphrase);
+      const secret = await onRevealSecret(revealPassphrase);
       setRevealError("");
-      setRevealedSecret(nsec);
+      setRevealedSecret(secret);
       setRevealPassphrase("");
+      setCopied(false);
+      setExpertOpen(false);
     } catch (error) {
       setRevealError(
         error instanceof Error ? error.message : t("profile.revealButton")
       );
     }
   }
+
+  async function handleCopyMnemonic() {
+    if (!revealedSecret?.mnemonic) return;
+    try {
+      await navigator.clipboard.writeText(revealedSecret.mnemonic);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard not available
+    }
+  }
+
+  const mnemonicWords = revealedSecret?.mnemonic ? revealedSecret.mnemonic.split(" ") : [];
 
   function renderHeader() {
     if (isSubSection) {
@@ -214,9 +232,37 @@ export function DashboardSettingsDrawer({
               <button type="button" onClick={handleRevealSecret}>
                 {t("profile.revealButton")}
               </button>
-              {revealedSecret ? (
-                <p className="identity-value">{revealedSecret}</p>
+              {revealedSecret?.mnemonic ? (
+                <div className="mnemonic-grid">
+                  {mnemonicWords.map((word, index) => (
+                    <div key={index} className="mnemonic-card">
+                      <span className="mnemonic-index">{index + 1}</span>
+                      <span className="mnemonic-word">{word}</span>
+                    </div>
+                  ))}
+                </div>
               ) : null}
+              {revealedSecret?.mnemonic ? (
+                <div className="auth-actions" style={{ marginTop: "0.5em" }}>
+                  <Button variant="secondary" type="button" onClick={handleCopyMnemonic}>
+                    {copied ? (
+                      <><Check size={14} /> {t("auth.mnemonicCopied")}</>
+                    ) : (
+                      <><Copy size={14} /> {t("auth.mnemonicCopy")}</>
+                    )}
+                  </Button>
+                </div>
+              ) : null}
+              <details
+                className="auth-expert-spoiler"
+                open={expertOpen}
+                onToggle={(e) => setExpertOpen(e.currentTarget.open)}
+              >
+                <summary>{t("auth.mnemonicExpertSpoiler")}</summary>
+                {revealedSecret ? (
+                  <p className="identity-value">{revealedSecret.nsec}</p>
+                ) : null}
+              </details>
               {revealError ? <p className="muted">{revealError}</p> : null}
               <Button variant="ghost" onClick={onLogout}>
               {t("common.buttons.logout")}

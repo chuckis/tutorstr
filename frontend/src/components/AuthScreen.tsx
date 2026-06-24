@@ -21,6 +21,7 @@ type AuthScreenProps = {
   mode: AuthScreenMode;
   status: string;
   generatedNsec: string;
+  generatedMnemonic: string;
   platform: Platform;
   nip07ExtensionAvailable?: boolean;
   awaitingSigner: AwaitingSigner | null;
@@ -41,6 +42,7 @@ export function AuthScreen({
   mode,
   status,
   generatedNsec,
+  generatedMnemonic,
   platform,
   nip07ExtensionAvailable,
   awaitingSigner,
@@ -65,6 +67,17 @@ export function AuthScreen({
   const [selectedRole, setSelectedRole] = useState<AccountRole | null>(null);
   const [bunkerInput, setBunkerInput] = useState("");
   const [nsecSpoilerOpen, setNsecSpoilerOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopyMnemonic() {
+    try {
+      await navigator.clipboard.writeText(generatedMnemonic);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard not available
+    }
+  }
 
   async function handleCreateProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -152,6 +165,8 @@ export function AuthScreen({
     setLocalError("");
   }
 
+  const mnemonicWords = generatedMnemonic ? generatedMnemonic.split(" ") : [];
+
   return (
     <main className="auth-shell">
       {/* Awaiting signer overlay */}
@@ -181,18 +196,35 @@ export function AuthScreen({
             <p className="muted">{t("auth.heroBody")}</p>
           </section>
 
-          {generatedNsec ? (
+          {generatedNsec && generatedMnemonic ? (
             <section className="auth-panel auth-warning">
               <p className="eyebrow">{t("auth.saveNow")}</p>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <h2>{t("auth.yourSecretKey")}</h2>
+                <h2>{t("auth.mnemonicBackupTitle")}</h2>
                 <HintIcon
                   hintId="nostr-key"
                   title={t("hints.nostr-key.title")}
                   content={t("hints.nostr-key.content")}
                 />
               </div>
-              <p className="secret-value">{generatedNsec}</p>
+              <p className="muted">{t("auth.mnemonicBackupBody")}</p>
+              <div className="mnemonic-grid">
+                {mnemonicWords.map((word, index) => (
+                  <div key={index} className="mnemonic-card">
+                    <span className="mnemonic-index">{index + 1}</span>
+                    <span className="mnemonic-word">{word}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="auth-actions">
+                <Button variant="secondary" type="button" onClick={handleCopyMnemonic}>
+                  {copied ? t("auth.mnemonicCopied") : t("auth.mnemonicCopy")}
+                </Button>
+              </div>
+              <details className="auth-expert-spoiler">
+                <summary>{t("auth.mnemonicExpertSpoiler")}</summary>
+                <p className="secret-value">{generatedNsec}</p>
+              </details>
               <p className="warning-text">{t("auth.warning")}</p>
               <Checkbox
                 label={t("auth.backupConfirmed")}
@@ -239,10 +271,8 @@ export function AuthScreen({
                 <>
                   <h2>{t("auth.chooseStart")}</h2>
 
-                  {/* Platform-adaptive primary buttons */}
                   {platform === "mobile" ? (
                     <>
-                      {/* NIP-55 — primary for mobile */}
                       <Button
                         variant="primary"
                         type="button"
@@ -256,7 +286,6 @@ export function AuthScreen({
 
                   {platform === "desktop" || nip07ExtensionAvailable ? (
                     <>
-                      {/* NIP-07 — primary for desktop, secondary for mobile */}
                       {nip07ExtensionAvailable ? (
                         <Button
                           variant={platform === "desktop" ? "primary" : "secondary"}
@@ -278,7 +307,6 @@ export function AuthScreen({
                     </>
                   ) : null}
 
-                  {/* NIP-46 Bunker input */}
                   <div className="auth-divider-rule">
                     <span>{t("auth.orDivider")}</span>
                   </div>
@@ -299,10 +327,6 @@ export function AuthScreen({
                     </Button>
                   </div>
 
-                  {/* NIP-55 on desktop — hidden */}
-                  {platform === "desktop" ? null : null}
-
-                  {/* NSec spoiler */}
                   <div className="auth-divider-rule" />
 
                   <button

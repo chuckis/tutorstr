@@ -5,7 +5,7 @@ import {
   isAccountRole
 } from "./account";
 
-export const AUTH_VAULT_VERSION = 2;
+export const AUTH_VAULT_VERSION = 3;
 
 export type AuthMethod = "vault" | "nip07" | "nip46" | "nip55";
 
@@ -25,6 +25,7 @@ export type VaultRecord = {
   kdfIterations: number;
   pubkey: string;
   npub: string;
+  mnemonic?: string;
 };
 
 export type ParsedSecretInput = {
@@ -37,6 +38,18 @@ export class AuthError extends Error {}
 export class InvalidSecretInputError extends AuthError {
   constructor() {
     super("auth.runtime.invalidSecretInput");
+  }
+}
+
+export class InvalidWordCountError extends AuthError {
+  constructor() {
+    super("auth.runtime.invalidWordCount");
+  }
+}
+
+export class InvalidMnemonicChecksumError extends AuthError {
+  constructor() {
+    super("auth.runtime.invalidMnemonicChecksum");
   }
 }
 
@@ -54,7 +67,25 @@ export class MissingVaultError extends AuthError {
 
 export const LEGACY_VAULT_ROLE_FALLBACK: AccountRole = LEGACY_ACCOUNT_ROLE;
 
-export function isLegacyVaultRecord(value: unknown): value is Omit<VaultRecord, "role" | "version"> & {
+export type V2VaultRecord = Omit<VaultRecord, "mnemonic"> & {
+  version: 2;
+};
+
+function isV2VaultRecord(value: unknown): value is V2VaultRecord {
+  if (!value || typeof value !== "object") return false;
+  const r = value as Record<string, unknown>;
+  return (
+    typeof r.encryptedPrivateKey === "string" &&
+    typeof r.iv === "string" &&
+    typeof r.salt === "string" &&
+    typeof r.kdfIterations === "number" &&
+    typeof r.pubkey === "string" &&
+    typeof r.npub === "string" &&
+    r.version === 2
+  );
+}
+
+function isLegacyVaultRecord(value: unknown): value is Omit<VaultRecord, "role" | "version" | "mnemonic"> & {
   version?: number;
   role?: unknown;
 } {
@@ -75,11 +106,25 @@ export function isLegacyVaultRecord(value: unknown): value is Omit<VaultRecord, 
 }
 
 export function migrateVaultRecord(raw: unknown): VaultRecord {
+  if (isV2VaultRecord(raw)) {
+    const { version: _v, ...rest } = raw;
+    return {
+      version: 2,
+      role: rest.role,
+      encryptedPrivateKey: rest.encryptedPrivateKey,
+      iv: rest.iv,
+      salt: rest.salt,
+      kdfIterations: rest.kdfIterations,
+      pubkey: rest.pubkey,
+      npub: rest.npub
+    };
+  }
+
   if (!isLegacyVaultRecord(raw)) {
     throw new AuthError("auth.runtime.invalidVaultShape");
   }
 
-  const { role, version, ...rest } = raw;
+  const { role, version: _v, ...rest } = raw;
   let resolvedRole: AccountRole;
 
   if (role === undefined || role === null) {
@@ -98,6 +143,7 @@ export function migrateVaultRecord(raw: unknown): VaultRecord {
     salt: rest.salt,
     kdfIterations: rest.kdfIterations,
     pubkey: rest.pubkey,
-    npub: rest.npub
+    npub: rest.npub,
+    mnemonic: undefined
   };
 }

@@ -3,6 +3,11 @@ import { NostrKeyMaterial } from "../../ports/nostrKeyMaterial";
 import { AuthVaultRepository } from "../../ports/authVaultRepository";
 import { VaultCipher } from "../../ports/vaultCipher";
 
+export type ExportedSecret = {
+  nsec: string;
+  mnemonic: string | null;
+};
+
 type ExportSecretKeyDependencies = {
   vaultRepository: AuthVaultRepository;
   vaultCipher: VaultCipher;
@@ -12,7 +17,7 @@ type ExportSecretKeyDependencies = {
 export async function exportSecretKey(
   dependencies: ExportSecretKeyDependencies,
   input: { passphrase: string }
-): Promise<string> {
+): Promise<ExportedSecret> {
   const vault = dependencies.vaultRepository.load();
   if (!vault) {
     throw new MissingVaultError();
@@ -28,5 +33,8 @@ export async function exportSecretKey(
     input.passphrase
   );
 
-  return dependencies.keyMaterial.encodeNsec(secretKeyHex);
+  return {
+    nsec: dependencies.keyMaterial.encodeNsec(secretKeyHex),
+    mnemonic: vault.mnemonic ?? null
+  };
 }

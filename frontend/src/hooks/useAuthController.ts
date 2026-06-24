@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { nip19 } from "nostr-tools";
-import { createNewProfile } from "../application/auth/createNewProfile";
+import { generateMnemonicProfile } from "../application/auth/generateMnemonicProfile";
+import type { MnemonicProfileResult } from "../application/auth/generateMnemonicProfile";
 import { exportSecretKey } from "../application/auth/exportSecretKey";
+import type { ExportedSecret } from "../application/auth/exportSecretKey";
 import { importExistingKey } from "../application/auth/importExistingKey";
 import { logout as logoutUseCase } from "../application/auth/logout";
 import { restoreStoredSession, restoreNip46Signer } from "../application/auth/restoreStoredSession";
@@ -39,6 +41,7 @@ type PendingGeneratedProfile = {
   secretKeyHex: string;
   passphrase: string;
   session: AuthSession;
+  mnemonic: string;
 };
 
 type PendingRolePick = {
@@ -97,6 +100,7 @@ export function useAuthController(
   const [session, setSession] = useState<AuthSession | null>(null);
   const [status, setStatus] = useState("");
   const [generatedNsec, setGeneratedNsec] = useState("");
+  const [generatedMnemonic, setGeneratedMnemonic] = useState("");
   const [pendingGeneratedProfile, setPendingGeneratedProfile] =
     useState<PendingGeneratedProfile | null>(null);
   const [pendingRolePick, setPendingRolePick] = useState<PendingRolePick | null>(null);
@@ -119,9 +123,6 @@ export function useAuthController(
     setSession(restored);
 
     if (restored.method === "nip07") {
-      // createNip07Signer no longer throws on construction —
-      // window.nostr access is lazy, so this is safe even if
-      // the extension hasn't injected yet.
       const signer = createNip07Signer(restored);
       authDeps.signerManager.setSigner(signer);
       setMode("authenticated");
@@ -135,7 +136,6 @@ export function useAuthController(
         setMode("authenticated");
         return;
       }
-      // Session expired — clear and go to welcome
       Nip46Signer.clearPersistedSession();
       authDeps.signerManager.setSigner(null);
       setSession(null);
@@ -143,7 +143,6 @@ export function useAuthController(
       return;
     }
 
-    // Vault-based session requires unlock
     setMode("unlock");
   }, [authDeps.signerManager, authDeps.vaultRepository]);
 
@@ -225,7 +224,6 @@ export function useAuthController(
 
   function finishNip46Auth(pubkey: string, npub: string, role: AccountRole) {
     const nextSession: AuthSession = { pubkey, npub, role, method: "nip46" };
-    // Signer is already set via connectBunker, just update session
     setSession(nextSession);
     setNip46Pending(null);
     setStatus("");
@@ -240,27 +238,23 @@ export function useAuthController(
         setMode("role-pick");
       },
       async chooseRole(role: AccountRole) {
-        // NIP-46 role-pick branch
         if (nip46Pending) {
           finishNip46Auth(nip46Pending.pubkey, nip46Pending.npub, role);
           return;
         }
 
-        // NIP-55 role-pick branch
         if (nip55Pending) {
           setStatus(t("auth.connecting"));
           finishNip55Auth(nip55Pending.pubkey, nip55Pending.npub, role);
           return;
         }
 
-        // NIP-07 role-pick branch
         if (nip07Pending) {
           setStatus(t("auth.connecting"));
           finishNip07Auth(nip07Pending.pubkey, nip07Pending.npub, role);
           return;
         }
 
-        // Import existing key branch
         if (pendingImportProfile) {
           setStatus(t("auth.importPanelTitle"));
           try {
@@ -281,7 +275,6 @@ export function useAuthController(
           return;
         }
 
-        // Vault create branch
         if (!pendingRolePick) {
           return;
         }
@@ -289,15 +282,16 @@ export function useAuthController(
         setStatus(t("auth.createTitle"));
 
         try {
-          const result = await createNewProfile(authDeps, {
-            passphrase: pendingRolePick.passphrase,
+          const result: MnemonicProfileResult = await generateMnemonicProfile(authDeps, {
             role
           });
           setGeneratedNsec(result.nsec);
+          setGeneratedMnemonic(result.mnemonic);
           setPendingGeneratedProfile({
             secretKeyHex: result.secretKeyHex,
             passphrase: pendingRolePick.passphrase,
-            session: result.session
+            session: result.session,
+            mnemonic: result.mnemonic
           });
           setPendingRolePick(null);
           setMode("welcome");
@@ -390,7 +384,6 @@ export function useAuthController(
         }
 
         if (parsed.type === "nip05") {
-          // NIP-05 resolution not yet implemented — require direct bunker URI
           setStatus("Direct bunker:// URI required. NIP-05 resolution coming soon.");
           setMode("welcome");
           return;
@@ -429,7 +422,6 @@ export function useAuthController(
         setStatus(t("auth.importPanelTitle"));
 
         try {
-          // Validate the key first, then show role-pick
           await authDeps.keyMaterial.parseSecretInput(secret);
           setPendingImportProfile({ secret, passphrase });
           setMode("role-pick");
@@ -452,7 +444,7 @@ export function useAuthController(
           setStatus(toLocalizedErrorMessage(error, t) || t("auth.unlockTitle"));
         }
       },
-      async revealSecret(passphrase: string) {
+      async revealSecret(passphrase: string): Promise<ExportedSecret> {
         try {
           return await exportSecretKey(authDeps, { passphrase });
         } catch (error) {
@@ -470,6 +462,7 @@ export function useAuthController(
         Nip46Signer.clearPersistedSession();
         authDeps.signerManager.setSigner(null);
         setGeneratedNsec("");
+        setGeneratedMnemonic("");
         setPendingGeneratedProfile(null);
         setPendingRolePick(null);
         setPendingImportProfile(null);
@@ -483,6 +476,7 @@ export function useAuthController(
       async dismissGeneratedSecret() {
         if (!pendingGeneratedProfile) {
           setGeneratedNsec("");
+          setGeneratedMnemonic("");
           return;
         }
 
@@ -494,7 +488,8 @@ export function useAuthController(
             passphrase: pendingGeneratedProfile.passphrase,
             pubkey: pendingGeneratedProfile.session.pubkey,
             npub: pendingGeneratedProfile.session.npub,
-            role: pendingGeneratedProfile.session.role
+            role: pendingGeneratedProfile.session.role,
+            mnemonic: pendingGeneratedProfile.mnemonic
           });
           const signer = createSigner(
             pendingGeneratedProfile.session,
@@ -504,6 +499,7 @@ export function useAuthController(
           setSession(pendingGeneratedProfile.session);
           setMode("authenticated");
           setGeneratedNsec("");
+          setGeneratedMnemonic("");
           setPendingGeneratedProfile(null);
           setStatus("");
         } catch (error) {
@@ -522,6 +518,7 @@ export function useAuthController(
     role: session?.role ?? null,
     status,
     generatedNsec,
+    generatedMnemonic,
     isAuthenticated,
     nip07ExtensionAvailable,
     actions

@@ -16,6 +16,7 @@ export async function saveGeneratedProfile(
     pubkey: string;
     npub: string;
     role: AccountRole;
+    mnemonic?: string;
   }
 ) {
   const encrypted = await dependencies.vaultCipher.encrypt(
@@ -31,6 +32,7 @@ export async function saveGeneratedProfile(
     salt: encrypted.salt,
     kdfIterations: encrypted.kdfIterations,
     pubkey: input.pubkey,
-    npub: input.npub
+    npub: input.npub,
+    mnemonic: input.mnemonic
   });
 }

@@ -60,7 +60,7 @@ describe("importExistingKey", () => {
 
     expect(session.role).toBe("tutor");
     expect(saveSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ role: "tutor", version: 2 })
+      expect.objectContaining({ role: "tutor", version: 3 })
     );
   });
 

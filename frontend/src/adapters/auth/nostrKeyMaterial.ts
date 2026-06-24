@@ -1,11 +1,18 @@
 import { nip19 } from "nostr-tools";
 import * as nip06 from "nostr-tools/nip06";
 import { generateSecretKey, getPublicKey } from "nostr-tools/pure";
+import { generateMnemonic, mnemonicToSeedSync, validateMnemonic } from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
+import { HDKey } from "@scure/bip32";
 import {
   InvalidSecretInputError,
+  InvalidWordCountError,
+  InvalidMnemonicChecksumError,
   ParsedSecretInput
 } from "../../domain/auth";
 import { NostrKeyMaterial } from "../../ports/nostrKeyMaterial";
+
+const MNEMONIC_DERIVATION_PATH = "m/44'/1237'/0'/0/0";
 
 function bytesToHex(bytes: Uint8Array) {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -25,7 +32,7 @@ function hexToBytes(hex: string) {
 }
 
 function normalizeSecretInput(value: string) {
-  return value.trim();
+  return value.trim().toLowerCase();
 }
 
 async function parseSecretInput(value: string): Promise<ParsedSecretInput> {
@@ -55,6 +62,10 @@ async function parseSecretInput(value: string): Promise<ParsedSecretInput> {
 
   const words = normalized.split(/\s+/).filter(Boolean);
   if (words.length === 12 || words.length === 24) {
+    if (!validateMnemonic(normalized, wordlist)) {
+      throw new InvalidMnemonicChecksumError();
+    }
+
     try {
       const secretKey = nip06.privateKeyFromSeedWords(normalized, "", 0);
       return {
@@ -66,7 +77,23 @@ async function parseSecretInput(value: string): Promise<ParsedSecretInput> {
     }
   }
 
+  if (words.length > 0 && words.length !== 12 && words.length !== 24) {
+    throw new InvalidWordCountError();
+  }
+
   throw new InvalidSecretInputError();
+}
+
+function generateMnemonicImpl(): string {
+  return generateMnemonic(wordlist, 128);
+}
+
+function mnemonicToSecretKey(mnemonic: string): string {
+  const normalized = mnemonic.trim().toLowerCase();
+  const seed = mnemonicToSeedSync(normalized);
+  const root = HDKey.fromMasterSeed(seed);
+  const child = root.derive(MNEMONIC_DERIVATION_PATH);
+  return bytesToHex(child.privateKey!);
 }
 
 export const nostrKeyMaterial: NostrKeyMaterial = {
@@ -82,7 +109,9 @@ export const nostrKeyMaterial: NostrKeyMaterial = {
   encodeNpub(pubkey) {
     return nip19.npubEncode(pubkey);
   },
-  parseSecretInput
+  parseSecretInput,
+  generateMnemonic: generateMnemonicImpl,
+  mnemonicToSecretKey
 };
 
 export function secretKeyHexToBytes(secretKeyHex: string) {

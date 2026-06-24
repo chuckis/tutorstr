@@ -23,6 +23,7 @@ import { BlogEditorView } from "./components/blog/BlogEditorView";
 import { MyBlogView } from "./components/blog/MyBlogView";
 import { BlogPostView } from "./components/blog/BlogPostView";
 import { AuthSession } from "./domain/auth";
+import type { ExportedSecret } from "./application/auth/exportSecretKey";
 import { authVaultRepository } from "./adapters/auth/localStorageVaultRepository";
 import { webCryptoVaultCipher } from "./adapters/auth/webCryptoVaultCipher";
 import { nostrKeyMaterial } from "./adapters/auth/nostrKeyMaterial";
@@ -90,6 +91,7 @@ export default function App() {
         }
         status={auth.status}
         generatedNsec={auth.generatedNsec}
+        generatedMnemonic={auth.generatedMnemonic}
         platform={platform}
         nip07ExtensionAvailable={auth.nip07ExtensionAvailable}
         awaitingSigner={awaitingSigner}
@@ -122,7 +124,7 @@ export default function App() {
 type AuthenticatedAppProps = {
   viewerRole: AccountRole;
   onLogout: () => void;
-  onRevealSecret: (passphrase: string) => Promise<string>;
+  onRevealSecret: (passphrase: string) => Promise<ExportedSecret>;
 };
 
 function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: AuthenticatedAppProps) {
