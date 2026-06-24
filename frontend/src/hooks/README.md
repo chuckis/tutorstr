@@ -95,9 +95,9 @@ Own blog CRUD for the authenticated user. Accepts `pubkey` and `viewerRole`. Ret
 
 ## Dependency rules
 
-- Hooks **never** import from `../nostr/` or `../adapters/` directly
-- Adapters are accessed only through `RepoContext` (`useRepo()`)
+- Adapters are accessed through `RepoContext` (`useRepo()`)
 - Port event types for components are re-exported through `hookTypes.ts`
 - UI components import hooks, never use cases or repositories directly
+- **Exception:** some hooks import from `../nostr/` directly when the operation is inherently Nostr-bound (e.g., auth role discovery, lesson subscriptions, relay list operations). These are documented in the nostr/ README as an acknowledged deviation from Clean Architecture — the Nostr transport dependency is intentional and kept local rather than abstracted behind an adapter layer.
 - Role-aware hooks default to `"tutor"` for backward compat; `useAppController` passes the actual role
 - Context providers (`RepoContext`, `NotificationContext`) are not hooks but live here for proximity to consumers

@@ -12,6 +12,10 @@ Nostr relay client, configuration, and event kind definitions.
 
 ## Rules
 
-- Only imported by adapters (repository layer) — `App.tsx` and `RepoContext.tsx` are the composition root exceptions
-- Hooks no longer import from here; they access Nostr through `RepoContext` port adapters
+- Primary consumers are adapters (repository layer), `App.tsx`, and `RepoContext.tsx`
+- **Acknowledged deviation:** Several hooks import from here directly when abstracting Nostr transport behind a port adds no value:
+  - `useAuthController` — `nostrClient` (NIP-07/NIP-55/NIP-46 role discovery)
+  - `useLessons` — `nostrClient`, `TutorHubKind` (lesson subscription)
+  - `useRelays` — `DEFAULT_RELAYS` (relay list config)
+  - `usePublishRelayList` — `nostrClient` (relay list publish)
 - UI components never import from here directly

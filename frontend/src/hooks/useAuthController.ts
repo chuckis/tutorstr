@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { nip19 } from "nostr-tools";
 import { generateMnemonicProfile } from "../application/auth/generateMnemonicProfile";
 import type { MnemonicProfileResult } from "../application/auth/generateMnemonicProfile";
@@ -81,6 +81,7 @@ type SignerFactory = (
 ) => NostrSigner;
 
 const NIP07_ROLE_DISCOVERY_TIMEOUT = 8000;
+const ROLE_DISCOVERY_TIMEOUT = 5000;
 
 function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
   if (!(error instanceof Error)) {
@@ -89,6 +90,55 @@ function toLocalizedErrorMessage(error: unknown, t: (key: string) => string) {
 
   const translated = t(error.message);
   return translated === error.message ? error.message : translated;
+}
+
+
+function parseRoleFromKind0Event(event: { content: string; tags: string[][] }): AccountRole | null {
+  try {
+    const parsed = JSON.parse(event.content) as Record<string, unknown>;
+    const role = parsed.role;
+    if (role === "tutor" || role === "student") {
+      return role as AccountRole;
+    }
+  } catch {
+    // ignore parse errors
+  }
+
+  const tagRole = event.tags.find(
+    ([k, v]) => k === "t" && (v === "role:tutor" || v === "role:student")
+  );
+  if (tagRole) {
+    return tagRole[1].split(":")[1] as AccountRole;
+  }
+
+  return null;
+}
+
+function discoverRoleFromKind0(pubkey: string, timeoutMs: number): Promise<AccountRole | null> {
+  return new Promise((resolve) => {
+    let resolved = false;
+
+    const unsub = nostrClient.subscribe(
+      { kinds: [0], authors: [pubkey], limit: 1 },
+      (event) => {
+        if (resolved) return;
+        const role = parseRoleFromKind0Event(event);
+        if (role) {
+          resolved = true;
+          clearTimeout(timer);
+          unsub();
+          resolve(role);
+        }
+      },
+    );
+
+    const timer = setTimeout(() => {
+      if (resolved) return;
+      resolved = true;
+      unsub();
+      resolve(null);
+    }, timeoutMs);
+  });
 }
 
 export function useAuthController(
@@ -108,8 +158,6 @@ export function useAuthController(
   const [nip07Pending, setNip07Pending] = useState<Nip07Pending | null>(null);
   const [nip55Pending, setNip55Pending] = useState<Nip55Pending | null>(null);
   const [nip46Pending, setNip46Pending] = useState<Nip46Pending | null>(null);
-  const nip07SubRef = useRef<(() => void) | null>(null);
-  const nip07TimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const restored = restoreStoredSession(authDeps.vaultRepository);
@@ -146,59 +194,9 @@ export function useAuthController(
     setMode("unlock");
   }, [authDeps.signerManager, authDeps.vaultRepository]);
 
-  useEffect(() => {
-    return () => {
-      nip07SubRef.current?.();
-      if (nip07TimerRef.current) clearTimeout(nip07TimerRef.current);
-    };
-  }, []);
-
   const isAuthenticated = mode === "authenticated" && session !== null;
 
   const nip07ExtensionAvailable = isNip07Available();
-
-  function startNip07RoleDiscovery(pubkey: string, npub: string) {
-    let resolved = false;
-
-    nip07SubRef.current = nostrClient.subscribe(
-      { kinds: [0], authors: [pubkey], limit: 1 },
-      (event) => {
-        if (resolved) return;
-        try {
-          const parsed = JSON.parse(event.content) as Record<string, unknown>;
-          const role = typeof parsed.role === "string"
-            ? (parsed.role as AccountRole)
-            : null;
-          const tagRole = event.tags.find(
-            ([k, v]) => k === "t" && (v === "role:tutor" || v === "role:student")
-          );
-
-          if (role === "tutor" || role === "student") {
-            resolved = true;
-            nip07SubRef.current?.();
-            if (nip07TimerRef.current) clearTimeout(nip07TimerRef.current);
-            finishNip07Auth(pubkey, npub, role);
-          } else if (tagRole) {
-            resolved = true;
-            nip07SubRef.current?.();
-            if (nip07TimerRef.current) clearTimeout(nip07TimerRef.current);
-            const extractedRole = tagRole[1].split(":")[1] as AccountRole;
-            finishNip07Auth(pubkey, npub, extractedRole);
-          }
-        } catch {
-          // ignore parse errors
-        }
-      },
-    );
-
-    nip07TimerRef.current = setTimeout(() => {
-      if (resolved) return;
-      nip07SubRef.current?.();
-      setNip07Pending({ pubkey, npub });
-      setMode("role-pick");
-      setStatus("");
-    }, NIP07_ROLE_DISCOVERY_TIMEOUT);
-  }
 
   function finishNip07Auth(pubkey: string, npub: string, role: AccountRole) {
     const nextSession: AuthSession = { pubkey, npub, role, method: "nip07" };
@@ -349,7 +347,15 @@ export function useAuthController(
           const pubkey = await nostr.getPublicKey();
           const npub = nip19.npubEncode(pubkey);
           setStatus(t("auth.checkingProfile"));
-          startNip07RoleDiscovery(pubkey, npub);
+
+          const role = await discoverRoleFromKind0(pubkey, NIP07_ROLE_DISCOVERY_TIMEOUT);
+          if (role) {
+            finishNip07Auth(pubkey, npub, role);
+          } else {
+            setNip07Pending({ pubkey, npub });
+            setMode("role-pick");
+            setStatus("");
+          }
         } catch (error) {
           setStatus(toLocalizedErrorMessage(error, t) || t("auth.connectionFailed"));
           setMode("welcome");
@@ -369,12 +375,20 @@ export function useAuthController(
       },
       completeNip55Auth(pubkey: string) {
         const npub = nip19.npubEncode(pubkey);
-        const signer = new Nip55Signer(NIP55_CALLBACK_URL);
-        signer.setSession(pubkey);
-        authDeps.signerManager.setSigner(signer);
-        setNip55Pending({ pubkey, npub });
-        setMode("role-pick");
-        setStatus("");
+        setStatus(t("auth.checkingProfile"));
+
+        discoverRoleFromKind0(pubkey, ROLE_DISCOVERY_TIMEOUT).then((role) => {
+          if (role) {
+            finishNip55Auth(pubkey, npub, role);
+          } else {
+            const signer = new Nip55Signer(NIP55_CALLBACK_URL);
+            signer.setSession(pubkey);
+            authDeps.signerManager.setSigner(signer);
+            setNip55Pending({ pubkey, npub });
+            setMode("role-pick");
+            setStatus("");
+          }
+        });
       },
       async connectBunker(bunkerUri: string) {
         const parsed = parseBunkerInput(bunkerUri);
@@ -403,12 +417,16 @@ export function useAuthController(
           const signer = new Nip46Signer(parsed.bunkerPubkey, relayUrl);
           const userPubkey = await signer.connect();
           const npub = nip19.npubEncode(userPubkey);
-
           authDeps.signerManager.setSigner(signer);
 
-          setNip46Pending({ pubkey: userPubkey, npub });
-          setMode("role-pick");
-          setStatus("");
+          const role = await discoverRoleFromKind0(userPubkey, ROLE_DISCOVERY_TIMEOUT);
+          if (role) {
+            finishNip46Auth(userPubkey, npub, role);
+          } else {
+            setNip46Pending({ pubkey: userPubkey, npub });
+            setMode("role-pick");
+            setStatus("");
+          }
         } catch (error) {
           setStatus(
             error instanceof Error
@@ -422,10 +440,30 @@ export function useAuthController(
         setStatus(t("auth.importPanelTitle"));
 
         try {
-          await authDeps.keyMaterial.parseSecretInput(secret);
-          setPendingImportProfile({ secret, passphrase });
-          setMode("role-pick");
-          setStatus("");
+          const parsed = await authDeps.keyMaterial.parseSecretInput(secret);
+          const pubkey = authDeps.keyMaterial.derivePublicKey(parsed.secretKeyHex);
+
+          const role = await discoverRoleFromKind0(pubkey, ROLE_DISCOVERY_TIMEOUT);
+          if (role) {
+            try {
+              const nextSession = await importExistingKey(authDeps, {
+                secret,
+                passphrase,
+                role
+              });
+              const signer = createSigner(nextSession, passphrase);
+              authDeps.signerManager.setSigner(signer);
+              setSession(nextSession);
+              setMode("authenticated");
+              setStatus("");
+            } catch (error) {
+              setStatus(toLocalizedErrorMessage(error, t) || t("auth.importTitle"));
+            }
+          } else {
+            setPendingImportProfile({ secret, passphrase });
+            setMode("role-pick");
+            setStatus("");
+          }
         } catch (error) {
           setStatus(toLocalizedErrorMessage(error, t) || t("auth.importTitle"));
         }
@@ -456,8 +494,6 @@ export function useAuthController(
         }
       },
       logout() {
-        nip07SubRef.current?.();
-        if (nip07TimerRef.current) clearTimeout(nip07TimerRef.current);
         logoutUseCase(authDeps.vaultRepository);
         Nip46Signer.clearPersistedSession();
         authDeps.signerManager.setSigner(null);
