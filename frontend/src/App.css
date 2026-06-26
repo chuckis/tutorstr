@@ -83,6 +83,8 @@
   --color-overlay-bg: rgba(0, 0, 0, 0.92);
 }
 
+svg { vertical-align: middle; display: inline-block; }
+
 .app-shell {
   min-height: 100dvh;
   display: flex;
@@ -299,16 +301,16 @@
 
 .profile-badge-button {
   display: flex;
-  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
+  align-items: center;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   width: 40px;
   height: 40px;
-  padding: 0;
+  padding: 3px;
   border-radius: 50%;
   background: transparent;
   color: var(--color-text);
   border-color: var(--color-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: 0px 1px 8px 0px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
 }
 
@@ -527,55 +529,6 @@
   justify-self: start;
 }
 
-.settings-menu-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.settings-menu-item {
-  width: 100%;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--space-3);
-  display: flex;
-  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
-  gap: var(--space-3);
-  text-align: left;
-  font: inherit;
-  color: var(--color-text);
-  cursor: pointer;
-  transition: background var(--motion), border-color var(--motion);
-}
-
-.settings-menu-item:hover,
-.settings-menu-item:focus-visible {
-  background: var(--color-surface-hover);
-  border-color: var(--color-border-hover);
-}
-
-.settings-menu-item-icon {
-  display: flex;
-  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--radius);
-  background: var(--color-surface-secondary);
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-.settings-menu-item-label {
-  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
-  font-weight: 500;
-}
-
-.settings-menu-item-chevron {
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
 
 .settings-article {
   display: flex;
@@ -1445,13 +1398,13 @@ button:active {
   height: 28px;
   min-height: 28px;
   min-width: 28px;
-  padding: 0;
+  padding: 5px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--color-muted);
   display: inline-flex;
-  align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
+  align-items: center;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
@@ -2486,6 +2439,58 @@ button:active {
 
 .ui-btn__spinner {
   animation: ui-btn-spin 600ms linear infinite;
+}
+
+.settings-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.settings-menu-item {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  display: flex;
+  align-items: center;   /* Центрирует иконку относительно текста */
+
+  gap: var(--space-3);
+  text-align: left;
+  font: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--motion), border-color var(--motion);
+}
+
+.settings-menu-item:hover,
+.settings-menu-item:focus-visible {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+}
+
+.settings-menu-item-icon {
+  display: flex;
+  align-items: center;   /* Центрирует иконку относительно текста */
+
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.settings-menu-item-label {
+  flex-grow: 1;           /* Текстовый блок занимает все доступное место, оттесняя меню вправо */
+  font-weight: 500;
+}
+
+.settings-menu-item-chevron {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
 /* =============================================

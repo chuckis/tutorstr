@@ -285,16 +285,16 @@ export function DashboardSettingsDrawer({
           <>
             <nav className="settings-menu-list">
               {MENU_ITEMS.map((item) => (
-                <Button variant="ghost"
+                <button
                   key={item.section}
                   type="button"
-                  className="settings-menu-item"
+                  className="ui-btn ui-btn--ghost ui-btn--md settings-menu-item"
                   onClick={() => navigateTo(item.section)}
                 >
                   <span className="settings-menu-item-icon">{item.icon}</span>
                   <span className="settings-menu-item-label">{t(item.labelKey)}</span>
                   <ChevronRight size={16} className="settings-menu-item-chevron" />
-                </Button>
+                </button>
               ))}
             </nav>
 
