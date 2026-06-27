@@ -2190,7 +2190,21 @@ button:active {
 }
 
 /* ── Lesson Note List / Detail / Visibility chips ── */
+.lesson-note-editor {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
 
+.lesson-note-editor__toolbar {
+  flex-wrap: wrap;
+}
+
+.lesson-note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
 .note-list {
   display: flex;
   flex-direction: column;

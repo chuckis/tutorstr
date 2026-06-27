@@ -147,6 +147,7 @@ export function LessonNoteEditor({
           contentEditableClassName="lesson-note-editor__body"
           plugins={[
             toolbarPlugin({
+              toolbarClassName: "lesson-note-editor__toolbar",
               toolbarContents: () => (
                 <>
                   <UndoRedo />
