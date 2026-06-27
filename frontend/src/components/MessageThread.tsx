@@ -52,6 +52,16 @@ export function MessageThread({ messages, currentPubkey, resolveSenderName }: Me
           ? t("common.messages.you")
           : resolveSenderName?.(message.pubkey);
 
+        let timestamp: string;
+        try {
+          const ms = Number.isFinite(message.created_at) && message.created_at > 0
+            ? message.created_at * 1000
+            : Date.now();
+          timestamp = new Date(ms).toISOString();
+        } catch {
+          timestamp = new Date().toISOString();
+        }
+
         return (
           <div
             key={message.id}
@@ -63,7 +73,7 @@ export function MessageThread({ messages, currentPubkey, resolveSenderName }: Me
             </div>
             <span className="muted message-timestamp">
               {senderName ? <>{senderName} · </> : null}
-              {formatDateTime(new Date(message.created_at * 1000).toISOString())}
+              {formatDateTime(timestamp)}
             </span>
           </div>
         );

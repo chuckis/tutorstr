@@ -1,9 +1,11 @@
 import { AccountRole, EncryptedMessage, UserProfileEvent } from "../hooks/hookTypes";
 import { fallbackDirectMessageThreadKey } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
+import { useReviewsForSubject } from "../hooks/useReviewsForSubject";
 import { Avatar } from "./Avatar";
 import { DetailPageLayout } from "./DetailPageLayout";
 import { KebabMenu } from "./ui/KebabMenu";
+import { ReputationBadge } from "./ReputationBadge";
 
 type StudentDetailViewProps = {
   profile: UserProfileEvent;
@@ -34,6 +36,7 @@ export function StudentDetailView({
   onReportUser,
 }: StudentDetailViewProps) {
   const { t } = useI18n();
+  const { reputation } = useReviewsForSubject(profile.pubkey);
   const role = profile.profile.role ?? "student";
 
   const kebabItems = [
@@ -67,6 +70,9 @@ export function StudentDetailView({
             </div>
           ) : null}
         </div>
+        {reputation ? (
+          <ReputationBadge reputation={reputation} />
+        ) : null}
         <p>{profile.profile.bio || t("common.states.noBioYet")}</p>
       </article>
     </DetailPageLayout>

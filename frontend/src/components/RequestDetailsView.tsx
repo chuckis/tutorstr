@@ -1,6 +1,7 @@
 import { SelectedRequestViewModel } from "../hooks/useRequestsTabViewModel";
 import { useI18n } from "../i18n/I18nProvider";
 import { EncryptedMessage } from "../hooks/hookTypes";
+import { useReviewsForSubject } from "../hooks/useReviewsForSubject";
 import { DetailPageLayout } from "./DetailPageLayout";
 import { MessageComposer } from "./MessageComposer";
 import { MessageThread } from "./MessageThread";
@@ -44,6 +45,7 @@ export function RequestDetailsView({
   onReportUser,
 }: RequestDetailsViewProps) {
   const { t, formatDateTime: formatLocalizedDateTime } = useI18n();
+  const { reputation } = useReviewsForSubject(selectedRequest.recipientPubkey);
 
   const requestSubtitle = `${selectedRequest.counterpartyProfile?.profile.name || t("common.states.unknown")} · ${formatLocalizedDateTime(selectedRequest.request.scheduledAt)}`;
   const counterpartyName = selectedRequest.counterpartyProfile?.profile.name;
@@ -54,10 +56,9 @@ export function RequestDetailsView({
       onBack={onBack}
     >
       <CounterpartyCard
-        counterpartyProfile={selectedRequest.counterpartyProfile}
-        recipientPubkey={selectedRequest.recipientPubkey}
-        status={selectedRequest.request.status}
-        reasonLabel={selectedRequest.reasonLabel}
+        profile={selectedRequest.counterpartyProfile}
+        role={selectedRequest.viewerRole === "tutor" ? "student" : "tutor"}
+        reputation={reputation}
         onViewProfile={onViewProfile}
         onBlockUser={onBlockUser}
         onReportUser={onReportUser}

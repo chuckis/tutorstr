@@ -10,7 +10,7 @@ export function RequestStatusHistory({
 }: RequestStatusHistoryProps) {
   const { t, formatDateTime } = useI18n();
 
-  if (entries.length === 0) {
+  if (!entries || entries.length === 0) {
     return null;
   }
 
@@ -18,24 +18,37 @@ export function RequestStatusHistory({
     <div className="status-history">
       <h3>{t("requests.statusHistory")}</h3>
       <ul className="status-history-list">
-        {entries.map((entry, index) => (
-          <li key={index} className="status-history-item">
-            <div className="status-history-dot" />
-            <div className="status-history-content">
-              <span className={`status-pill status-${entry.status}`}>
-                {t(`common.status.${entry.status}`)}
-              </span>
-              <span className="muted">
-                {formatDateTime(new Date(entry.timestamp * 1000).toISOString())}
-              </span>
-              {entry.reason ? (
-                <span className="muted">
-                  {t(`common.requestResolution.${entry.reason}`)}
+        {entries.map((entry, index) => {
+          let ms: number;
+          try {
+            ms = Number.isFinite(entry.timestamp) && entry.timestamp > 0
+              ? entry.timestamp * 1000
+              : Date.now();
+          } catch {
+            ms = Date.now();
+          }
+
+          const label = new Date(ms).toISOString();
+
+          return (
+            <li key={index} className="status-history-item">
+              <div className="status-history-dot" />
+              <div className="status-history-content">
+                <span className={`status-pill status-${entry.status}`}>
+                  {t(`common.status.${entry.status}`)}
                 </span>
-              ) : null}
-            </div>
-          </li>
-        ))}
+                <span className="muted">
+                  {formatDateTime(label)}
+                </span>
+                {entry.reason ? (
+                  <span className="muted">
+                    {t(`common.requestResolution.${entry.reason}`)}
+                  </span>
+                ) : null}
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

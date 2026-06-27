@@ -1,5 +1,7 @@
 import { UserProfileEvent } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
+import { ReputationBadge } from "./ReputationBadge";
+import { ReputationSummary } from "../domain/review";
 import { Avatar } from "./Avatar";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
@@ -11,6 +13,7 @@ type CounterpartyCardProps = {
   onViewProfile?: () => void;
   onBlockUser?: (pubkey: string) => Promise<void>;
   onReportUser?: (targetPubkey: string, reason: string) => Promise<void>;
+  reputation?: ReputationSummary;
 };
 
 export function CounterpartyCard({
@@ -19,6 +22,7 @@ export function CounterpartyCard({
   onViewProfile,
   onBlockUser,
   onReportUser,
+  reputation,
 }: CounterpartyCardProps) {
   const { t } = useI18n();
 
@@ -68,6 +72,9 @@ export function CounterpartyCard({
       </div>
       {profile.profile.bio ? (
         <p className="muted">{profile.profile.bio}</p>
+      ) : null}
+      {reputation ? (
+        <ReputationBadge reputation={reputation} />
       ) : null}
       {role === "tutor" && profile.profile.subjects && profile.profile.subjects.length > 0 ? (
         <div className="chips">
