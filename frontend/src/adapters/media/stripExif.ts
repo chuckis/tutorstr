@@ -1,7 +1,14 @@
 export async function stripExif(file: File, quality = 0.92): Promise<File> {
   if (!file.type.startsWith("image/")) return file;
 
-  const img = await loadImage(file);
+  let img: HTMLImageElement;
+  try {
+    img = await loadImage(file);
+  } catch {
+    // File is not a valid image (e.g. encrypted file with image/* MIME)
+    return file;
+  }
+
   const canvas = document.createElement("canvas");
   canvas.width = img.naturalWidth;
   canvas.height = img.naturalHeight;

@@ -4,6 +4,7 @@ export type MessageAttachment = {
   fileName?: string;
   size?: number;
   thumbnailUrl?: string;
+  encryptionKey?: string;
 };
 
 export type MessageThreadType = "dm" | "booking" | "lesson";

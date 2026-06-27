@@ -14,6 +14,8 @@ Concrete implementations of the port interfaces. The only layer that touches loc
   - `blossomBlobRepository.ts`
   - `createThumbnail.ts`
   - `stripExif.ts`
+- `crypto/` — Client-side file encryption
+  - `webCryptoFileEncryption.ts` — AES-256-GCM encrypt/decrypt for lesson note attachments
 - `env/` — Platform detection
   - `platformDetector.ts`
 

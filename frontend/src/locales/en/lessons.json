@@ -18,9 +18,10 @@
   "shared": "Shared",
   "sharedNotes": "Notes from counterparty",
   "sharedNotesEmpty": "No notes from counterparty yet.",
-  "lastSharedNote": "Last note from {{author}} · {{time}} · {{count}} attachment(s)",
+  "lastSharedNote": "Last note from {{author}} \u00b7 {{time}} \u00b7 {{count}} attachment(s)",
   "notePublishFailed": "Failed to publish note.",
   "noteShareFailed": "Failed to share note.",
+  "noteAttachmentUploadFailed": "Failed to upload attachment.",
   "upcoming": "Upcoming",
   "past": "Past",
   "empty": "No lessons in this segment.",
@@ -33,7 +34,7 @@
     "weekPrev": "Previous week",
     "weekNext": "Next week",
     "weekToday": "Today",
-    "emptyDay": "—"
+    "emptyDay": "\u2014"
   },
   "viewNotes": "View notes",
   "notesList": "Lesson notes",
@@ -45,5 +46,11 @@
     "shared": "Shared"
   },
   "noteDetail": "Note",
-  "noteAuthorYou": "You"
+  "noteAuthorYou": "You",
+  "fileTooLarge": "File {{name}} is too large ({{size}} MB). Maximum is 10 MB.",
+  "maxFileSizeHint": "Max 10 MB per file",
+  "tooManyFiles": "Maximum {{count}} files per note.",
+  "decryptingAttachment": "Decrypting...",
+  "attachmentInfo": "Files are end-to-end encrypted. In MVP, attachments are stored locally (lost on page refresh).",
+  "attachmentSessionOnly": "Unavailable \u2014 stored locally in this session only. Re-upload after page refresh."
 }

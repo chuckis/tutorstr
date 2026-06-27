@@ -30,6 +30,7 @@ Abstract TypeScript interfaces that the application layer uses to talk to the ou
 | `notificationService.ts` | `NotificationService` | Toast/notification abstraction |
 | `reportRepository.ts` | `ReportRepository` | Publish reports (NIP-56) |
 | `reviewRepository.ts` | `ReviewRepository` | Subscribe/publish reviews (kind 32267) |
+| `fileEncryptionRepository.ts` | `FileEncryptionRepository` | Client-side AES-256-GCM encrypt/decrypt for attachments |
 
 ## Rules
 

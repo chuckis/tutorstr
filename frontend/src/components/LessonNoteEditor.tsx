@@ -20,6 +20,9 @@ import { CreateLink } from "@mdxeditor/editor";
 import { ListsToggle } from "@mdxeditor/editor";
 import { Separator } from "@mdxeditor/editor";
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILES = 10;
+
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
 
 type LessonNoteEditorProps = {
@@ -43,6 +46,12 @@ function createPreviewUrl(file: File): string {
     return URL.createObjectURL(file);
   }
   return "";
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function statusLabel(
@@ -79,6 +88,7 @@ export function LessonNoteEditor({
   const editorRef = useRef<MDXEditorMethods>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [filePreviews, setFilePreviews] = useState<FilePreview[]>([]);
+  const [fileError, setFileError] = useState("");
   const isEmpty = !value.trim();
   const isBusy = publishStatus === "saving" || shareStatus === "saving" || uploadProgress === "uploading";
   const hasFiles = filePreviews.length > 0;
@@ -88,16 +98,36 @@ export function LessonNoteEditor({
   }, [value]);
 
   const addFiles = useCallback((fileList: FileList) => {
-    const newPreviews = Array.from(fileList)
-      .filter((f) => f.size > 0)
-      .map((file) => ({
+    setFileError("");
+
+    const remaining = MAX_FILES - filePreviews.length;
+    if (remaining <= 0) {
+      setFileError(t("lessons.tooManyFiles", { count: String(MAX_FILES) }));
+      return;
+    }
+
+    const newPreviews: FilePreview[] = [];
+    for (const file of Array.from(fileList)) {
+      if (file.size <= 0) continue;
+      if (file.size > MAX_FILE_SIZE) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+        setFileError(t("lessons.fileTooLarge", { name: file.name, size: sizeMb }));
+        continue;
+      }
+      if (newPreviews.length >= remaining) break;
+      newPreviews.push({
         file,
         previewUrl: createPreviewUrl(file),
-      }));
-    setFilePreviews((prev) => [...prev, ...newPreviews]);
-  }, []);
+      });
+    }
+
+    if (newPreviews.length > 0) {
+      setFilePreviews((prev) => [...prev, ...newPreviews]);
+    }
+  }, [filePreviews.length, t]);
 
   const removeFile = useCallback((index: number) => {
+    setFileError("");
     setFilePreviews((prev) => {
       const entry = prev[index];
       if (entry?.previewUrl) {
@@ -172,6 +202,10 @@ export function LessonNoteEditor({
         />
       </label>
 
+      {fileError ? (
+        <p className="field-error">{fileError}</p>
+      ) : null}
+
       {filePreviews.length > 0 ? (
         <div className="composer-file-previews">
           {filePreviews.map((entry, index) => (
@@ -182,6 +216,7 @@ export function LessonNoteEditor({
                 <span className="chip-icon">FILE</span>
               )}
               <span className="chip-name">{entry.file.name}</span>
+              <span className="chip-size">{formatFileSize(entry.file.size)}</span>
               <Button variant="ghost" size="sm"
                 type="button"
                 className="chip-remove"
@@ -202,6 +237,8 @@ export function LessonNoteEditor({
         </div>
       ) : null}
 
+      <p className="attachment-info">{t("lessons.attachmentInfo")}</p>
+
       <div className="lesson-note-actions">
         <Button variant="ghost" size="sm"
           type="button"
@@ -215,12 +252,13 @@ export function LessonNoteEditor({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,.pdf,.doc,.docx,.txt"
+          accept="image/*,.pdf,.doc,.docx,.txt,.md"
           multiple
           className="composer-file-input"
           onChange={handleFileSelect}
           hidden
         />
+        <span className="max-file-hint">{t("lessons.maxFileSizeHint")}</span>
         <Button variant="ghost" size="sm"
           type="button"
           onClick={handleSave}

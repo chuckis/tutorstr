@@ -10,8 +10,13 @@ import { UploadResult } from "../ports/mediaUploadRepository";
 import { useRepo } from "./RepoContext";
 
 const EMPTY_NOTES: LessonNote[] = [];
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-function toMessageAttachments(files: File[], results: UploadResult[]): MessageAttachment[] {
+function toMessageAttachments(
+  files: File[],
+  results: UploadResult[],
+  keys: (string | undefined)[]
+): MessageAttachment[] {
   return results.map((result, index) => {
     const file = files[index];
     return {
@@ -20,6 +25,7 @@ function toMessageAttachments(files: File[], results: UploadResult[]): MessageAt
       mimeType: file?.type || "application/octet-stream",
       fileName: file?.name,
       size: file?.size,
+      encryptionKey: keys[index],
     };
   });
 }
@@ -64,7 +70,7 @@ export function useLessonNote(
   viewerRole: AccountRole = "tutor",
   blossomUrl: string = ""
 ) {
-  const { lessonNoteRepository, mediaUploadRepository, signerManager } = useRepo();
+  const { lessonNoteRepository, mediaUploadRepository, signerManager, fileEncryptionRepository } = useRepo();
   const [lessonNote, setLessonNote] = useState("");
   const [sharedNotesStatus, setSharedNotesStatus] = useState<"idle" | "loading" | "empty" | "received" | "error">("idle");
   const [lessonNoteError, setLessonNoteError] = useState("");
@@ -256,17 +262,31 @@ export function useLessonNote(
 
       setUploadProgress("uploading");
       try {
-        const results = await mediaUploadRepository.uploadMultiple(files, blossomUrl, signer);
-        const attachments = toMessageAttachments(files, results);
+        const encryptResults = await Promise.all(
+          files.map((f) => fileEncryptionRepository.encrypt(f))
+        );
+        const encryptedFiles = encryptResults.map((r) => r.encryptedFile);
+        const encryptionKeys = encryptResults.map((r) => r.key);
+
+        let results: { url: string; thumbnailUrl?: string }[];
+        try {
+          results = await mediaUploadRepository.uploadMultiple(encryptedFiles, blossomUrl, signer);
+        } catch (uploadErr) {
+          console.warn("[useLessonNote] Blossom upload failed, using local object URLs:", uploadErr);
+          results = encryptedFiles.map((f) => ({ url: URL.createObjectURL(f) }));
+        }
+
+        const attachments = toMessageAttachments(files, results, encryptionKeys);
         setNoteAttachments((prev) => [...prev, ...attachments]);
         setUploadProgress("done");
         return attachments;
-      } catch {
+      } catch (err) {
+        console.error("[useLessonNote] uploadFiles failed:", err);
         setUploadProgress("error");
         throw new Error("lessons.noteAttachmentUploadFailed");
       }
     },
-    [blossomUrl, mediaUploadRepository, signerManager]
+    [blossomUrl, mediaUploadRepository, signerManager, fileEncryptionRepository]
   );
 
   const saveNoteLocally = useCallback(
@@ -315,7 +335,8 @@ export function useLessonNote(
           attachments,
         });
         setPublishStatus("published");
-      } catch {
+      } catch (err) {
+        console.error("[useLessonNote] uploadFiles failed:", err);
         setLessonNoteError("lessons.notePublishFailed");
         setPublishStatus("error");
       }
@@ -352,7 +373,8 @@ export function useLessonNote(
           attachments,
         });
         setShareStatus("shared");
-      } catch {
+      } catch (err) {
+        console.error("[useLessonNote] uploadFiles failed:", err);
         setLessonNoteError("lessons.noteShareFailed");
         setShareStatus("error");
       }

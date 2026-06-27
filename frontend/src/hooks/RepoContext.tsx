@@ -32,6 +32,8 @@ import { DraftRepository } from "../ports/draftRepository";
 import { ReviewRepository } from "../ports/reviewRepository";
 import { MuteListRepository } from "../ports/muteListRepository";
 import { ReportRepository } from "../ports/reportRepository";
+import { FileEncryptionRepository } from "../ports/fileEncryptionRepository";
+import { webCryptoFileEncryption } from "../adapters/crypto/webCryptoFileEncryption";
 
 export { createNostrBookingRepository, mapNostrBookings } from "../adapters/nostr/bookingRepository";
 export { createNostrLessonRepository } from "../adapters/nostr/lessonRepository";
@@ -52,6 +54,7 @@ type RepoContextValue = {
   reviewRepository: ReviewRepository;
   muteListRepository: MuteListRepository;
   reportRepository: ReportRepository;
+  fileEncryptionRepository: FileEncryptionRepository;
 };
 
 const RepoContext = createContext<RepoContextValue | null>(null);
@@ -74,6 +77,7 @@ export function RepoProvider({ children }: { children: ReactNode }) {
       reviewRepository: createNostrReviewRepository(),
       muteListRepository: createNostrMuteListRepository(),
       reportRepository: createNostrReportRepository(),
+      fileEncryptionRepository: webCryptoFileEncryption,
     }),
     []
   );
@@ -97,7 +101,7 @@ export function RepoProvider({ children }: { children: ReactNode }) {
 export function useRepo(): RepoContextValue {
   const ctx = useContext(RepoContext);
   if (!ctx) {
-    throw new Error("useRepo must be used within RepoProvider");
+    throw new Error("useRepo must be used within RepoContext");
   }
   return ctx;
 }
