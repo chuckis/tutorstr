@@ -7,7 +7,8 @@
   "scripts": {
     "dev:client": "npm --workspace frontend run dev",
     "dev:relay": "cd relay && go run main.go",
-    "dev": "concurrently --kill-others -n \"VITE,KHATRU\" -c \"cyan,magenta\" \"npm:dev:client\" \"npm:dev:relay\"",
+    "dev:blossom": "cd relay && BLOSSOM_DATA_DIR=./blobs go run ./cmd/blossom",
+    "dev": "concurrently --kill-others -n \"VITE,KHATRU,BLOSSOM\" -c \"cyan,magenta,green\" \"npm:dev:client\" \"npm:dev:relay\" \"npm:dev:blossom\"",
     "build": "npm --workspace frontend run build",
     "preview": "npm --workspace frontend run preview",
     "test": "node -e \"console.log('no tests yet')\"",

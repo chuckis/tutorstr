@@ -5,3 +5,4 @@ relay/relay.exe
 *.db-journal
 *.db-wal
 *.db-shm
+blobs/

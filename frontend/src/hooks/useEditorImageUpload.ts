@@ -2,12 +2,11 @@ import { useCallback } from "react";
 import { useRepo } from "./RepoContext";
 import { BLOSSOM_STORAGE_KEY } from "../adapters/nostr/blossomMediaRepository";
 
-const DEFAULT_BLOSSOM_URL = "https://blossom.nostr.build";
+const DEFAULT_BLOSSOM_URL = import.meta.env.VITE_BLOSSOM_SERVER || "https://blossom.nostr.build";
 
 function getBlossomUrl(): string {
   const stored = localStorage.getItem(BLOSSOM_STORAGE_KEY);
   if (stored) return stored;
-  localStorage.setItem(BLOSSOM_STORAGE_KEY, DEFAULT_BLOSSOM_URL);
   return DEFAULT_BLOSSOM_URL;
 }
 

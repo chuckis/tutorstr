@@ -5,7 +5,7 @@ import { UserProfile } from "../hooks/hookTypes";
 
 export type UploadStatus = { type: "idle" } | { type: "uploading" } | { type: "success"; url: string } | { type: "error"; message: string };
 
-const DEFAULT_BLOSSOM_URL = "https://blossom.nostr.build";
+const DEFAULT_BLOSSOM_URL = import.meta.env.VITE_BLOSSOM_SERVER || "https://blossom.nostr.build";
 
 export function useBlossomConfig() {
   const { signerManager } = useRepo();
@@ -13,7 +13,6 @@ export function useBlossomConfig() {
     () => {
       const stored = localStorage.getItem(BLOSSOM_STORAGE_KEY);
       if (stored) return stored;
-      localStorage.setItem(BLOSSOM_STORAGE_KEY, DEFAULT_BLOSSOM_URL);
       return DEFAULT_BLOSSOM_URL;
     }
   );
