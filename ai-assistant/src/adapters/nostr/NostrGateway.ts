@@ -141,6 +141,7 @@ export class NostrGateway implements INostrGateway {
 
     const rootTag = eTags.find((t) => t[3] === "root");
     const replyTag = eTags.find((t) => t[3] === "reply");
+    const threadTag = event.tags.find((t) => t[0] === "thread")?.[1];
 
     return {
       event,
@@ -151,6 +152,7 @@ export class NostrGateway implements INostrGateway {
       rootEventId: rootTag?.[1] ?? (eTags.length === 0 ? undefined : event.id),
       isReply: !!replyTag,
       parentEventId: replyTag?.[1],
+      threadTag,
     };
   }
 }

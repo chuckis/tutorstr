@@ -2,6 +2,16 @@ import { create } from "zustand";
 import { nip19 } from "nostr-tools";
 import type { AIAssistantState } from "./types";
 
+function npubToHex(key: string): string {
+  if (key.startsWith("npub1")) {
+    try {
+      const decoded = nip19.decode(key);
+      return typeof decoded.data === "string" ? decoded.data : Array.from(decoded.data as Uint8Array).map(b => b.toString(16).padStart(2, "0")).join("");
+    } catch { /* fall through */ }
+  }
+  return key;
+}
+
 const STORAGE_KEY = "tutorhub:ai-assistant";
 
 function loadConfig(): { isEnabled: boolean; assistantPubkey: string | null } {
@@ -11,7 +21,7 @@ function loadConfig(): { isEnabled: boolean; assistantPubkey: string | null } {
       const parsed = JSON.parse(raw);
       return {
         isEnabled: typeof parsed.isEnabled === "boolean" ? parsed.isEnabled : false,
-        assistantPubkey: typeof parsed.assistantPubkey === "string" ? parsed.assistantPubkey : null,
+        assistantPubkey: typeof parsed.assistantPubkey === "string" ? npubToHex(parsed.assistantPubkey) : null,
       };
     }
   } catch {
@@ -44,9 +54,7 @@ export const useAIAssistantStore = create<AIAssistantState>((set) => ({
   },
 
   setPubkey: (key: string) => {
-    const hex = key.startsWith("npub1")
-      ? (() => { try { return nip19.decode(key).data as string; } catch { return key; } })()
-      : key;
+    const hex = npubToHex(key);
     set((s) => {
       persistConfig(s.isEnabled, hex);
       return { assistantPubkey: hex || null };

@@ -9,6 +9,7 @@ export interface DecryptedEvent {
   rootEventId?: string;
   isReply: boolean;
   parentEventId?: string;
+  threadTag?: string;
 }
 
 export type HomeworkHandler = (decrypted: DecryptedEvent) => void | Promise<void>;

@@ -35,7 +35,7 @@ export class TicketService {
       history: [],
     });
 
-    await this.handleReviewResult(ticket, review, ev.event.id);
+    await this.handleReviewResult(ticket, review, ev.event.id, ev.threadTag);
   }
 
   async processStudentReply(ev: DecryptedEvent): Promise<void> {
@@ -69,7 +69,7 @@ export class TicketService {
     if (reviewing.iteration >= this.maxIterations) {
       const escalated = transitionTicket(reviewing, TicketStatus.EscalatedToTutor);
       await this.repo.updateStatus(escalated.rootEventId, escalated.status);
-      await this.escalateToTutor(escalated, null, false);
+      await this.escalateToTutor(escalated, null, false, ev.threadTag);
       return;
     }
 
@@ -90,11 +90,11 @@ export class TicketService {
     await this.repo.updateStatus(resultTicket.rootEventId, resultTicket.status);
 
     if (review.status === "needs_fix") {
-      await this.sendFeedback(resultTicket, review, ev.event.id);
+      await this.sendFeedback(resultTicket, review, ev.event.id, ev.threadTag);
     } else {
       const escalated = transitionTicket(resultTicket, TicketStatus.EscalatedToTutor);
       await this.repo.updateStatus(escalated.rootEventId, escalated.status);
-      await this.escalateToTutor(escalated, review, true);
+      await this.escalateToTutor(escalated, review, true, ev.threadTag);
     }
   }
 
@@ -102,18 +102,19 @@ export class TicketService {
     ticket: Ticket,
     review: ReviewResult,
     parentEventId: string,
+    threadTag?: string,
   ): Promise<void> {
     if (review.status === "needs_fix") {
       if (ticket.iteration >= this.maxIterations) {
         const escalated = transitionTicket(ticket, TicketStatus.EscalatedToTutor);
         await this.repo.updateStatus(escalated.rootEventId, escalated.status);
-        await this.escalateToTutor(escalated, review, false);
+        await this.escalateToTutor(escalated, review, false, threadTag);
         return;
       }
 
       const needFix = transitionTicket(ticket, TicketStatus.NeedFix);
       await this.repo.updateStatus(needFix.rootEventId, needFix.status);
-      await this.sendFeedback(needFix, review, parentEventId);
+      await this.sendFeedback(needFix, review, parentEventId, threadTag);
       return;
     }
 
@@ -122,13 +123,14 @@ export class TicketService {
 
     const escalated = transitionTicket(approved, TicketStatus.EscalatedToTutor);
     await this.repo.updateStatus(escalated.rootEventId, escalated.status);
-    await this.escalateToTutor(escalated, review, true);
+    await this.escalateToTutor(escalated, review, true, threadTag);
   }
 
   private async sendFeedback(
     ticket: Ticket,
     review: ReviewResult,
     parentEventId: string,
+    threadTag?: string,
   ): Promise<void> {
     const payload = JSON.stringify({
       type: "review_result",
@@ -146,6 +148,7 @@ export class TicketService {
         ["e", parentEventId, "", "reply"],
         ["t", "homework-submission"],
         ["t", "ai-review"],
+        ...(threadTag ? [["thread", threadTag]] : []),
       ],
     });
   }
@@ -154,6 +157,7 @@ export class TicketService {
     _ticket: Ticket,
     review: ReviewResult | null,
     approvedByAI: boolean,
+    threadTag?: string,
   ): Promise<void> {
     const payload = JSON.stringify({
       type: "escalation",
@@ -174,6 +178,7 @@ export class TicketService {
         ["e", _ticket.rootEventId, "", "root"],
         ["t", "homework-submission"],
         ["t", "ai-escalation"],
+        ...(threadTag ? [["thread", threadTag]] : []),
       ],
     });
   }
