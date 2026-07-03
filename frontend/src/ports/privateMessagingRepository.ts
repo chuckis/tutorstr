@@ -25,6 +25,12 @@ export interface PrivateMessagingRepository {
     onEntry: (entry: ProgressEntryEvent) => void
   ): () => void;
   sendMessage(recipientPubkey: string, text: string, threadKey?: string): Promise<void>;
+  sendHomeworkMessage(
+    recipientPubkey: string,
+    text: string,
+    tutorPubkey: string,
+    threadKey?: string,
+  ): Promise<void>;
   sendAttachmentMessage(
     recipientPubkey: string,
     payload: AttachmentMessagePayload,

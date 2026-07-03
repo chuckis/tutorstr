@@ -1,4 +1,5 @@
 import accountEn from "../locales/en/account.json";
+import aiEn from "../locales/en/ai.json";
 import authEn from "../locales/en/auth.json";
 import commonEn from "../locales/en/common.json";
 import discoverEn from "../locales/en/discover.json";
@@ -12,6 +13,7 @@ import blogEn from "../locales/en/blog.json";
 import reviewEn from "../locales/en/review.json";
 import moderationEn from "../locales/en/moderation.json";
 import accountUk from "../locales/uk/account.json";
+import aiUk from "../locales/uk/ai.json";
 import authUk from "../locales/uk/auth.json";
 import commonUk from "../locales/uk/common.json";
 import discoverUk from "../locales/uk/discover.json";
@@ -25,6 +27,7 @@ import blogUk from "../locales/uk/blog.json";
 import reviewUk from "../locales/uk/review.json";
 import moderationUk from "../locales/uk/moderation.json";
 import accountRu from "../locales/ru/account.json";
+import aiRu from "../locales/ru/ai.json";
 import authRu from "../locales/ru/auth.json";
 import commonRu from "../locales/ru/common.json";
 import discoverRu from "../locales/ru/discover.json";
@@ -42,6 +45,7 @@ import { AppLocale } from "../domain/locale";
 export const resources: Record<AppLocale, Record<string, unknown>> = {
   en: {
     account: accountEn,
+    ai: aiEn,
     auth: authEn,
     common: commonEn,
     discover: discoverEn,
@@ -57,6 +61,7 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
   },
   uk: {
     account: accountUk,
+    ai: aiUk,
     auth: authUk,
     common: commonUk,
     discover: discoverUk,
@@ -72,6 +77,7 @@ export const resources: Record<AppLocale, Record<string, unknown>> = {
   },
   ru: {
     account: accountRu,
+    ai: aiRu,
     auth: authRu,
     common: commonRu,
     discover: discoverRu,

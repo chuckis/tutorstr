@@ -28,6 +28,13 @@ export function usePrivateMessagingActions() {
     [privateMessagingRepository]
   );
 
+  const sendHomeworkMessage = useCallback(
+    async (recipientPubkey: string, text: string, tutorPubkey: string, threadKey?: string) => {
+      await privateMessagingRepository.sendHomeworkMessage(recipientPubkey, text, tutorPubkey, threadKey ?? "");
+    },
+    [privateMessagingRepository]
+  );
+
   const sendAttachmentMessage = useCallback(
     async (
       recipientPubkey: string,
@@ -81,5 +88,5 @@ export function usePrivateMessagingActions() {
     [privateMessagingRepository]
   );
 
-  return { sendMessage, sendAttachmentMessage, sendMessageWithFiles, sendProgressEntry };
+  return { sendMessage, sendHomeworkMessage, sendAttachmentMessage, sendMessageWithFiles, sendProgressEntry };
 }

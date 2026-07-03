@@ -3,6 +3,7 @@ import { EncryptedMessage } from "../hooks/hookTypes";
 import { useI18n } from "../i18n/I18nProvider";
 import { MessageAttachmentPreview } from "./MessageAttachmentPreview";
 import { Button } from "./ui/Button";
+import { AIAssistantBadge } from "../features/ai-assistant/components/AIAssistantBadge";
 
 const PAGE_SIZE = 20;
 
@@ -10,9 +11,10 @@ type MessageThreadProps = {
   messages: EncryptedMessage[];
   currentPubkey?: string;
   resolveSenderName?: (pubkey: string) => string;
+  assistantPubkey?: string | null;
 };
 
-export function MessageThread({ messages, currentPubkey, resolveSenderName }: MessageThreadProps) {
+export function MessageThread({ messages, currentPubkey, resolveSenderName, assistantPubkey }: MessageThreadProps) {
   const { t, formatDateTime } = useI18n();
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -48,6 +50,7 @@ export function MessageThread({ messages, currentPubkey, resolveSenderName }: Me
       ) : null}
       {visibleMessages.map((message) => {
         const isOwn = message.pubkey === currentPubkey;
+        const isAI = !isOwn && assistantPubkey && message.pubkey === assistantPubkey;
         const senderName = isOwn
           ? t("common.messages.you")
           : resolveSenderName?.(message.pubkey);
@@ -65,8 +68,9 @@ export function MessageThread({ messages, currentPubkey, resolveSenderName }: Me
         return (
           <div
             key={message.id}
-            className={`message-bubble ${isOwn ? "message-sent" : "message-received"}`}
+            className={`message-bubble ${isOwn ? "message-sent" : "message-received"}${isAI ? " message-ai" : ""}`}
           >
+            {isAI ? <AIAssistantBadge /> : null}
             <div className="message-content">
               {message.content ? <p>{message.content}</p> : null}
               <MessageAttachmentPreview attachments={message.attachments} />

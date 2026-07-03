@@ -138,6 +138,26 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
       );
     },
 
+    async sendHomeworkMessage(recipientPubkey, text, tutorPubkey, threadKey) {
+      if (!text.trim()) return;
+
+      console.log("[sendHomeworkMessage] Sending to", recipientPubkey.slice(0, 8) + ".., tutor", tutorPubkey.slice(0, 8) + ".., threadKey:", threadKey);
+
+      await nostrClient.publishEncryptedEvent(
+        TutorHubKind.DirectMessage,
+        recipientPubkey,
+        text,
+        [
+          ["p", tutorPubkey],
+          ["t", "homework-submission"],
+          ["e", "", "", "root"],
+          ["thread", threadKey ?? ""],
+        ],
+      );
+
+      console.log("[sendHomeworkMessage] Published OK");
+    },
+
     async sendAttachmentMessage(recipientPubkey, payload, threadKey) {
       const content = JSON.stringify(payload);
       await nostrClient.publishEncryptedEvent(

@@ -22,6 +22,8 @@ import { Button } from "./ui/Button";
 import { LessonCard } from "./ui/LessonCard";
 import { EmptyState } from "./ui/EmptyState";
 import { ReviewForm } from "./ReviewForm";
+import { useAIAssistantStore } from "../features/ai-assistant/store";
+import { AIHomeworkPanel } from "../features/ai-assistant/components/AIHomeworkPanel";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
 type UploadProgress = "idle" | "uploading" | "done" | "error";
@@ -76,6 +78,12 @@ type LessonsTabProps = {
     files: File[],
     threadKey?: string
   ) => void | Promise<void>;
+  onSendHomework: (
+    recipientPubkey: string,
+    text: string,
+    tutorPubkey: string,
+    threadKey?: string
+  ) => Promise<void>;
   messageStatus: string;
   loading: boolean;
   lessonAgreements: Record<string, LessonAgreementEvent>;
@@ -116,6 +124,7 @@ export function LessonsTab({
   isNewLesson,
   onSendMessage,
   onSendMessageWithFiles,
+  onSendHomework,
   messageStatus,
   loading,
   lessonAgreements,
@@ -129,6 +138,8 @@ export function LessonsTab({
   const [noteView, setNoteView] = useState<NoteView>(null);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const { assistantPubkey, isEnabled: aiEnabled } = useAIAssistantStore();
+  const isDev = import.meta.env.DEV;
 
   const handleReviewSubmit = useCallback(
     async (rating: ReviewRating, comment: string) => {
@@ -319,12 +330,22 @@ export function LessonsTab({
               </>
             )}
           </div>
+
+          {(isDev || aiEnabled) && assistantPubkey ? (
+            <AIHomeworkPanel
+              lessonId={selectedLesson.id}
+              studentPubkey={selectedLesson.studentId}
+              tutorPubkey={selectedLesson.tutorId}
+              onSendHomework={onSendHomework}
+            />
+          ) : null}
         </article>
         <div className="stack">
           <h3>{t("common.messages.title")}</h3>
           <MessageThread
             messages={messagesByThread[threadInfo.threadKey] || []}
             currentPubkey={currentPubkey}
+            assistantPubkey={assistantPubkey}
             resolveSenderName={(pubkey) =>
               pubkey === currentPubkey
                 ? t("common.messages.you")

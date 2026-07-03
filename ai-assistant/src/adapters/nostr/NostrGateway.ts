@@ -1,4 +1,4 @@
-import { SimplePool, finalizeEvent, getPublicKey } from "nostr-tools";
+import { SimplePool, finalizeEvent, getPublicKey, nip19 } from "nostr-tools";
 import type { Event, Filter } from "nostr-tools";
 import { decryptNip44, encryptNip44 } from "./Crypto.js";
 import type { INostrGateway, DecryptedEvent, HomeworkHandler } from "../../domain/ports/INostrGateway.js";
@@ -24,16 +24,40 @@ export class NostrGateway implements INostrGateway {
 
   async connect(): Promise<void> {
     this.relays = process.env.NOSTR_RELAYS?.split(",").map((s) => s.trim()).filter(Boolean) ?? [];
-    this.botPrivkeyHex = process.env.BOT_PRIVATE_KEY ?? "";
+    const rawKey = process.env.BOT_PRIVATE_KEY ?? "";
 
     if (this.relays.length === 0) throw new Error("NOSTR_RELAYS is empty");
-    if (!this.botPrivkeyHex) throw new Error("BOT_PRIVATE_KEY is not set");
+    if (!rawKey) throw new Error("BOT_PRIVATE_KEY is not set");
 
-    this.botPrivkeyBytes = hexToBytes(this.botPrivkeyHex);
+    if (rawKey.startsWith("nsec1")) {
+      const decoded = nip19.decode(rawKey);
+      this.botPrivkeyBytes = decoded.data as Uint8Array;
+      this.botPrivkeyHex = Array.from(this.botPrivkeyBytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+    } else {
+      this.botPrivkeyBytes = hexToBytes(rawKey);
+      this.botPrivkeyHex = rawKey;
+    }
+
     this.botPubkey = getPublicKey(this.botPrivkeyBytes);
 
     console.log(`[NostrGateway] Connecting to ${this.relays.length} relays`);
     console.log(`[NostrGateway] Bot pubkey: ${this.botPubkey}`);
+
+    await this.publishProfile();
+  }
+
+  private async publishProfile(): Promise<void> {
+    const eventTemplate = {
+      kind: 0,
+      content: JSON.stringify({ name: "TutorHub AI Assistant", about: "Homework review bot" }),
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [],
+    };
+    const signedEvent = finalizeEvent(eventTemplate, this.botPrivkeyBytes);
+    const promises = this.pool.publish(this.relays, signedEvent as never);
+    promises.forEach((p) => p.catch(() => {}));
+    await Promise.any(promises);
+    console.log(`[NostrGateway] Published profile (kind:0) — ${signedEvent.id.slice(0, 8)}`);
   }
 
   async disconnect(): Promise<void> {
@@ -55,6 +79,7 @@ export class NostrGateway implements INostrGateway {
         onevent: async (event: Event) => {
           try {
             const decrypted = await this.processIncoming(event);
+            if (decrypted) console.log("[NostrGateway] Received", decrypted.isHomework ? "homework" : "DM", "from", decrypted.studentPubkey.slice(0, 8) + "..");
             if (!decrypted) return;
 
             await handler(decrypted);

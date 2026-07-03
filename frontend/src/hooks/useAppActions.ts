@@ -56,6 +56,12 @@ type UseAppActionsProps = {
     blossomUrl: string,
     threadKey?: string
   ) => Promise<void>;
+  sendHomeworkMessage: (
+    recipientPubkey: string,
+    text: string,
+    tutorPubkey: string,
+    threadKey?: string
+  ) => Promise<void>;
   blossomUrl: string;
   setDiscoverStatus: (value: string) => void;
   setMessageStatus: (value: string) => void;
@@ -86,6 +92,7 @@ export function useAppActions({
   acceptBooking,
   sendMessage,
   sendMessageWithFiles,
+  sendHomeworkMessage: sendHomeworkMessageAction,
   blossomUrl,
   setDiscoverStatus,
   setMessageStatus,
@@ -296,6 +303,36 @@ export function useAppActions({
     }
   }
 
+  async function sendHomeworkMessage(
+    recipientPubkey: string,
+    text: string,
+    tutorPubkey: string,
+    threadKey?: string,
+  ) {
+    setMessageStatus("");
+
+    const key = threadKey ?? [studentPubkey, recipientPubkey].sort().join(":");
+    const optimisticMsg = {
+      id: `opt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      created_at: Math.floor(Date.now() / 1000),
+      pubkey: studentPubkey,
+      kind: 4,
+      tags: [["p", recipientPubkey], ["p", tutorPubkey], ["t", "homework-submission"]],
+      content: text,
+    };
+    const snapshot = useMessageStore.getState().snapshotThread(key);
+    useMessageStore.getState().optimisticAddMessage(key, optimisticMsg);
+
+    try {
+      await sendHomeworkMessageAction(recipientPubkey, text, tutorPubkey, threadKey);
+    } catch (error) {
+      useMessageStore.getState().restoreThread(key, snapshot);
+      setMessageStatus(
+        toLocalizedErrorMessage(error, translate) || translate("common.buttons.sendMessage")
+      );
+    }
+  }
+
   async function publishReview(
     lessonAgreementEvent: LessonAgreementEvent,
     viewerPubkey: string,
@@ -326,6 +363,7 @@ export function useAppActions({
     requestPublishedSlot,
     sendEncryptedMessage,
     sendEncryptedMessageWithFiles,
+    sendHomeworkMessage,
     publishReview,
     logout
   };

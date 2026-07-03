@@ -31,6 +31,9 @@ export class OpenRouterProvider implements ILLMProvider {
       max_tokens: 1024,
     };
 
+    console.log(`[OpenRouter] Sending request — model: ${this.config.model}, subject: "${request.subject}", lang: ${request.language}, history: ${request.history.length} msgs`);
+
+    const start = Date.now();
     const response = await fetch(`${this.config.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
@@ -40,9 +43,11 @@ export class OpenRouterProvider implements ILLMProvider {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(30_000),
     });
+    const elapsed = Date.now() - start;
 
     if (!response.ok) {
       const text = await response.text();
+      console.error(`[OpenRouter] Error ${response.status} after ${elapsed}ms: ${text.slice(0, 200)}`);
       throw new Error(`OpenRouter API error ${response.status}: ${text}`);
     }
 
@@ -51,6 +56,9 @@ export class OpenRouterProvider implements ILLMProvider {
     };
 
     const content = json.choices?.[0]?.message?.content ?? "";
-    return parseLLMResponse(content);
+    const result = parseLLMResponse(content);
+
+    console.log(`[OpenRouter] Response in ${elapsed}ms — status: ${result.status}, feedback: ${result.feedback.length} chars, suggestions: ${result.suggestions.length}`);
+    return result;
   }
 }

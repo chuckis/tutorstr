@@ -90,7 +90,7 @@ export function useAppController(
     viewerRole,
     blossomUrl
   );
-  const { sendMessage, sendMessageWithFiles } = usePrivateMessagingActions();
+  const { sendMessage, sendHomeworkMessage, sendMessageWithFiles } = usePrivateMessagingActions();
 
   const requestsForBadge = useMemo(() => {
     const source = viewerRole === "student" ? bookingsState.outgoing : bookingsState.incoming;
@@ -265,6 +265,7 @@ export function useAppController(
     acceptBooking: bookingsState.acceptBooking,
     sendMessage,
     sendMessageWithFiles,
+    sendHomeworkMessage,
     blossomUrl,
     setDiscoverStatus,
     setMessageStatus,

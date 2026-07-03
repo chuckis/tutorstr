@@ -15,3 +15,5 @@ export { useBlogStore } from "./blogStore";
 export { useLessonNoteStore } from "./lessonNoteStore";
 
 export { useReviewStore } from "./reviewStore";
+
+export { useAIAssistantStore } from "../features/ai-assistant/store";
