@@ -1,5 +1,22 @@
 import type { ReviewRequest, ReviewResult } from "../ports/ILLMProvider.js";
 
+export function parseSubmissionContent(plaintext: string): { content: string; images: Array<{ url: string; mimeType?: string }> } {
+  try {
+    const parsed = JSON.parse(plaintext);
+    if (parsed && typeof parsed === "object") {
+      const textContent = typeof parsed.text === "string" ? parsed.text : plaintext;
+      const attachments = Array.isArray(parsed.attachments) ? parsed.attachments : [];
+      const images = attachments.filter(
+        (a: { url?: string; mimeType?: string }) => a.url && a.mimeType?.startsWith("image/"),
+      ).map((a: { url: string; mimeType?: string }) => ({ url: a.url, mimeType: a.mimeType }));
+      return { content: textContent, images };
+    }
+  } catch {
+    // not JSON — plain text
+  }
+  return { content: plaintext, images: [] };
+}
+
 export function buildSystemPrompt(language: string): string {
   const ru = language === "ru" || language === "auto";
 

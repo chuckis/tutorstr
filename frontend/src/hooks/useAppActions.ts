@@ -60,7 +60,9 @@ type UseAppActionsProps = {
     recipientPubkey: string,
     text: string,
     tutorPubkey: string,
-    threadKey?: string
+    threadKey?: string,
+    files?: File[],
+    blossomUrl?: string,
   ) => Promise<void>;
   blossomUrl: string;
   setDiscoverStatus: (value: string) => void;
@@ -308,6 +310,7 @@ export function useAppActions({
     text: string,
     tutorPubkey: string,
     threadKey?: string,
+    files?: File[],
   ) {
     setMessageStatus("");
 
@@ -324,7 +327,7 @@ export function useAppActions({
     useMessageStore.getState().optimisticAddMessage(key, optimisticMsg);
 
     try {
-      await sendHomeworkMessageAction(recipientPubkey, text, tutorPubkey, threadKey);
+      await sendHomeworkMessageAction(recipientPubkey, text, tutorPubkey, threadKey, files, blossomUrl);
     } catch (error) {
       useMessageStore.getState().restoreThread(key, snapshot);
       setMessageStatus(

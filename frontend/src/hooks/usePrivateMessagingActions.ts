@@ -29,10 +29,21 @@ export function usePrivateMessagingActions() {
   );
 
   const sendHomeworkMessage = useCallback(
-    async (recipientPubkey: string, text: string, tutorPubkey: string, threadKey?: string) => {
-      await privateMessagingRepository.sendHomeworkMessage(recipientPubkey, text, tutorPubkey, threadKey ?? "");
+    async (recipientPubkey: string, text: string, tutorPubkey: string, threadKey?: string, files?: File[], blossomUrl?: string) => {
+      if (files?.length && blossomUrl) {
+        const signer = signerManager.getSigner();
+        if (!signer) throw new Error("common.runtime.authenticationRequired");
+        const results = await mediaUploadRepository.uploadMultiple(files, blossomUrl, signer);
+        const payload = JSON.stringify({
+          text: text.trim() || undefined,
+          attachments: toMessageAttachments(files, results),
+        });
+        await privateMessagingRepository.sendHomeworkMessage(recipientPubkey, payload, tutorPubkey, threadKey ?? "");
+      } else {
+        await privateMessagingRepository.sendHomeworkMessage(recipientPubkey, text, tutorPubkey, threadKey ?? "");
+      }
     },
-    [privateMessagingRepository]
+    [privateMessagingRepository, mediaUploadRepository, signerManager]
   );
 
   const sendAttachmentMessage = useCallback(

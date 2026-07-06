@@ -8,6 +8,7 @@ import {
 } from "../entities/Ticket.js";
 import type { ITicketRepository } from "../ports/ITicketRepository.js";
 import type { ILLMProvider, ReviewResult } from "../ports/ILLMProvider.js";
+import { parseSubmissionContent } from "./LLMService.js";
 import type { INostrGateway, DecryptedEvent } from "../ports/INostrGateway.js";
 
 export class TicketService {
@@ -28,11 +29,13 @@ export class TicketService {
 
     await this.repo.save(ticket);
 
+    const { content, images } = parseSubmissionContent(ev.plaintext);
     const review = await this.llm.reviewHomework({
       subject: ticket.subject,
-      content: ev.plaintext,
+      content,
       language: "auto",
       history: [],
+      images,
     });
 
     await this.handleReviewResult(ticket, review, ev.event.id, ev.threadTag);
@@ -74,11 +77,13 @@ export class TicketService {
     }
 
     const history = await this.buildHistory(reviewing);
+    const { content, images } = parseSubmissionContent(ev.plaintext);
     const review = await this.llm.reviewHomework({
       subject: reviewing.subject,
-      content: ev.plaintext,
+      content,
       language: "auto",
       history,
+      images,
     });
 
     const resultTicket = transitionTicket(

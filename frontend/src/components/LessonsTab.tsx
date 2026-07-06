@@ -81,7 +81,8 @@ type LessonsTabProps = {
     recipientPubkey: string,
     text: string,
     tutorPubkey: string,
-    threadKey?: string
+    threadKey?: string,
+    files?: File[],
   ) => Promise<void>;
   messageStatus: string;
   loading: boolean;
@@ -313,7 +314,7 @@ export function LessonsTab({
               : onSendMessage(counterpartyPubkey, text, threadInfo.threadKey)
             }
             onSendWithFiles={(text, files) => replyTo
-              ? onSendHomework(aiStore.assistantPubkey!, text, selectedLesson.tutorId, threadInfo.threadKey)
+              ? onSendHomework(aiStore.assistantPubkey!, text, selectedLesson.tutorId, threadInfo.threadKey, files)
               : onSendMessageWithFiles(counterpartyPubkey, text, files, threadInfo.threadKey)
             }
           />
