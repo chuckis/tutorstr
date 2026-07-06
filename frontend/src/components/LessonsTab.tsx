@@ -137,11 +137,8 @@ export function LessonsTab({
   const [noteView, setNoteView] = useState<NoteView>(null);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
-  const [aiInputText, setAiInputText] = useState("");
-  const [aiSending, setAiSending] = useState(false);
-  const [replyTo, setReplyTo] = useState<{ type: "ai"; pubkey: string; content: string; messageId: string } | null>(null);
-  const [showAiInput, setShowAiInput] = useState(false);
-  const aiStore = useAIAssistantStore();
+      const [replyTo, setReplyTo] = useState<{ type: "ai"; pubkey: string; content: string; messageId: string } | null>(null);
+    const aiStore = useAIAssistantStore();
 
 
   const handleReviewSubmit = useCallback(
@@ -252,10 +249,21 @@ export function LessonsTab({
           <div className="ai-ready-bar">
             <div
               className="ai-ready-bar-main"
-              onClick={() => { if (aiStore.isAvailable) setShowAiInput(!showAiInput); }}
-              role={aiStore.isAvailable ? "button" : undefined}
-              tabIndex={aiStore.isAvailable ? 0 : undefined}
-              onKeyDown={aiStore.isAvailable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowAiInput(!showAiInput); } } : undefined}
+              onClick={() => {
+                if (!aiStore.isAvailable) return;
+                if (replyTo?.type === "ai") { setReplyTo(null); return; }
+                setReplyTo({ type: "ai", pubkey: aiStore.assistantPubkey!, content: "", messageId: "" });
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  if (!aiStore.isAvailable) return;
+                  if (replyTo?.type === "ai") { setReplyTo(null); return; }
+                  setReplyTo({ type: "ai", pubkey: aiStore.assistantPubkey!, content: "", messageId: "" });
+                }
+              }}
             >
               <span className={`ai-status-dot ${aiStore.isAvailable ? "online" : "offline"}`} />
               <span className="ai-ready-label">{t("ai.badge.label")}</span>
@@ -263,37 +271,13 @@ export function LessonsTab({
                 {aiStore.isAvailable ? t("ai.settings.status.available") : t("ai.settings.status.unavailable")}
               </span>
               {aiStore.isAvailable ? (
-                <span className="ai-ready-arrow">{showAiInput ? "▾" : "▸"}</span>
+                <span className="ai-ready-arrow">{replyTo?.type === "ai" ? "▾" : "▸"}</span>
               ) : null}
             </div>
-            {showAiInput && aiStore.isAvailable ? (
-              <div className="ai-ready-input-area">
-                <textarea
-                  className="ui-input"
-                  rows={3}
-                  value={aiInputText}
-                  onChange={(e) => setAiInputText(e.target.value)}
-                  placeholder={t("ai.panel.placeholder")}
-                />
-                <div className="action-buttons" style={{ marginTop: "0.5em" }}>
-                  <button
-                    type="button"
-                    className="ai-btn"
-                    disabled={!aiInputText.trim() || aiSending}
-                    onClick={async () => {
-                      if (!aiInputText.trim() || aiSending) return;
-                      setAiSending(true);
-                      try {
-                        await onSendHomework(aiStore.assistantPubkey!, aiInputText.trim(), selectedLesson.tutorId, threadInfo.threadKey);
-                        setAiInputText("");
-                      } finally {
-                        setAiSending(false);
-                      }
-                    }}
-                  >
-                    {aiSending ? t("common.states.sending") : t("ai.panel.send")}
-                  </button>
-                </div>
+            {aiStore.isAvailable && replyTo?.type === "ai" ? (
+              <div className="ai-ready-hint">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v5M12 16h.01"/></svg>
+                {t("ai.panel.hint")}
               </div>
             ) : null}
           </div>

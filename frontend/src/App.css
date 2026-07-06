@@ -6538,11 +6538,16 @@ button:active {
   color: #777;
 }
 
-.ai-ready-input-area {
-  padding: 0 14px 14px;
+.ai-ready-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
   border-top: 1px solid #e0e4ea;
-  padding-top: 14px;
+  font-size: 12px;
+  color: #888;
 }
-[data-theme="dark"] .ai-ready-input-area {
+[data-theme="dark"] .ai-ready-hint {
   border-top-color: #2a2f3a;
+  color: #999;
 }
