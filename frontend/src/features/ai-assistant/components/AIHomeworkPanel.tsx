@@ -1,62 +1,104 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useI18n } from "../../../i18n/I18nProvider";
-import { useAIAssistantStore } from "../store";
-import { Button } from "../../../components/ui/Button";
+import type { EncryptedMessage } from "../../../domain/messaging";
+import type { AccountRole } from "../../../domain/account";
+import { ChatThread } from "./ChatThread";
+import { Composer } from "./Composer";
+import { ServiceUnavailableState } from "./ServiceUnavailableState";
 
 type AIHomeworkPanelProps = {
   lessonId: string;
-  studentPubkey: string;
+  messages: EncryptedMessage[];
+  assistantPubkey: string | null;
   tutorPubkey: string;
-  onSendHomework: (
-    recipientPubkey: string,
-    text: string,
-    tutorPubkey: string,
-    threadKey?: string
-  ) => Promise<void>;
+  studentPubkey: string;
+  isServiceAvailable: boolean;
+  onSendHomework: (text: string, attachment?: File) => Promise<void>;
+  onOpenTutorChat: () => void;
+  viewerRole: AccountRole;
 };
 
 export function AIHomeworkPanel({
   lessonId,
-  tutorPubkey,
+  messages,
+  assistantPubkey,
+  isServiceAvailable,
+  studentPubkey,
   onSendHomework,
+  onOpenTutorChat,
+  viewerRole,
 }: AIHomeworkPanelProps) {
   const { t } = useI18n();
-  const { assistantPubkey } = useAIAssistantStore();
-  const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
+  const [isAwaiting, setIsAwaiting] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevMsgCount = useRef(messages.length);
 
-  async function handleSubmit() {
-    if (!text.trim() || !assistantPubkey) return;
-    setSending(true);
-    try {
-      await onSendHomework(assistantPubkey, text, tutorPubkey, `lesson:${lessonId}`);
-      setText("");
-    } finally {
-      setSending(false);
+  const clearWait = useCallback(() => {
+    setIsAwaiting(false);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
+  }, []);
+
+  useEffect(() => {
+    if (messages.length > prevMsgCount.current) {
+      const lastMsg = messages[messages.length - 1];
+      if (assistantPubkey && lastMsg.pubkey === assistantPubkey) {
+        clearWait();
+      }
+    }
+    prevMsgCount.current = messages.length;
+  }, [messages, assistantPubkey, clearWait]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  const handleSend = useCallback(async (text: string, attachment?: File) => {
+    setIsAwaiting(true);
+    try {
+      await onSendHomework(text, attachment);
+      timeoutRef.current = setTimeout(() => {
+        setIsAwaiting(false);
+      }, 12000);
+    } catch {
+      setIsAwaiting(false);
+    }
+  }, [onSendHomework]);
+
+  if (!isServiceAvailable) {
+    return (
+      <article className="panel">
+        <h4>{t("ai.panel.title")}</h4>
+        <ServiceUnavailableState onOpenTutorChat={onOpenTutorChat} />
+      </article>
+    );
   }
 
   return (
-    <article className="panel">
-      <h4>{t("ai.panel.title")}</h4>
-      <p className="muted">{t("ai.panel.hint")}</p>
-      <textarea
-        className="ui-input"
-        rows={4}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder={t("ai.panel.placeholder")}
-      />
-      <div className="action-buttons" style={{ marginTop: "0.5em" }}>
-        <Button
-          variant="primary"
-          onClick={handleSubmit}
-          disabled={!text.trim() || sending || !assistantPubkey}
-          loading={sending}
-        >
-          {t("ai.panel.send")}
-        </Button>
+    <article className="panel ai-panel">
+      <div className="ai-panel-header">
+        <div className="ai-avatar">Ꭰh</div>
+        <div className="ai-panel-title">
+          <h4>{t("ai.panel.title")}</h4>
+        </div>
       </div>
+
+      <ChatThread
+        messages={messages}
+        studentPubkey={studentPubkey}
+        assistantPubkey={assistantPubkey}
+        isAwaitingAssistant={isAwaiting}
+      />
+
+      <Composer
+        onSend={handleSend}
+        disabled={isAwaiting}
+        onOpenTutorChat={onOpenTutorChat}
+      />
     </article>
   );
 }

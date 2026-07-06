@@ -5,7 +5,7 @@
     "pubkey": "AI Assistant Public Key (npub/hex)",
     "status": {
       "available": "Bot is online",
-      "unavailable": "Bot unreachable — messages will go directly to tutor",
+      "unavailable": "Bot unreachable \u2014 messages will go directly to tutor",
       "checking": "Checking bot availability..."
     }
   },
@@ -17,6 +17,19 @@
     "title": "AI Homework Review",
     "hint": "Submit your homework for AI review before sending to tutor",
     "placeholder": "Paste your homework or notes here...",
-    "send": "Submit for review"
+    "send": "Submit for review",
+    "checking": "Checking your solution \u2014 this usually takes 30\u201360 seconds",
+    "retrySubmit": "Submit corrected version",
+    "askHint": "How to fix this?",
+    "verdict": {
+      "needsRevision": "Needs revision",
+      "approved": "Ready for tutor"
+    },
+    "unavailable": {
+      "title": "AI review unavailable",
+      "body": "AI homework check is temporarily unavailable. You can send your homework directly to the tutor.",
+      "cta": "Open tutor chat"
+    },
+    "replyingTo": "Answering AI Assistant"
   }
 }

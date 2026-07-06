@@ -11,3 +11,5 @@ export interface AIAssistantState extends AIAssistantConfig {
   setAvailable: (v: boolean) => void;
   reset: () => void;
 }
+
+export type MessageAuthor = "student" | "assistant" | "system";

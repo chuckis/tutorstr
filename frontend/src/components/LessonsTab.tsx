@@ -23,7 +23,6 @@ import { LessonCard } from "./ui/LessonCard";
 import { EmptyState } from "./ui/EmptyState";
 import { ReviewForm } from "./ReviewForm";
 import { useAIAssistantStore } from "../features/ai-assistant/store";
-import { AIHomeworkPanel } from "../features/ai-assistant/components/AIHomeworkPanel";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
 type UploadProgress = "idle" | "uploading" | "done" | "error";
@@ -138,8 +137,11 @@ export function LessonsTab({
   const [noteView, setNoteView] = useState<NoteView>(null);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
-  const { assistantPubkey, isEnabled: aiEnabled } = useAIAssistantStore();
-  const isDev = import.meta.env.DEV;
+  const [aiInputText, setAiInputText] = useState("");
+  const [aiSending, setAiSending] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ type: "ai"; pubkey: string; content: string; messageId: string } | null>(null);
+  const aiStore = useAIAssistantStore();
+
 
   const handleReviewSubmit = useCallback(
     async (rating: ReviewRating, comment: string) => {
@@ -169,6 +171,10 @@ export function LessonsTab({
     const agreementEvent = lessonAgreements[selectedLesson.id];
     const isCompleted = selectedLesson.status === "completed";
     const showReviewForm = isCompleted && !reviewSubmitted && agreementEvent;
+    const threadMessages = messagesByThread[threadInfo.threadKey] || [];
+    const aiConfigured = aiStore.isEnabled && !!aiStore.assistantPubkey;
+    const hasAIChat = threadMessages.some(m => m.pubkey === aiStore.assistantPubkey);
+
 
     return (
       <DetailPageLayout
@@ -240,31 +246,72 @@ export function LessonsTab({
             <p className="muted">{t("review.alreadyReviewed")}</p>
           ) : null}
 
-          {(isDev || aiEnabled) && assistantPubkey ? (
-            <AIHomeworkPanel
-              lessonId={selectedLesson.id}
-              studentPubkey={selectedLesson.studentId}
-              tutorPubkey={selectedLesson.tutorId}
-              onSendHomework={onSendHomework}
-            />
-          ) : null}
         </article>
+        {aiConfigured && !hasAIChat ? (
+          <div className="panel ai-start-cta">
+            <h4>{t("ai.panel.title")}</h4>
+            <p className="muted">{t("ai.panel.hint")}</p>
+            <textarea
+              className="ui-input"
+              rows={3}
+              value={aiInputText}
+              onChange={(e) => setAiInputText(e.target.value)}
+              placeholder={t("ai.panel.placeholder")}
+            />
+            <div className="action-buttons" style={{ marginTop: "0.5em" }}>
+              <button
+                type="button"
+                className="ai-btn"
+                disabled={!aiInputText.trim() || aiSending}
+                onClick={async () => {
+                  if (!aiInputText.trim() || aiSending) return;
+                  setAiSending(true);
+                  try {
+                    await onSendHomework(aiStore.assistantPubkey!, aiInputText.trim(), selectedLesson.tutorId, threadInfo.threadKey);
+                    setAiInputText("");
+                  } finally {
+                    setAiSending(false);
+                  }
+                }}
+              >
+                {aiSending ? t("common.states.sending") : t("ai.panel.send")}
+              </button>
+            </div>
+          </div>
+        ) : null}
         <div className="stack">
           <h3>{t("common.messages.title")}</h3>
           <MessageThread
             messages={messagesByThread[threadInfo.threadKey] || []}
             currentPubkey={currentPubkey}
-            assistantPubkey={assistantPubkey}
+            assistantPubkey={aiStore.assistantPubkey}
             resolveSenderName={(pubkey) =>
               pubkey === currentPubkey
                 ? t("common.messages.you")
                 : counterpartyLabel
             }
+            onReplyTo={(msg) => {
+              if (msg.pubkey === aiStore.assistantPubkey) {
+                setReplyTo({ type: "ai", pubkey: aiStore.assistantPubkey!, content: msg.content, messageId: msg.id });
+              }
+            }}
           />
+
+          {replyTo ? (
+            <div className="reply-bar">
+              <span className="reply-bar-label">↩ {t("ai.panel.replyingTo")}</span>
+              <span className="reply-bar-quote">{replyTo.content.slice(0, 60)}{replyTo.content.length > 60 ? "…" : ""}</span>
+              <button type="button" className="reply-bar-cancel" onClick={() => setReplyTo(null)}>×</button>
+            </div>
+          ) : null}
           <MessageComposer
-            onSend={(text) => onSendMessage(counterpartyPubkey, text, threadInfo.threadKey)}
-            onSendWithFiles={(text, files) =>
-              onSendMessageWithFiles(counterpartyPubkey, text, files, threadInfo.threadKey)
+            onSend={(text) => replyTo
+              ? onSendHomework(aiStore.assistantPubkey!, text, selectedLesson.tutorId, threadInfo.threadKey)
+              : onSendMessage(counterpartyPubkey, text, threadInfo.threadKey)
+            }
+            onSendWithFiles={(text, files) => replyTo
+              ? onSendHomework(aiStore.assistantPubkey!, text, selectedLesson.tutorId, threadInfo.threadKey)
+              : onSendMessageWithFiles(counterpartyPubkey, text, files, threadInfo.threadKey)
             }
           />
           {messageStatus ? <p className="muted">{messageStatus}</p> : null}
