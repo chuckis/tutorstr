@@ -23,7 +23,7 @@ function makeEvent(overrides: Partial<Event> & { tags: string[][] }): Event {
 }
 
 describe("NostrGateway", () => {
-  let gateway: NostrGateway;
+  let gateway: any;
 
   beforeEach(() => {
     vi.stubEnv("NOSTR_RELAYS", "ws://localhost:5555");

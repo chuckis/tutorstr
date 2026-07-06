@@ -9,7 +9,7 @@ function createProvider(models?: string[]) {
 }
 
 describe("OpenRouterProvider", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  let fetchSpy: any;
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, "fetch");
@@ -43,12 +43,14 @@ describe("OpenRouterProvider", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const [url, opts] = fetchSpy.mock.calls[0]!;
     expect(url).toContain("openrouter.ai/api/v1/chat/completions");
-    expect(opts.method).toBe("POST");
-    expect(opts.headers).toMatchObject({
+    const init = opts as RequestInit;
+    expect(init.method).toBe("POST");
+    expect(init.headers).toMatchObject({
       Authorization: `Bearer ${TEST_API_KEY}`,
     });
 
-    const body = JSON.parse(opts.body as string);
+    const init2 = opts as RequestInit;
+    const body = JSON.parse(init2.body as string);
     expect(body.model).toBe(TEST_MODEL);
     expect(body.messages).toHaveLength(2);
     expect(body.messages[1].content).toContain("Math HW");
@@ -109,7 +111,8 @@ describe("OpenRouterProvider", () => {
       ],
     });
 
-    const body = JSON.parse(fetchSpy.mock.calls[0]![1].body as string);
+    const args = fetchSpy.mock.calls[0]![1] as RequestInit;
+    const body = JSON.parse(args.body as string);
     expect(body.messages[1].content).toContain("2+2=5");
     expect(body.messages[1].content).toContain("check your math");
   });
@@ -132,7 +135,8 @@ describe("OpenRouterProvider", () => {
       history: [],
     });
 
-    const body = JSON.parse(fetchSpy.mock.calls[0]![1].body as string);
+    const args2 = fetchSpy.mock.calls[0]![1] as RequestInit;
+    const body = JSON.parse(args2.body as string);
     expect(body.messages[0].content).toContain("Ты — ИИ-ассистент репетитора");
   });
 });
