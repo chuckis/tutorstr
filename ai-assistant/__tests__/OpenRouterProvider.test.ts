@@ -4,8 +4,8 @@ import { OpenRouterProvider } from "../src/adapters/llm/OpenRouterProvider.js";
 const TEST_API_KEY = "sk-or-v1-test123";
 const TEST_MODEL = "openai/gpt-4o-mini";
 
-function createProvider() {
-  return new OpenRouterProvider({ apiKey: TEST_API_KEY, model: TEST_MODEL });
+function createProvider(models?: string[]) {
+  return new OpenRouterProvider({ apiKey: TEST_API_KEY, models: models ?? [TEST_MODEL] });
 }
 
 describe("OpenRouterProvider", () => {

@@ -160,9 +160,16 @@ describe("TicketService", () => {
         plaintext: "try 1",
       }));
 
-      expect(nostr.sendEncrypted).toHaveBeenCalledTimes(1);
-      const call = (nostr.sendEncrypted as ReturnType<typeof vi.fn>).mock.calls[0]!;
-      const payload = JSON.parse(call[0].plaintext);
+      expect(nostr.sendEncrypted).toHaveBeenCalledTimes(2);
+      const tutorCall = (nostr.sendEncrypted as ReturnType<typeof vi.fn>).mock.calls.find(
+        (c: any) => c[0].recipientPubkey === "tutor1"
+      )![0];
+      const studentCall = (nostr.sendEncrypted as ReturnType<typeof vi.fn>).mock.calls.find(
+        (c: any) => c[0].recipientPubkey === "student1"
+      )![0];
+      expect(tutorCall.recipientPubkey).toBe("tutor1");
+      expect(studentCall.recipientPubkey).toBe("student1");
+      const payload = JSON.parse(tutorCall.plaintext);
       expect(payload.type).toBe("escalation");
       expect(payload.status).toBe("FORCED_ESCALATION");
     });
