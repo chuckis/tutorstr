@@ -12,7 +12,7 @@ async function main() {
 
   console.log("=== TutorHub AI Assistant ===");
   console.log(`Relays: ${config.nostrRelays.join(", ")}`);
-  console.log(`LLM Model: ${config.openRouterModel}`);
+  console.log(`LLM Models: ${config.openRouterModels}`);
   console.log(`Max AI iterations: ${config.maxAiIterations}`);
 
   process.env.NOSTR_RELAYS = config.nostrRelays.join(",");
@@ -27,7 +27,7 @@ async function main() {
 
   const llm = new OpenRouterProvider({
     apiKey: config.openRouterApiKey,
-    model: config.openRouterModel,
+    models: config.openRouterModels,
   });
 
   const ticketService = new TicketService(ticketRepo, llm, nostr, config.maxAiIterations);
