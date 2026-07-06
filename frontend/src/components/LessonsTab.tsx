@@ -170,38 +170,6 @@ export function LessonsTab({
     const isCompleted = selectedLesson.status === "completed";
     const showReviewForm = isCompleted && !reviewSubmitted && agreementEvent;
 
-    if (noteView === "list") {
-      return (
-        <LessonNoteList
-          notes={noteList}
-          onSelectNote={(noteId) => {
-            setSelectedNoteId(noteId);
-            setNoteView("detail");
-          }}
-          onBack={() => {
-            setNoteView(null);
-            setSelectedNoteId(null);
-          }}
-          tutors={tutors}
-          currentPubkey={currentPubkey}
-        />
-      );
-    }
-
-    if (noteView === "detail") {
-      return (
-        <LessonNoteDetail
-          note={selectedNote}
-          onBack={() => {
-            setNoteView("list");
-            setSelectedNoteId(null);
-          }}
-          tutors={tutors}
-          currentPubkey={currentPubkey}
-        />
-      );
-    }
-
     return (
       <DetailPageLayout
         backLabel={t("lessons.backToLessons")}
@@ -271,65 +239,6 @@ export function LessonsTab({
           {reviewSubmitted && !publishReviewError ? (
             <p className="muted">{t("review.alreadyReviewed")}</p>
           ) : null}
-
-          <LessonNoteEditor
-            value={lessonNote}
-            onChange={onLessonNoteChange}
-            onSave={onSaveNoteLocally}
-            onPublish={onPublishNote}
-            onShare={onShareNote}
-            publishStatus={publishStatus}
-            shareStatus={shareStatus}
-            uploadProgress={uploadProgress}
-          />
-
-          {lessonNoteError ? <p className="muted">{t(lessonNoteError)}</p> : null}
-          <button
-            type="button"
-            className="view-notes-link"
-            onClick={() => {
-              setNoteView("list");
-              setSelectedNoteId(null);
-            }}
-          >
-            {t("lessons.viewNotes")}
-          </button>
-
-          <div className="shared-notes">
-            <h4>{t("lessons.sharedNotes")}</h4>
-            {sharedNotesStatus === "loading" ? (
-              <p className="muted">{t("common.states.loading")}</p>
-            ) : sharedNotesStatus === "error" ? (
-              <p className="muted">{t("common.states.error")}</p>
-            ) : sharedNotes.length === 0 ? (
-              <p className="muted">{t("lessons.sharedNotesEmpty")}</p>
-            ) : (
-              <>
-                {lastSharedNote ? (
-                  <p className="muted">
-                    {t("lessons.lastSharedNote", {
-                      author:
-                        tutors[lastSharedNote.authorPubkey]?.profile.name ||
-                        toDisplayId(lastSharedNote.authorPubkey),
-                      time: formatDateTime(new Date(lastSharedNote.createdAt * 1000).toISOString()),
-                      count: lastSharedNote.attachments.length,
-                    })}
-                  </p>
-                ) : null}
-              {sharedNotes.map((note) => (
-                <div key={note.id} className="shared-note-bubble">
-                  <p>{note.content}</p>
-                  <span className="muted">
-                    {tutors[note.authorPubkey]?.profile.name || toDisplayId(note.authorPubkey)}
-                    {" · "}
-                    {formatDateTime(new Date(note.createdAt * 1000).toISOString())}
-                  </span>
-                  <MessageAttachmentPreview attachments={note.attachments} />
-                </div>
-              ))}
-              </>
-            )}
-          </div>
 
           {(isDev || aiEnabled) && assistantPubkey ? (
             <AIHomeworkPanel
