@@ -69,7 +69,9 @@ export function MessageThread({ messages, currentPubkey, resolveSenderName, assi
         const isAI = !isOwn && assistantPubkey && message.pubkey === assistantPubkey;
         const senderName = isOwn
           ? t("common.messages.you")
-          : resolveSenderName?.(message.pubkey);
+          : isAI
+            ? t("ai.badge.label")
+            : resolveSenderName?.(message.pubkey);
 
         let timestamp: string;
         try {

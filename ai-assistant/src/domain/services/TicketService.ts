@@ -165,22 +165,39 @@ export class TicketService {
       studentPubkey: _ticket.studentPubkey,
       subject: _ticket.subject,
       summary: approvedByAI
-        ? (review?.feedback ?? "")
+        ? (review?.feedback ?? "Homework approved — sent to tutor.")
         : `Превышен лимит итераций (${this.maxIterations}). Принудительная эскалация.`,
       rootEventId: _ticket.rootEventId,
     });
 
-    await this.nostr.sendEncrypted({
+    const commonTags: string[][] = [
+      ["e", _ticket.rootEventId, "", "root"],
+      ["t", "homework-submission"],
+      ["t", "ai-escalation"],
+      ...(threadTag ? [["thread", threadTag]] : []),
+    ];
+
+    const tasks: Promise<string>[] = [];
+
+    tasks.push(this.nostr.sendEncrypted({
       recipientPubkey: _ticket.tutorPubkey,
       plaintext: payload,
       tags: [
         ["p", _ticket.tutorPubkey],
-        ["e", _ticket.rootEventId, "", "root"],
-        ["t", "homework-submission"],
-        ["t", "ai-escalation"],
-        ...(threadTag ? [["thread", threadTag]] : []),
+        ...commonTags,
       ],
-    });
+    }));
+
+    tasks.push(this.nostr.sendEncrypted({
+      recipientPubkey: _ticket.studentPubkey,
+      plaintext: payload,
+      tags: [
+        ["p", _ticket.studentPubkey],
+        ...commonTags,
+      ],
+    }));
+
+    await Promise.all(tasks);
   }
 
   private extractSubject(plaintext: string): string {
