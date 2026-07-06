@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file .env src/app/main.ts",
-    "start": "tsx src/app/main.ts",
+    "start": "tsx --env-file .env src/app/main.ts",
     "build": "tsc",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prod": "node --env-file .env dist/app/main.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
