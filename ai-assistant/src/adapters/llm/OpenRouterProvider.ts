@@ -33,6 +33,7 @@ export class OpenRouterProvider implements ILLMProvider {
 
     for (const model of this.config.models) {
       if (hasImages && !this.supportsVision(model)) {
+        console.warn(`[OpenRouter] Skipping "${model}" — no vision support`);
         continue;
       }
 
@@ -43,7 +44,7 @@ export class OpenRouterProvider implements ILLMProvider {
         const msg = err instanceof Error ? err.message : String(err);
 
         if (this.isRetryable(err)) {
-          console.warn(`[OpenRouter] Model "${model}" failed (retryable): ${msg.slice(0, 120)}. Trying next...`);
+          console.warn(`[OpenRouter] Model "${model}" failed (retryable): ${msg.slice(0, 200)}. Trying next...`);
           lastError = err;
           await sleep(1000);
           continue;
@@ -53,7 +54,9 @@ export class OpenRouterProvider implements ILLMProvider {
       }
     }
 
-    throw lastError ?? new Error("All OpenRouter models exhausted");
+    const tried = this.config.models.join(", ");
+    console.error(`[OpenRouter] All models exhausted (${tried}). Last error: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
+    throw lastError ?? new Error(`All OpenRouter models exhausted: ${tried}`);
   }
 
   private async tryModel(
