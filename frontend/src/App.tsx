@@ -181,9 +181,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
       <BlogEditorView
         draftId={navigation.blogEditorDraftId}
         role={viewerRole}
-            onBlockUser={moderation.addMute}
-            onReportUser={moderation.publishReport}
-            mutedPubkeys={moderation.mutedPubkeys}
         pubkey={keypair.pubkey}
         onClose={() => window.history.back()}
       />
@@ -202,9 +199,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     return (
       <MyBlogView
         role={viewerRole}
-            onBlockUser={moderation.addMute}
-            onReportUser={moderation.publishReport}
-            mutedPubkeys={moderation.mutedPubkeys}
         pubkey={keypair.pubkey}
         onBack={() => window.history.back()}
         onNewPost={() => { navigation.setBlogEditorDraftId(null); }}
@@ -231,9 +225,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             <Avatar
               url={profileState.profile.avatarUrl}
               role={viewerRole}
-            onBlockUser={moderation.addMute}
-            onReportUser={moderation.publishReport}
-            mutedPubkeys={moderation.mutedPubkeys}
               size="sm"
             />
           </button>
@@ -365,9 +356,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             scheduleStatus={scheduleState.status}
             profileStatus={profileState.status}
             role={viewerRole}
-            onBlockUser={moderation.addMute}
-            onReportUser={moderation.publishReport}
-            mutedPubkeys={moderation.mutedPubkeys}
             upcomingLessons={lessonsState.lessonBuckets.upcoming}
             allLessons={lessonsState.lessons}
             bookingsIncoming={bookingsState.incoming}
@@ -390,9 +378,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
         onLogout={actions.logout}
         onRevealSecret={onRevealSecret}
         role={viewerRole}
-            onBlockUser={moderation.addMute}
-            onReportUser={moderation.publishReport}
-            mutedPubkeys={moderation.mutedPubkeys}
         onAvatarUpload={handleAvatarUpload}
         blossomUrl={blossomUrl}
         onBlossomUrlChange={setBlossomUrl}
