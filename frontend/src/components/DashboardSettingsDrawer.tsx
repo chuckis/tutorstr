@@ -1,5 +1,5 @@
-import { X, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Settings, User, HelpCircle, Info, ChevronRight, Moon, Sun, Ban, Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { X, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Settings, User, HelpCircle, Info, ChevronRight, Moon, Sun, Ban, Copy, Check, Bot } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
 import { useRelays } from "../hooks/useRelays";
 import { useI18n } from "../i18n/I18nProvider";
 import { AccountRole, UserProfile } from "../hooks/hookTypes";
@@ -15,8 +15,10 @@ import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Toggle } from "./ui/Toggle";
 import { BlockedUsersList } from "./BlockedUsersList";
+import { useAIAssistantStore } from "../features/ai-assistant/store";
+import { nostrClient } from "../nostr/client";
 
-type DrawerSection = "menu" | "settings" | "profile" | "faq" | "about" | "blocked";
+type DrawerSection = "menu" | "settings" | "profile" | "faq" | "about" | "blocked" | "ai";
 
 type DashboardSettingsDrawerProps = {
   isOpen: boolean;
@@ -42,6 +44,7 @@ const MENU_ITEMS: { section: DrawerSection; icon: React.ReactNode; labelKey: str
   { section: "settings", icon: <Settings size={18} />, labelKey: "profile.drawer.settings" },
   { section: "profile", icon: <User size={18} />, labelKey: "profile.drawer.profile" },
   { section: "blocked", icon: <Ban size={18} />, labelKey: "profile.drawer.blocked" },
+  { section: "ai", icon: <Bot size={18} />, labelKey: "profile.drawer.ai" },
   { section: "faq", icon: <HelpCircle size={18} />, labelKey: "profile.drawer.faq" },
   { section: "about", icon: <Info size={18} />, labelKey: "profile.drawer.about" },
 ];
@@ -280,6 +283,9 @@ export function DashboardSettingsDrawer({
       case "about":
         return <SettingsAbout />;
 
+      case "ai":
+        return <AISettingsPanel />;
+
       default:
         return (
           <>
@@ -340,5 +346,122 @@ export function DashboardSettingsDrawer({
         </div>
       </aside>
     </div>
+  );
+}
+
+function AISettingsPanel() {
+  const { t } = useI18n();
+  const {
+    isEnabled,
+    assistantPubkey,
+    isAvailable,
+    checkedAt,
+    setEnabled,
+    setPubkey,
+    setAvailable,
+  } = useAIAssistantStore();
+  const [checking, setChecking] = useState(false);
+
+  const pingBot = useCallback(async (pubkey: string) => {
+    if (!pubkey) return;
+    console.log("[AISettings] pingBot checking", pubkey.slice(0, 8) + "..");
+    setChecking(true);
+    try {
+      const online = await new Promise<boolean>((resolve) => {
+        let resolved = false;
+        const unsub = nostrClient.subscribe(
+          { kinds: [0], authors: [pubkey], limit: 1 },
+          () => {
+            if (resolved) return;
+            console.log("[AISettings] kind:0 event received — bot is online");
+            resolved = true;
+            clearTimeout(timer);
+            unsub();
+            resolve(true);
+          },
+        );
+        const timer = setTimeout(() => {
+          if (resolved) return;
+          console.log("[AISettings] timeout 60s — bot is offline");
+          resolved = true;
+          unsub();
+          resolve(false);
+        }, 60000);
+      });
+      console.log("[AISettings] pingBot result:", online);
+      setAvailable(online);
+    } catch (err) {
+      console.error("[AISettings] pingBot error:", err);
+      setAvailable(false);
+    } finally {
+      setChecking(false);
+    }
+  }, [setAvailable]);
+
+  useEffect(() => {
+    if (!isEnabled || !assistantPubkey) {
+      if (isAvailable !== false) setAvailable(false);
+      return;
+    }
+    const since = checkedAt ?? 0;
+    if (Date.now() - since > 30000) {
+      pingBot(assistantPubkey);
+    }
+  }, [isEnabled, assistantPubkey, pingBot, setAvailable]);
+
+  function handleToggle(v: boolean) {
+    setEnabled(v);
+    if (v && assistantPubkey) {
+      pingBot(assistantPubkey);
+    }
+  }
+
+  const statusIcon = checking
+    ? <Loader2 size={14} className="spin" />
+    : isAvailable
+      ? <CheckCircle2 size={14} style={{ color: "var(--color-success)" }} />
+      : <AlertCircle size={14} style={{ color: "var(--color-danger)" }} />;
+
+  const statusText = checking
+    ? t("ai.settings.status.checking")
+    : isAvailable
+      ? t("ai.settings.status.available")
+      : t("ai.settings.status.unavailable");
+
+  return (
+    <article className="panel">
+      <h3>{t("ai.settings.title")}</h3>
+
+      <div className="toggle-row">
+        <span className="toggle-row-label">{t("ai.settings.enable")}</span>
+        <Toggle
+          checked={isEnabled}
+          onChange={(e) => handleToggle(e.target.checked)}
+          aria-label={t("ai.settings.enable")}
+        />
+      </div>
+
+      {isEnabled ? (
+        <>
+          <div style={{ marginTop: "1em" }}>
+            <Input
+              label={t("ai.settings.pubkey")}
+              type="text"
+              value={assistantPubkey ?? ""}
+              onChange={(e) => {
+                setPubkey(e.target.value);
+                if (e.target.value) pingBot(e.target.value);
+              }}
+              placeholder="npub1... or hex"
+            />
+          </div>
+
+          <p className="muted" style={{ marginTop: "0.5em", display: "flex", alignItems: "center", gap: 6 }}>
+            {statusIcon}
+            {" "}{statusText}
+          </p>
+        </>
+      ) : null}
+    </article>
   );
 }

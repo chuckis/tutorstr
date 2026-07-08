@@ -22,6 +22,7 @@ import { Button } from "./ui/Button";
 import { LessonCard } from "./ui/LessonCard";
 import { EmptyState } from "./ui/EmptyState";
 import { ReviewForm } from "./ReviewForm";
+import { useAIAssistantStore } from "../features/ai-assistant/store";
 
 type ActionStatus = "idle" | "saving" | "published" | "shared" | "error";
 type UploadProgress = "idle" | "uploading" | "done" | "error";
@@ -76,6 +77,13 @@ type LessonsTabProps = {
     files: File[],
     threadKey?: string
   ) => void | Promise<void>;
+  onSendHomework: (
+    recipientPubkey: string,
+    text: string,
+    tutorPubkey: string,
+    threadKey?: string,
+    files?: File[],
+  ) => Promise<void>;
   messageStatus: string;
   loading: boolean;
   lessonAgreements: Record<string, LessonAgreementEvent>;
@@ -116,6 +124,7 @@ export function LessonsTab({
   isNewLesson,
   onSendMessage,
   onSendMessageWithFiles,
+  onSendHomework,
   messageStatus,
   loading,
   lessonAgreements,
@@ -129,6 +138,9 @@ export function LessonsTab({
   const [noteView, setNoteView] = useState<NoteView>(null);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+      const [replyTo, setReplyTo] = useState<{ type: "ai"; pubkey: string; content: string; messageId: string } | null>(null);
+    const aiStore = useAIAssistantStore();
+
 
   const handleReviewSubmit = useCallback(
     async (rating: ReviewRating, comment: string) => {
@@ -158,38 +170,10 @@ export function LessonsTab({
     const agreementEvent = lessonAgreements[selectedLesson.id];
     const isCompleted = selectedLesson.status === "completed";
     const showReviewForm = isCompleted && !reviewSubmitted && agreementEvent;
+    const threadMessages = messagesByThread[threadInfo.threadKey] || [];
+    const aiConfigured = aiStore.isEnabled && !!aiStore.assistantPubkey;
+    const hasAIChat = threadMessages.some(m => m.pubkey === aiStore.assistantPubkey);
 
-    if (noteView === "list") {
-      return (
-        <LessonNoteList
-          notes={noteList}
-          onSelectNote={(noteId) => {
-            setSelectedNoteId(noteId);
-            setNoteView("detail");
-          }}
-          onBack={() => {
-            setNoteView(null);
-            setSelectedNoteId(null);
-          }}
-          tutors={tutors}
-          currentPubkey={currentPubkey}
-        />
-      );
-    }
-
-    if (noteView === "detail") {
-      return (
-        <LessonNoteDetail
-          note={selectedNote}
-          onBack={() => {
-            setNoteView("list");
-            setSelectedNoteId(null);
-          }}
-          tutors={tutors}
-          currentPubkey={currentPubkey}
-        />
-      );
-    }
 
     return (
       <DetailPageLayout
@@ -261,80 +245,77 @@ export function LessonsTab({
             <p className="muted">{t("review.alreadyReviewed")}</p>
           ) : null}
 
-          <LessonNoteEditor
-            value={lessonNote}
-            onChange={onLessonNoteChange}
-            onSave={onSaveNoteLocally}
-            onPublish={onPublishNote}
-            onShare={onShareNote}
-            publishStatus={publishStatus}
-            shareStatus={shareStatus}
-            uploadProgress={uploadProgress}
-          />
-
-          {lessonNoteError ? <p className="muted">{t(lessonNoteError)}</p> : null}
-          <button
-            type="button"
-            className="view-notes-link"
-            onClick={() => {
-              setNoteView("list");
-              setSelectedNoteId(null);
-            }}
-          >
-            {t("lessons.viewNotes")}
-          </button>
-
-          <div className="shared-notes">
-            <h4>{t("lessons.sharedNotes")}</h4>
-            {sharedNotesStatus === "loading" ? (
-              <p className="muted">{t("common.states.loading")}</p>
-            ) : sharedNotesStatus === "error" ? (
-              <p className="muted">{t("common.states.error")}</p>
-            ) : sharedNotes.length === 0 ? (
-              <p className="muted">{t("lessons.sharedNotesEmpty")}</p>
-            ) : (
-              <>
-                {lastSharedNote ? (
-                  <p className="muted">
-                    {t("lessons.lastSharedNote", {
-                      author:
-                        tutors[lastSharedNote.authorPubkey]?.profile.name ||
-                        toDisplayId(lastSharedNote.authorPubkey),
-                      time: formatDateTime(new Date(lastSharedNote.createdAt * 1000).toISOString()),
-                      count: lastSharedNote.attachments.length,
-                    })}
-                  </p>
-                ) : null}
-              {sharedNotes.map((note) => (
-                <div key={note.id} className="shared-note-bubble">
-                  <p>{note.content}</p>
-                  <span className="muted">
-                    {tutors[note.authorPubkey]?.profile.name || toDisplayId(note.authorPubkey)}
-                    {" · "}
-                    {formatDateTime(new Date(note.createdAt * 1000).toISOString())}
-                  </span>
-                  <MessageAttachmentPreview attachments={note.attachments} />
-                </div>
-              ))}
-              </>
-            )}
-          </div>
         </article>
+        {aiConfigured && !hasAIChat ? (
+          <div className="ai-ready-bar">
+            <div
+              className="ai-ready-bar-main"
+              onClick={() => {
+                if (!aiStore.isAvailable) return;
+                if (replyTo?.type === "ai") { setReplyTo(null); return; }
+                setReplyTo({ type: "ai", pubkey: aiStore.assistantPubkey!, content: "", messageId: "" });
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  if (!aiStore.isAvailable) return;
+                  if (replyTo?.type === "ai") { setReplyTo(null); return; }
+                  setReplyTo({ type: "ai", pubkey: aiStore.assistantPubkey!, content: "", messageId: "" });
+                }
+              }}
+            >
+              <span className={`ai-status-dot ${aiStore.isAvailable ? "online" : "offline"}`} />
+              <span className="ai-ready-label">{t("ai.badge.label")}</span>
+              <span className="ai-ready-status">
+                {aiStore.isAvailable ? t("ai.settings.status.available") : t("ai.settings.status.unavailable")}
+              </span>
+              {aiStore.isAvailable ? (
+                <span className="ai-ready-arrow">{replyTo?.type === "ai" ? "▾" : "▸"}</span>
+              ) : null}
+            </div>
+            {aiStore.isAvailable && replyTo?.type === "ai" ? (
+              <div className="ai-ready-hint">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v5M12 16h.01"/></svg>
+                {t("ai.panel.hint")}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <div className="stack">
           <h3>{t("common.messages.title")}</h3>
           <MessageThread
             messages={messagesByThread[threadInfo.threadKey] || []}
             currentPubkey={currentPubkey}
+            assistantPubkey={aiStore.assistantPubkey}
             resolveSenderName={(pubkey) =>
               pubkey === currentPubkey
                 ? t("common.messages.you")
                 : counterpartyLabel
             }
+            onReplyTo={(msg) => {
+              if (msg.pubkey === aiStore.assistantPubkey) {
+                setReplyTo({ type: "ai", pubkey: aiStore.assistantPubkey!, content: msg.content, messageId: msg.id });
+              }
+            }}
           />
+
+          {replyTo ? (
+            <div className="reply-bar">
+              <span className="reply-bar-label">↩ {t("ai.panel.replyingTo")}</span>
+              <span className="reply-bar-quote">{replyTo.content.slice(0, 60)}{replyTo.content.length > 60 ? "…" : ""}</span>
+              <button type="button" className="reply-bar-cancel" onClick={() => setReplyTo(null)}>×</button>
+            </div>
+          ) : null}
           <MessageComposer
-            onSend={(text) => onSendMessage(counterpartyPubkey, text, threadInfo.threadKey)}
-            onSendWithFiles={(text, files) =>
-              onSendMessageWithFiles(counterpartyPubkey, text, files, threadInfo.threadKey)
+            onSend={(text) => replyTo
+              ? onSendHomework(aiStore.assistantPubkey!, text, selectedLesson.tutorId, threadInfo.threadKey)
+              : onSendMessage(counterpartyPubkey, text, threadInfo.threadKey)
+            }
+            onSendWithFiles={(text, files) => replyTo
+              ? onSendHomework(aiStore.assistantPubkey!, text, selectedLesson.tutorId, threadInfo.threadKey, files)
+              : onSendMessageWithFiles(counterpartyPubkey, text, files, threadInfo.threadKey)
             }
           />
           {messageStatus ? <p className="muted">{messageStatus}</p> : null}

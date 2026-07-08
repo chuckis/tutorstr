@@ -78,7 +78,8 @@
     "about": "About",
     "back": "Back",
     "darkMode": "Dark Mode",
-    "blocked": "Blocked Users"
+    "blocked": "Blocked Users",
+    "ai": "AI Assistant"
   },
   "faq": {
     "dataStorage_q": "How is my data stored?",

@@ -1,3 +1,4 @@
+import { nip19 } from "nostr-tools";
 import { fallbackDirectMessageThreadKey } from "../../domain/messageThread";
 import { PrivateMessagingRepository, ProgressEntryEvent } from "../../ports/privateMessagingRepository";
 import { nostrClient } from "../../nostr/client";
@@ -122,7 +123,9 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
       });
     },
 
-    async sendMessage(recipientPubkey, text, threadKey) {
+    async sendMessage(_recipientPubkey, text, threadKey) {
+
+      const recipientPubkey = _recipientPubkey.startsWith("npub1") ? (() => { try { const d = nip19.decode(_recipientPubkey); return typeof d.data === "string" ? d.data : Array.from(d.data).map(b => b.toString(16).padStart(2, "0")).join(""); } catch { return _recipientPubkey; } })() : _recipientPubkey;
       if (!text.trim()) return;
 
       await nostrClient.publishEncryptedEvent(
@@ -136,6 +139,26 @@ export function createNostrPrivateMessagingRepository(): PrivateMessagingReposit
           ],
         ],
       );
+    },
+
+    async sendHomeworkMessage(recipientPubkey, text, tutorPubkey, threadKey) {
+      const pk = recipientPubkey.startsWith("npub1") ? (() => { try { const d = nip19.decode(recipientPubkey); return typeof d.data === "string" ? d.data : Array.from(d.data).map(b => b.toString(16).padStart(2, "0")).join(""); } catch { return recipientPubkey; } })() : recipientPubkey;
+
+      console.log("[sendHomeworkMessage] Sending to", recipientPubkey.slice(0, 8) + ".., tutor", tutorPubkey.slice(0, 8) + ".., threadKey:", threadKey);
+
+      await nostrClient.publishEncryptedEvent(
+        TutorHubKind.DirectMessage,
+        pk,
+        text,
+        [
+          ["p", tutorPubkey],
+          ["t", "homework-submission"],
+          ["e", "", "", "root"],
+          ["thread", threadKey ?? ""],
+        ],
+      );
+
+      console.log("[sendHomeworkMessage] Published OK");
     },
 
     async sendAttachmentMessage(recipientPubkey, payload, threadKey) {
