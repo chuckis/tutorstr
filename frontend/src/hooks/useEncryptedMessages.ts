@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { EncryptedMessage } from "../domain/messaging";
+import { getNotificationSince } from "../utils/notificationCursor";
 import { usePrivateMessagingRepository } from "./usePrivateMessagingRepository";
 
 export function useEncryptedMessages(pubkey: string) {
@@ -20,7 +21,7 @@ export function useEncryptedMessages(pubkey: string) {
     };
 
   
-    return messagingRepository.subscribeMessagesForUser(pubkey, pushMessage);
+    return messagingRepository.subscribeMessagesForUser(pubkey, pushMessage, getNotificationSince());
   }, [messagingRepository, pubkey]);
 
   const byCounterparty = useMemo(() => {

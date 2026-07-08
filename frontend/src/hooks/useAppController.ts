@@ -29,6 +29,7 @@ import { useRepo } from "./RepoContext";
 import { BookingStatusPayload } from "../ports/bookingEventsRepository";
 import { usePublishRelayList } from "./usePublishRelayList";
 
+import { getNotificationSince } from "../utils/notificationCursor";
 function isRequestVisibleForBadge(
   request: { id: string; status: string },
   statusEvents: Record<string, { created_at: number }>,
@@ -156,8 +157,9 @@ export function useAppController(
   const prevRequestTs = useRef(0);
   useEffect(() => {
     if (viewerRole !== "tutor") return;
+    const since = getNotificationSince();
     const ts = bookingsState.latestIncomingRequestTs;
-    if (prevRequestTs.current > 0 && ts > prevRequestTs.current) {
+    if (prevRequestTs.current > 0 && ts > prevRequestTs.current && ts >= since) {
       notification.info(t("common.notifications.newRequest"), {
         dedupKey: `new-request:${ts}`,
         action: {
@@ -173,13 +175,15 @@ export function useAppController(
   const prevMsgCount = useRef(0);
   const prevMsgIds = useRef(new Set<string>());
   useEffect(() => {
+    const since = getNotificationSince();
     const messages = messagesState.messages;
     const currentIds = new Set(messages.map((m) => m.id));
     if (prevMsgCount.current > 0) {
       for (const msg of messages) {
         if (
           !prevMsgIds.current.has(msg.id) &&
-          msg.pubkey !== keypair.pubkey
+          msg.pubkey !== keypair.pubkey &&
+          msg.created_at >= since
         ) {
           notification.info(t("common.notifications.newMessage"), {
             dedupKey: `msg:${msg.id}`,
@@ -194,11 +198,13 @@ export function useAppController(
   // ── Notification: booking status change ──
   const prevStatusKeys = useRef(new Set<string>());
   useEffect(() => {
+    const since = getNotificationSince();
     const currentKeys = new Set(bookingsState.statusesList.map((s) => s.id));
     if (prevStatusKeys.current.size > 0) {
       for (const statusEvent of bookingsState.statusesList) {
         if (prevStatusKeys.current.has(statusEvent.id)) continue;
         if (statusEvent.pubkey === keypair.pubkey) continue;
+        if (statusEvent.created_at < since) continue;
 
         const status: BookingStatusPayload = statusEvent.status;
         const booking = [...bookingsState.incoming, ...bookingsState.outgoing].find(
