@@ -247,7 +247,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             onSendMessage={actions.sendEncryptedMessage}
             onSendMessageWithFiles={actions.sendEncryptedMessageWithFiles}
             messageStatus={messageStatus}
-            currentPubkey={keypair.pubkey}
             studentPubkey={keypair.pubkey}
             activeBidBySlotAndStudent={bookingsState.activeBidBySlotAndStudent}
             winnerByAllocationKey={{
@@ -260,9 +259,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             mutedPubkeys={moderation.mutedPubkeys}
             loading={stateLoading.discover}
             onSelectBlogPost={(data) => navigation.setSelectedBlogPost(data)}
-            mutedPubkeys={moderation.mutedPubkeys}
-            onBlockUser={moderation.addMute}
-            onReportUser={moderation.publishReport}
           />
         ) : null}
 
@@ -303,7 +299,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
             lessonSegment={navigation.lessonSegment}
             onLessonSegmentChange={navigation.setLessonSegment}
             lessonBuckets={lessonsState.lessonBuckets}
-            currentPubkey={keypair.pubkey}
             tutors={directoryState.tutors}
             lessonNote={lessonNoteState.lessonNote}
             onLessonNoteChange={lessonNoteState.setLessonNote}
@@ -346,7 +341,6 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
         {navigation.activeTab === "profile" ? (
           <DashboardTab
             npub={keypair.npub}
-        pubkey={keypair.pubkey}
             pubkey={keypair.pubkey}
             profileName={profileState.profile.name}
             profileAvatarUrl={profileState.profile.avatarUrl}
