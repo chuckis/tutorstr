@@ -218,7 +218,7 @@ function AuthenticatedApp({ viewerRole, onLogout, onRevealSecret }: Authenticate
     <main className="app-shell">
       {!navigation.detailActive ? (
         <header className="topbar">
-          <h1>{t("common.app.title")} (beta)</h1>
+          <h1>{t("common.app.title")} (demo)</h1>
           <button
             type="button"
             className={`profile-badge-button${!profileState.profile.name ? " profile-badge-button--pulse" : ""}`}
