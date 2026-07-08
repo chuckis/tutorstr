@@ -43,6 +43,12 @@ export class OpenRouterProvider implements ILLMProvider {
         const status = (err as { status?: number })?.status ?? 0;
         const msg = err instanceof Error ? err.message : String(err);
 
+        if (status === 404) {
+          console.warn(`[OpenRouter] Model "${model}" unavailable (404). Skipping...`);
+          lastError = err;
+          continue;
+        }
+
         if (this.isRetryable(err)) {
           console.warn(`[OpenRouter] Model "${model}" failed (retryable): ${msg.slice(0, 200)}. Trying next...`);
           lastError = err;

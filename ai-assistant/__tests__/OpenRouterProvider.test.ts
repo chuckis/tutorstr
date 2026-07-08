@@ -139,4 +139,47 @@ describe("OpenRouterProvider", () => {
     const body = JSON.parse(args2.body as string);
     expect(body.messages[0].content).toContain("Ты — ИИ-ассистент репетитора");
   });
+
+  it('skips 404 model and falls through to next model', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response('Model unavailable', { status: 404 }),
+    );
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          choices: [{ message: { content: '{"status":"approved","feedback":"OK","suggestions":[]}' } }],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    const provider = createProvider(['model-a/dead:free', 'model-b/works:free']);
+    const result = await provider.reviewHomework({
+      subject: 'Math',
+      content: 'test',
+      language: 'en',
+      history: [],
+    });
+
+    expect(result.status).toBe('approved');
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const body1 = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string);
+    const body2 = JSON.parse((fetchSpy.mock.calls[1][1] as RequestInit).body as string);
+    expect(body1.model).toBe('model-a/dead:free');
+    expect(body2.model).toBe('model-b/works:free');
+  });
+
+  it('throws when all models return 404', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response('Model A unavailable', { status: 404 }),
+    );
+    fetchSpy.mockResolvedValueOnce(
+      new Response('Model B unavailable', { status: 404 }),
+    );
+
+    const provider = createProvider(['model-a/dead:free', 'model-b/dead:free']);
+    await expect(
+      provider.reviewHomework({ subject: 'Math', content: 'test', language: 'en', history: [] }),
+    ).rejects.toThrow('OpenRouter API error 404');
+  });
 });
