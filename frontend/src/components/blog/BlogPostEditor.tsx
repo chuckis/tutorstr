@@ -29,6 +29,7 @@ import { Separator } from "@mdxeditor/editor";
 import { DiffSourceToggleWrapper } from "@mdxeditor/editor";
 
 type BlogPostEditorProps = {
+  onAutoSave?: (draft: BlogDraft) => Promise<void>;
   draft: BlogDraft;
   role: AccountRole;
   onSave: (draft: BlogDraft) => Promise<void>;
@@ -46,6 +47,7 @@ export function BlogPostEditor({
   onDiscard,
   saving,
   publishing,
+  onAutoSave,
 }: BlogPostEditorProps) {
   const { t } = useI18n();
   const { uploadImage } = useEditorImageUpload();
@@ -55,21 +57,48 @@ export function BlogPostEditor({
   const [body, setBody] = useState(initialDraft.body);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initialDraft.tags);
+  const dirtyRef = useRef(false);
+  const getDraftRef = useRef(getDraft);
+  getDraftRef.current = getDraft;
+  const setDirty = useCallback(() => { dirtyRef.current = true; }, []);
 
   useEffect(() => {
     editorRef.current?.setMarkdown(initialDraft.body);
   }, [initialDraft.body]);
 
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (dirtyRef.current) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!onAutoSave) return;
+    const handler = () => {
+      if (document.visibilityState === "hidden" && dirtyRef.current) {
+        onAutoSave(getDraftRef.current());
+      }
+    };
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, [onAutoSave]);
+
   function handleAddTag() {
     const normalized = normalizeTags([tagInput]);
     if (normalized.length > 0 && !tags.includes(normalized[0])) {
       setTags([...tags, normalized[0]]);
+      setDirty();
     }
     setTagInput("");
   }
 
   function handleRemoveTag(tag: string) {
     setTags(tags.filter((t) => t !== tag));
+    setDirty();
   }
 
   function getDraft(): BlogDraft {
@@ -90,6 +119,7 @@ export function BlogPostEditor({
 
   const handleChange = useCallback((md: string) => {
     setBody(md);
+    setDirty();
   }, []);
 
   return (
@@ -101,7 +131,7 @@ export function BlogPostEditor({
             className="input"
             placeholder={t("blog.editor.titlePlaceholder")}
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => { setTitle(e.target.value); setDirty(); }}
           />
         </div>
         <div className="form-field">
@@ -110,7 +140,7 @@ export function BlogPostEditor({
             className="input"
             placeholder={t("blog.editor.summaryPlaceholder")}
             value={summary}
-            onChange={(e) => setSummary(e.target.value)}
+            onChange={(e) => { setSummary(e.target.value); setDirty(); }}
           />
         </div>
         <div className="form-field">
@@ -180,19 +210,19 @@ export function BlogPostEditor({
           ) : null}
         </div>
         <div className="blog-editor__actions">
-          <Button variant="secondary" onClick={onDiscard}>
+          <Button variant="secondary" onClick={() => { dirtyRef.current = false; onDiscard(); }}>
             {t("blog.discard")}
           </Button>
           <Button
             variant="secondary"
-            onClick={() => onSave(getDraft())}
+            onClick={() => { dirtyRef.current = false; onSave(getDraft()); }}
             loading={saving}
           >
             {t("blog.saveDraft")}
           </Button>
           <Button
             variant="primary"
-            onClick={() => onPublish(getDraft())}
+            onClick={() => { dirtyRef.current = false; onPublish(getDraft()); }}
             disabled={!canPublish()}
             loading={publishing}
           >

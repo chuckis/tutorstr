@@ -72,6 +72,14 @@ export function BlogEditorView({ draftId, role, pubkey, onClose }: BlogEditorVie
     }
   }
 
+  async function handleAutoSave(nextDraft: BlogDraft) {
+    try {
+      await saveDraft(nextDraft);
+    } catch (err) {
+      console.warn("Auto-save failed:", err);
+    }
+  }
+
   async function handlePublish(nextDraft: BlogDraft) {
     setPublishing(true);
     setError(null);
@@ -105,6 +113,7 @@ export function BlogEditorView({ draftId, role, pubkey, onClose }: BlogEditorVie
           onSave={handleSave}
           onPublish={handlePublish}
           onDiscard={onClose}
+          onAutoSave={handleAutoSave}
           saving={saving}
           publishing={publishing}
         />
