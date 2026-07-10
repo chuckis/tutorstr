@@ -15,7 +15,7 @@ import { useBlossomConfig } from "./hooks/useBlossomConfig";
 import { RepoProvider } from "./hooks/RepoContext";
 import { NotificationProvider } from "./hooks/NotificationContext";
 import { useNotificationCursor } from "./hooks/useNotificationCursor";
-import { useI18n } from "./i18n/I18nProvider";
+import { useI18n, I18nProvider } from "./i18n/I18nProvider";
 import { useTheme } from "./theme/ThemeProvider";
 import { UIKitPage } from "./components/UIKitPage";
 import { AccountRole } from "./domain/account";
@@ -49,6 +49,14 @@ function createSigner(session: AuthSession, passphrase: string): NostrSigner {
 }
 
 export default function App() {
+  return (
+    <I18nProvider>
+      <AppContent />
+    </I18nProvider>
+  );
+}
+
+function AppContent() {
   const auth = useAuthController(authDeps, createSigner);
   const { t } = useI18n();
   const [awaitingSigner, setAwaitingSigner] = useState<AwaitingSigner | null>(null);

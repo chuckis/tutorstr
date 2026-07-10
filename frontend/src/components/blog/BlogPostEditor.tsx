@@ -28,8 +28,9 @@ import { ListsToggle } from "@mdxeditor/editor";
 import { Separator } from "@mdxeditor/editor";
 import { DiffSourceToggleWrapper } from "@mdxeditor/editor";
 
+const DRAFT_STORAGE_KEY = "tutorstr:blog:drafts";
+
 type BlogPostEditorProps = {
-  onAutoSave?: (draft: BlogDraft) => Promise<void>;
   draft: BlogDraft;
   role: AccountRole;
   onSave: (draft: BlogDraft) => Promise<void>;
@@ -47,7 +48,6 @@ export function BlogPostEditor({
   onDiscard,
   saving,
   publishing,
-  onAutoSave,
 }: BlogPostEditorProps) {
   const { t } = useI18n();
   const { uploadImage } = useEditorImageUpload();
@@ -77,15 +77,24 @@ export function BlogPostEditor({
   }, []);
 
   useEffect(() => {
-    if (!onAutoSave) return;
     const handler = () => {
       if (document.visibilityState === "hidden" && dirtyRef.current) {
-        onAutoSave(getDraftRef.current());
+        const draft = getDraftRef.current();
+        try {
+          const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+          const all: BlogDraft[] = raw ? JSON.parse(raw) : [];
+          const idx = all.findIndex((d) => d.id === draft.id);
+          if (idx >= 0) all[idx] = draft;
+          else all.push(draft);
+          localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(all));
+        } catch {
+          /* синхронный бэкап — игнорируем ошибки localStorage */
+        }
       }
     };
     document.addEventListener("visibilitychange", handler);
     return () => document.removeEventListener("visibilitychange", handler);
-  }, [onAutoSave]);
+  }, []);
 
   function handleAddTag() {
     const normalized = normalizeTags([tagInput]);

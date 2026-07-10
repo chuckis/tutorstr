@@ -3784,6 +3784,7 @@ button:active {
 .tag-input-row {
   display: flex;
   gap: var(--space-2);
+  flex-wrap: wrap;
   align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   margin-bottom: var(--space-2);
 }
@@ -3823,6 +3824,7 @@ button:active {
 
 .draft-card__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
   flex-shrink: 0;
 }
@@ -6000,6 +6002,7 @@ button:active {
 /* ── Tag input row ── */
 .tag-input-row {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
   align-items: flex-start;   /* Выравнивает аватар, текст и кебаб по верхнему краю */
   margin-bottom: var(--space-2);
@@ -6039,6 +6042,7 @@ button:active {
 }
 
 .draft-card__actions {
+  flex-wrap: wrap;
   display: flex;
   gap: var(--space-2);
   flex-shrink: 0;
