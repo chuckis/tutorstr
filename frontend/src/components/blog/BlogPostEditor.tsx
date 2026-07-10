@@ -121,6 +121,7 @@ export function BlogPostEditor({
             contentEditableClassName="blog-editor__body"
             plugins={[
               toolbarPlugin({
+                toolbarClassName: "blog-editor__toolbar",
                 toolbarContents: () => (
                   <>
                     <UndoRedo />

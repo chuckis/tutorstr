@@ -3719,8 +3719,15 @@ button:active {
 
 /* ── Blog Editor ── */
 .blog-editor {
+  width: 100%;
   display: flex;
   flex-direction: column;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.blog-editor__toolbar {
+  flex-wrap: wrap;
 }
 
 .blog-editor .form-field {
@@ -3740,6 +3747,37 @@ button:active {
   gap: var(--space-2);
   justify-content: flex-end;
   flex-wrap: wrap;
+}
+
+[data-theme="dark"] .blog-editor {
+  --baseBg: var(--color-surface);
+  --baseText: var(--color-text);
+  --basePageBg: var(--color-bg);
+  --baseBorder: var(--color-border);
+}
+
+[data-theme="dark"] .blog-editor__toolbar {
+  background: var(--color-surface);
+  border-color: var(--color-border-hover);
+}
+
+[data-theme="dark"] .blog-editor__toolbar button {
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .blog-editor__toolbar button svg {
+  fill: var(--color-text);
+  stroke: var(--color-text);
+}
+
+[data-theme="dark"] .blog-editor__toolbar select {
+  color: var(--color-text);
+  background: var(--color-surface-soft);
+}
+
+[data-theme="dark"] .blog-editor__body {
+  color: var(--color-text);
+  background: var(--color-surface);
 }
 
 /* ── Tag input row ── */
@@ -5957,31 +5995,6 @@ button:active {
 
 .blog-full__body a:hover {
   color: var(--color-primary-strong);
-}
-
-/* ── Blog Editor ── */
-.blog-editor {
-  display: flex;
-  flex-direction: column;
-}
-
-.blog-editor .form-field {
-  margin-bottom: var(--space-3);
-}
-
-.blog-editor__body {
-  min-height: 300px;
-  resize: vertical;
-  font-family: var(--font-mono, monospace);
-  font-size: 0.92rem;
-  line-height: 1.6;
-}
-
-.blog-editor__actions {
-  display: flex;
-  gap: var(--space-2);
-  justify-content: flex-end;
-  flex-wrap: wrap;
 }
 
 /* ── Tag input row ── */
